@@ -119,14 +119,36 @@ class CompraController extends Controller
         }
 
         $request->validate([
-            'amount' => 'required|numeric|min:0.01'
+            'amount' => 'required|numeric|min:0.01',
+            'currency' => 'required|in:PEN,USD'
         ]);
 
         try {
+            $amount = floatval($request->amount);
+            $currency = $request->currency;
+            $exchangeRate = null;
+            $amountPen = $amount;
+
+            // Si es USD, obtener tipo de cambio y convertir
+            if ($currency === 'USD') {
+                $exchangeRate = $this->getExchangeRate();
+                if ($exchangeRate) {
+                    $amountPen = $amount * $exchangeRate;
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No se pudo obtener el tipo de cambio'
+                    ], 400);
+                }
+            }
+
             DB::table($this->ordersTable)
                 ->where('id', $id)
                 ->update([
-                    'amount' => floatval($request->amount),
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'exchange_rate' => $exchangeRate,
+                    'amount_pen' => $amountPen,
                     'status' => 'approved',
                     'approved_by' => auth()->id(),
                     'approved_at' => now(),
@@ -136,7 +158,9 @@ class CompraController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Orden aprobada exitosamente'
+                'message' => 'Orden aprobada exitosamente',
+                'exchange_rate' => $exchangeRate,
+                'amount_pen' => $amountPen
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -144,6 +168,66 @@ class CompraController extends Controller
                 'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Obtener tipo de cambio USD -> PEN desde SUNAT (API decolecta)
+     */
+    protected function getExchangeRate($date = null)
+    {
+        try {
+            $apiKey = 'sk_12725.xbGMYdLZTrQvrowVM3LNDAUeNadco86A';
+            $url = 'https://api.decolecta.com/v1/tipo-cambio/sunat';
+            
+            if ($date) {
+                $url .= '?date=' . $date;
+            }
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode === 200 && $response) {
+                $data = json_decode($response, true);
+                // Usar precio de venta (sell_price) para conversión
+                return floatval($data['sell_price'] ?? 0);
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            \Log::error('Error getting exchange rate: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * API endpoint para obtener tipo de cambio actual
+     */
+    public function exchangeRate()
+    {
+        $rate = $this->getExchangeRate();
+        
+        if ($rate) {
+            return response()->json([
+                'success' => true,
+                'rate' => $rate,
+                'date' => now()->format('Y-m-d')
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No se pudo obtener el tipo de cambio'
+        ], 500);
     }
 
     /**
@@ -204,7 +288,6 @@ class CompraController extends Controller
             ]
         ]);
     }
-
     /**
      * Listar proyectos para selector
      */
@@ -220,5 +303,73 @@ class CompraController extends Controller
             'success' => true,
             'projects' => $projects
         ]);
+    }
+
+    /**
+     * Exportar órdenes aprobadas a CSV (Excel compatible)
+     */
+    public function exportExcel(Request $request)
+    {
+        $orders = DB::table($this->ordersTable)
+            ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->select([
+                'purchase_orders.id',
+                'purchase_orders.created_at as fecha_emision',
+                'projects.name as proyecto',
+                'purchase_orders.description',
+                'purchase_orders.type',
+                'purchase_orders.amount',
+                'purchase_orders.currency',
+                'purchase_orders.exchange_rate',
+                'purchase_orders.amount_pen'
+            ])
+            ->where('purchase_orders.status', 'approved')
+            ->orderBy('purchase_orders.created_at', 'desc')
+            ->get();
+
+        // Headers CSV
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="compras_' . date('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function() use ($orders) {
+            $file = fopen('php://output', 'w');
+            
+            // BOM for UTF-8 Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Header row
+            fputcsv($file, [
+                'ID',
+                'Fecha de Emisión',
+                'Proyecto',
+                'Descripción',
+                'Tipo',
+                'Monto Original',
+                'Moneda',
+                'Tipo de Cambio',
+                'Monto en Soles'
+            ], ';');
+            
+            // Data rows
+            foreach ($orders as $order) {
+                fputcsv($file, [
+                    $order->id,
+                    date('d/m/Y', strtotime($order->fecha_emision)),
+                    $order->proyecto,
+                    $order->description,
+                    $order->type === 'service' ? 'Servicio' : 'Materiales',
+                    number_format($order->amount, 2, '.', ''),
+                    $order->currency,
+                    $order->currency === 'USD' ? number_format($order->exchange_rate, 4, '.', '') : '',
+                    number_format($order->amount_pen, 2, '.', '')
+                ], ';');
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

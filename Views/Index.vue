@@ -20,6 +20,12 @@
           </h1>
         </div>
         <div class="header-right">
+          <button @click="exportExcel" class="btn-export" :disabled="exporting">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            {{ exporting ? 'Exportando...' : 'Exportar Excel' }}
+          </button>
           <label class="theme-switch">
             <input type="checkbox" v-model="isDarkMode">
             <span class="slider"></span>
@@ -146,9 +152,16 @@
 
             <!-- Amount -->
             <div class="order-amount">
-              <span v-if="order.status === 'approved'" class="amount-approved">
-                S/ {{ formatNumber(order.amount) }}
-              </span>
+              <div v-if="order.status === 'approved'" class="amount-approved-wrap">
+                <span class="currency-badge" :class="order.currency">{{ order.currency }}</span>
+                <span class="amount-approved">
+                  {{ order.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(order.amount) }}
+                </span>
+                <div v-if="order.currency === 'USD' && order.exchange_rate" class="exchange-info-small">
+                  <span>T.C: {{ parseFloat(order.exchange_rate).toFixed(4) }}</span>
+                  <span>= S/ {{ formatNumber(order.amount_pen) }}</span>
+                </div>
+              </div>
               <span v-else-if="order.status === 'pending'" class="amount-pending">
                 Pendiente de precio
               </span>
@@ -193,17 +206,44 @@
               </div>
 
               <form @submit.prevent="approveOrder" class="approve-form">
-                <div class="form-group">
-                  <label>Precio Total de la Orden (S/)</label>
-                  <input 
-                    v-model.number="approveForm.amount" 
-                    type="number" 
-                    step="0.01" 
-                    min="0.01" 
-                    required
-                    placeholder="0.00"
-                    class="input-field"
-                  />
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label>Moneda</label>
+                    <select v-model="approveForm.currency" class="input-field" @change="onCurrencyChange">
+                      <option value="PEN">🇵🇪 Soles (PEN)</option>
+                      <option value="USD">🇺🇸 Dólares (USD)</option>
+                    </select>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>{{ approveForm.currency === 'USD' ? 'Monto en USD' : 'Monto en S/' }}</label>
+                    <input 
+                      v-model.number="approveForm.amount" 
+                      type="number" 
+                      step="0.01" 
+                      min="0.01" 
+                      required
+                      placeholder="0.00"
+                      class="input-field"
+                    />
+                  </div>
+                </div>
+
+                <!-- Exchange Rate Info -->
+                <div v-if="approveForm.currency === 'USD'" class="exchange-rate-info">
+                  <div v-if="loadingRate" class="loading-rate">
+                    <span class="spinner-small"></span> Obteniendo tipo de cambio...
+                  </div>
+                  <div v-else-if="currentExchangeRate > 0">
+                    <p class="rate-value">
+                      📊 Tipo de cambio: <strong>1 USD = S/ {{ currentExchangeRate.toFixed(4) }}</strong>
+                    </p>
+                    <p class="converted-value" v-if="approveForm.amount > 0">
+                      💰 Monto en soles: <strong>S/ {{ formatNumber(approveForm.amount * currentExchangeRate) }}</strong>
+                    </p>
+                  </div>
+                  <div v-else class="rate-error">
+                    ⚠️ No se pudo obtener el tipo de cambio
+                  </div>
                 </div>
 
                 <div class="form-group">
@@ -220,7 +260,7 @@
                   <button type="button" @click="closeApproveModal" class="btn-cancel">
                     Cancelar
                   </button>
-                  <button type="submit" :disabled="approving" class="btn-submit">
+                  <button type="submit" :disabled="approving || (approveForm.currency === 'USD' && currentExchangeRate <= 0)" class="btn-submit">
                     {{ approving ? 'Aprobando...' : 'Aprobar Compra' }}
                   </button>
                 </div>
@@ -247,6 +287,9 @@ import { ref, computed, onMounted } from 'vue';
 const isDarkMode = ref(false);
 const loading = ref(false);
 const approving = ref(false);
+const exporting = ref(false);
+const loadingRate = ref(false);
+const currentExchangeRate = ref(0);
 const orders = ref([]);
 const filterStatus = ref('all');
 const showApproveModal = ref(false);
@@ -262,6 +305,7 @@ const stats = ref({
 
 const approveForm = ref({
   amount: 0,
+  currency: 'PEN',
   notes: ''
 });
 
@@ -346,18 +390,66 @@ const loadStats = async () => {
 
 const openApproveModal = (order) => {
   selectedOrder.value = order;
-  approveForm.value = { amount: 0, notes: '' };
+  approveForm.value = { amount: 0, currency: 'PEN', notes: '' };
+  currentExchangeRate.value = 0;
   showApproveModal.value = true;
 };
 
 const closeApproveModal = () => {
   showApproveModal.value = false;
   selectedOrder.value = null;
+  currentExchangeRate.value = 0;
+};
+
+// Cargar tipo de cambio cuando se selecciona USD
+const onCurrencyChange = async () => {
+  if (approveForm.value.currency === 'USD') {
+    await loadExchangeRate();
+  } else {
+    currentExchangeRate.value = 0;
+  }
+};
+
+const loadExchangeRate = async () => {
+  try {
+    loadingRate.value = true;
+    const res = await fetch(`${apiBase.value}/exchange-rate`);
+    const data = await res.json();
+    if (data.success) {
+      currentExchangeRate.value = parseFloat(data.rate);
+    } else {
+      currentExchangeRate.value = 0;
+      showToast('No se pudo obtener tipo de cambio', 'error');
+    }
+  } catch (e) {
+    currentExchangeRate.value = 0;
+    console.error('Error loading exchange rate:', e);
+  } finally {
+    loadingRate.value = false;
+  }
+};
+
+// Exportar a Excel/CSV
+const exportExcel = async () => {
+  try {
+    exporting.value = true;
+    window.location.href = `${apiBase.value}/export`;
+    showToast('Descargando archivo...', 'success');
+  } catch (e) {
+    showToast('Error al exportar', 'error');
+  } finally {
+    setTimeout(() => exporting.value = false, 2000);
+  }
 };
 
 const approveOrder = async () => {
   if (approveForm.value.amount <= 0) {
     showToast('Ingrese un monto válido', 'error');
+    return;
+  }
+
+  if (approveForm.value.currency === 'USD' && currentExchangeRate.value <= 0) {
+    showToast('Debe obtener el tipo de cambio primero', 'error');
     return;
   }
 
@@ -964,5 +1056,99 @@ textarea.input-field {
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: 1fr; }
   .orders-grid { grid-template-columns: 1fr; }
+}
+
+/* Export Button */
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-right: 12px;
+}
+
+.btn-export:hover { opacity: 0.9; }
+.btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Currency Badge */
+.currency-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.currency-badge.PEN { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.currency-badge.USD { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+
+/* Amount Approved Wrap */
+.amount-approved-wrap {
+  text-align: center;
+}
+
+.exchange-info-small {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Form Row */
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.flex-1 { flex: 1; }
+
+/* Exchange Rate Info */
+.exchange-rate-info {
+  background: rgba(59, 130, 246, 0.1);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.loading-rate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #60a5fa;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+.rate-value {
+  margin: 0 0 8px 0;
+  color: #60a5fa;
+}
+
+.converted-value {
+  margin: 0;
+  color: #10b981;
+}
+
+.rate-error {
+  color: #f59e0b;
 }
 </style>
