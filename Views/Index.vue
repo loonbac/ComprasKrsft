@@ -172,6 +172,17 @@
                   <span v-else class="amount-rejected">Rechazada</span>
                 </div>
 
+                <!-- Notes (for approved orders) -->
+                <div v-if="order.notes && order.status === 'approved'" class="order-notes">
+                  <span class="notes-label">📝 Notas:</span>
+                  <p>{{ order.notes }}</p>
+                </div>
+
+                <!-- Approval Info -->
+                <div v-if="order.status === 'approved' && order.approved_at" class="approval-info">
+                  <span>✓ Aprobado el {{ formatDate(order.approved_at) }}</span>
+                </div>
+
                 <!-- Actions -->
                 <div v-if="order.status === 'pending'" class="order-actions">
                   <button @click="openApproveModal(order)" class="btn-approve">✓ Aprobar</button>
@@ -797,6 +808,23 @@ onMounted(() => {
 .btn-approve:hover { background: #059669; }
 .btn-reject { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
 .btn-reject:hover { background: rgba(239, 68, 68, 0.3); }
+
+/* Notes and Approval Info */
+.order-notes {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
+}
+.notes-label { font-weight: 600; font-size: 0.85rem; }
+.order-notes p { margin: 6px 0 0 0; font-size: 0.9rem; color: rgba(255,255,255,0.8); }
+
+.approval-info {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #6ee7b7;
+}
 
 /* Modal */
 .modal-overlay {
