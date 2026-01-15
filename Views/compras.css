@@ -1,0 +1,1151 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - ESTILOS DE COMPONENTES
+   Layout, paneles, botones y elementos UI
+   Versión 3.0.1 - Refactored CSS Components
+   ============================================ */
+
+/* ============================================
+   LAYOUT BASE
+   ============================================ */
+.compras-layout {
+    min-height: 100vh;
+    background: var(--compras-gradient);
+    color: var(--compras-text-white);
+    position: relative;
+}
+
+.animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 20% 80%, var(--compras-bg-radial-1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, var(--compras-bg-radial-2) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.compras-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--compras-bg-container);
+    backdrop-filter: blur(10px);
+    border-radius: var(--compras-radius-xl);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-left h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.title-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.btn-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--compras-bg-container);
+    border: none;
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white);
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-back svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ============================================
+   THEME TOGGLE
+   ============================================ */
+.theme-toggle {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--compras-radius-full);
+    background: transparent;
+    border: 2px solid var(--compras-border);
+    color: var(--compras-text-white-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--compras-transition);
+}
+
+.theme-toggle:hover {
+    border-color: var(--compras-primary);
+    color: var(--compras-primary);
+}
+
+.theme-toggle svg {
+    width: 22px;
+    height: 22px;
+}
+
+body:not(.dark-mode) .compras-layout .theme-toggle .moon-icon {
+    display: block;
+}
+
+body:not(.dark-mode) .compras-layout .theme-toggle .sun-icon {
+    display: none;
+}
+
+body.dark-mode .compras-layout .theme-toggle .moon-icon {
+    display: none;
+}
+
+body.dark-mode .compras-layout .theme-toggle .sun-icon {
+    display: block;
+}
+
+/* Legacy slider toggle */
+.theme-switch {
+    position: relative;
+    width: 60px;
+    height: 30px;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--compras-border);
+    border-radius: 30px;
+    transition: var(--compras-transition);
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background: var(--compras-text-white);
+    border-radius: 50%;
+    transition: var(--compras-transition);
+}
+
+.theme-switch input:checked+.slider:before {
+    transform: translateX(30px);
+}
+
+/* ============================================
+   STATS GRID
+   ============================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--compras-bg-card);
+    backdrop-filter: blur(10px);
+    border-radius: var(--compras-radius-xl);
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: var(--compras-radius-lg);
+}
+
+.stat-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.stat-pending .stat-icon {
+    background: var(--compras-stat-pending-bg);
+}
+
+.stat-pending .stat-icon svg {
+    color: var(--compras-stat-pending-color);
+}
+
+.stat-approved .stat-icon {
+    background: var(--compras-stat-approved-bg);
+}
+
+.stat-approved .stat-icon svg {
+    color: var(--compras-stat-approved-color);
+}
+
+.stat-projects .stat-icon {
+    background: var(--compras-stat-projects-bg);
+}
+
+.stat-projects .stat-icon svg {
+    color: var(--compras-stat-projects-color);
+}
+
+.stat-content h3 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--compras-text-white-muted);
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-amount {
+    font-size: 0.8rem;
+    color: var(--compras-text-white-soft);
+    margin: 4px 0 0 0;
+}
+
+/* ============================================
+   MAIN TABS
+   ============================================ */
+.main-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: var(--compras-bg-card-dark);
+    padding: 8px;
+    border-radius: var(--compras-radius-lg);
+}
+
+.main-tab {
+    flex: 1;
+    padding: 14px 20px;
+    background: transparent;
+    border: none;
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white-muted);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--compras-transition-fast);
+}
+
+.main-tab:hover {
+    background: var(--compras-bg-container);
+    color: var(--compras-text-white);
+}
+
+.main-tab.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--compras-text-white);
+}
+
+.main-tab svg {
+    width: 20px;
+    height: 20px;
+}
+
+.tab-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.pending-badge {
+    background: var(--compras-badge-pending-bg);
+    color: var(--compras-badge-pending-text);
+}
+
+.unpaid-badge {
+    background: var(--compras-badge-unpaid-bg);
+    color: var(--compras-badge-unpaid-text);
+}
+
+/* ============================================
+   FILTER BAR
+   ============================================ */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background: var(--compras-bg-container);
+    border: none;
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white);
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.filter-btn.pending.active {
+    background: var(--compras-badge-pending-bg);
+}
+
+.filter-btn.approved.active {
+    background: var(--compras-badge-approved-bg);
+}
+
+/* ============================================
+   LOADING & EMPTY STATES
+   ============================================ */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--compras-border);
+    border-top-color: var(--compras-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--compras-bg-light);
+    border-radius: var(--compras-radius-xl);
+}
+
+.empty-state svg {
+    width: 64px;
+    height: 64px;
+    opacity: 0.5;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+}
+
+.empty-state p {
+    margin: 0;
+    color: var(--compras-text-white-soft);
+}
+
+/* ============================================
+   PROJECTS LIST
+   ============================================ */
+.projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.project-section {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: var(--compras-radius-xl);
+    overflow: hidden;
+}
+
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.project-header:hover {
+    background: var(--compras-bg-light);
+}
+
+.project-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.expand-icon {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.project-info h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.order-count {
+    padding: 4px 12px;
+    background: var(--compras-bg-container);
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.order-count.unpaid-count {
+    background: var(--compras-badge-unpaid-bg);
+    color: var(--compras-badge-unpaid-text);
+}
+
+.total-approved {
+    font-size: 0.9rem;
+    color: var(--compras-primary-light);
+    font-weight: 600;
+}
+
+.orders-container {
+    padding: 0 20px 20px 20px;
+}
+
+.no-orders-msg {
+    text-align: center;
+    padding: 20px;
+    color: var(--compras-text-white-dim);
+}
+
+/* ============================================
+   ORDER CARDS
+   ============================================ */
+.order-card {
+    background: var(--compras-bg-card);
+    border-radius: var(--compras-radius-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid transparent;
+}
+
+.order-card.status-pending {
+    border-left-color: var(--compras-warning);
+}
+
+.order-card.status-approved {
+    border-left-color: var(--compras-success);
+}
+
+.order-card.status-rejected {
+    border-left-color: var(--compras-danger);
+}
+
+.order-card.status-approved-unpaid {
+    border-left-color: var(--compras-info);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.order-type-badge,
+.order-status-badge {
+    padding: 4px 10px;
+    border-radius: var(--compras-radius-lg);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.order-type-badge svg,
+.order-status-badge svg {
+    width: 14px;
+    height: 14px;
+}
+
+.order-type-badge.material {
+    background: var(--compras-type-material-bg);
+    color: var(--compras-type-material-text);
+}
+
+.order-type-badge.service {
+    background: var(--compras-type-service-bg);
+    color: var(--compras-type-service-text);
+}
+
+.order-status-badge.pending {
+    background: var(--compras-badge-pending-bg);
+    color: var(--compras-badge-pending-text);
+}
+
+.order-status-badge.approved {
+    background: var(--compras-badge-approved-bg);
+    color: var(--compras-badge-approved-text);
+}
+
+.order-status-badge.rejected {
+    background: var(--compras-badge-rejected-bg);
+    color: var(--compras-badge-rejected-text);
+}
+
+.order-status-badge.approved-unpaid {
+    background: var(--compras-badge-unpaid-bg);
+    color: var(--compras-badge-unpaid-text);
+}
+
+.order-description h3 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+}
+
+.order-date {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--compras-text-white-soft);
+}
+
+/* Materials List */
+.materials-list {
+    margin: 12px 0;
+    padding: 12px;
+    background: var(--compras-bg-card-dark);
+    border-radius: var(--compras-radius-md);
+}
+
+.materials-list h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
+}
+
+.materials-list ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.materials-list li {
+    font-size: 0.85rem;
+}
+
+/* Order Amount */
+.order-amount {
+    margin: 12px 0;
+}
+
+.amount-approved-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.currency-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.currency-badge.PEN {
+    background: var(--compras-currency-pen);
+}
+
+.currency-badge.USD {
+    background: var(--compras-currency-usd);
+}
+
+.amount-approved {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.exchange-info {
+    font-size: 0.8rem;
+    color: var(--compras-text-white-soft);
+}
+
+.amount-pending {
+    color: var(--compras-badge-pending-text);
+}
+
+.amount-rejected {
+    color: var(--compras-badge-rejected-text);
+}
+
+.igv-info {
+    font-size: 0.8rem;
+    color: var(--compras-text-white-soft);
+    margin-top: 4px;
+}
+
+/* ============================================
+   APPROVAL DETAILS
+   ============================================ */
+.approval-details {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--compras-approval-bg);
+    border-radius: var(--compras-radius-md);
+    border: 1px solid var(--compras-approval-border);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.detail-label {
+    font-size: 0.7rem;
+    color: var(--compras-text-white-soft);
+}
+
+.detail-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.detail-value.due-date {
+    color: var(--compras-badge-pending-text);
+}
+
+.detail-sub {
+    font-size: 0.75rem;
+    color: var(--compras-text-white-dim);
+}
+
+.approval-stamp {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--compras-border);
+    font-size: 0.8rem;
+    color: var(--compras-primary-light);
+}
+
+/* Order Notes */
+.order-notes {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--compras-notes-bg);
+    border-radius: var(--compras-radius-sm);
+    border-left: 3px solid var(--compras-notes-border);
+}
+
+.notes-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.order-notes p {
+    margin: 6px 0 0 0;
+    font-size: 0.9rem;
+    color: var(--compras-text-white-muted);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.order-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.btn-approve,
+.btn-reject {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: var(--compras-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-approve svg,
+.btn-reject svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-approve {
+    background: var(--compras-btn-approve-bg);
+    color: var(--compras-text-white);
+}
+
+.btn-approve:hover {
+    background: var(--compras-btn-approve-hover);
+}
+
+.btn-reject {
+    background: var(--compras-btn-reject-bg);
+    color: var(--compras-btn-reject-text);
+}
+
+.btn-reject:hover {
+    background: var(--compras-btn-reject-hover);
+}
+
+.btn-confirm-payment {
+    width: 100%;
+    padding: 12px;
+    background: var(--compras-btn-confirm-bg);
+    border: none;
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.btn-confirm-payment:hover {
+    background: var(--compras-btn-confirm-hover);
+}
+
+.btn-confirm {
+    background: var(--compras-success);
+}
+
+.btn-confirm:hover {
+    background: var(--compras-success-dark);
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--compras-modal-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--compras-modal-bg);
+    border-radius: var(--compras-radius-xl);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--compras-border-light);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    color: var(--compras-text-white);
+    font-size: 24px;
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.btn-close:hover {
+    color: var(--compras-danger);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.order-summary {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--compras-bg-card-dark);
+    border-radius: var(--compras-radius-md);
+}
+
+.order-summary p {
+    margin: 8px 0;
+}
+
+.materials-preview ul {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 16px;
+    border-top: 1px solid var(--compras-border-light);
+}
+
+.btn-cancel {
+    padding: 12px 24px;
+    background: var(--compras-bg-container);
+    border: none;
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white);
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-submit {
+    padding: 12px 24px;
+    background: var(--compras-success);
+    border: none;
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.btn-submit:hover {
+    background: var(--compras-success-dark);
+}
+
+.btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+.form-section {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--compras-bg-card-dark);
+    border-radius: var(--compras-radius-md);
+}
+
+.form-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    color: var(--compras-text-white-muted);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: var(--compras-text-white-muted);
+}
+
+.form-group.flex-1 {
+    flex: 1;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px;
+    background: var(--compras-bg-input);
+    border: 1px solid var(--compras-border);
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white);
+    font-size: 14px;
+    transition: var(--compras-transition-fast);
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: var(--compras-primary);
+}
+
+.input-file {
+    width: 100%;
+    padding: 12px;
+    background: var(--compras-bg-input);
+    border: 1px dashed var(--compras-border-dashed);
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white);
+}
+
+.hint {
+    font-size: 0.8rem;
+    color: var(--compras-text-white-dim);
+    margin-top: 6px;
+}
+
+/* Checkbox */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.checkbox-label input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--compras-primary);
+}
+
+/* IGV Preview */
+.igv-preview {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--compras-igv-bg);
+    border-radius: var(--compras-radius-sm);
+    font-size: 0.9rem;
+}
+
+.igv-preview p {
+    margin: 4px 0;
+}
+
+.total-igv {
+    color: var(--compras-igv-text);
+    font-size: 1rem;
+}
+
+/* Exchange Rate */
+.exchange-rate-info {
+    margin: 16px 0;
+    padding: 12px;
+    background: var(--compras-exchange-bg);
+    border-radius: var(--compras-radius-md);
+}
+
+.rate-value {
+    margin: 0 0 8px 0;
+}
+
+.converted-value {
+    margin: 0;
+    color: var(--compras-primary-light);
+}
+
+.rate-error {
+    color: var(--compras-badge-rejected-text);
+}
+
+.loading-rate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner-small {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--compras-border);
+    border-top-color: var(--compras-text-white);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Autocomplete */
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.suggestions-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--compras-modal-bg);
+    border: 1px solid var(--compras-border);
+    border-radius: var(--compras-radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    margin-top: 4px;
+    list-style: none;
+    padding: 0;
+}
+
+.suggestions-list li {
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--compras-border-light);
+    transition: var(--compras-transition-fast);
+}
+
+.suggestions-list li:hover {
+    background: var(--compras-stat-approved-bg);
+}
+
+.suggestions-list li:last-child {
+    border-bottom: none;
+}
+
+.seller-name {
+    font-weight: 500;
+}
+
+.seller-doc {
+    font-size: 0.8rem;
+    color: var(--compras-text-white-dim);
+}
+
+/* ============================================
+   TOAST
+   ============================================ */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-white);
+    z-index: 2000;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.success {
+    background: var(--compras-toast-success);
+}
+
+.toast.error {
+    background: var(--compras-toast-error);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .compras-container {
+        padding: 10px;
+    }
+
+    .module-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .main-tabs {
+        flex-wrap: wrap;
+    }
+
+    .main-tab {
+        flex: 1 1 45%;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+}

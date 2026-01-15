@@ -1,0 +1,131 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - TEMA DE COLORES
+   Variables CSS específicas del módulo
+   Versión 3.0.1 - Refactored CSS Variables
+   ============================================ */
+
+:root {
+    /* Colores Primarios del Módulo (Green) */
+    --compras-primary: #10b981;
+    --compras-primary-dark: #059669;
+    --compras-primary-light: #6ee7b7;
+    --compras-secondary: #047857;
+    --compras-gradient: linear-gradient(135deg, #065f46 0%, #047857 100%);
+
+    /* Colores para Animación del Fondo */
+    --compras-bg-color-1: #065f46;
+    --compras-bg-color-2: #047857;
+    --compras-bg-radial-1: rgba(16, 185, 129, 0.15);
+    --compras-bg-radial-2: rgba(5, 150, 105, 0.1);
+
+    /* Colores de Estado */
+    --compras-success: #10b981;
+    --compras-success-dark: #059669;
+    --compras-danger: #ef4444;
+    --compras-danger-dark: #dc2626;
+    --compras-warning: #f59e0b;
+    --compras-warning-light: #fcd34d;
+    --compras-info: #3b82f6;
+    --compras-info-light: #60a5fa;
+
+    /* Fondos - Modo Claro */
+    --compras-bg-page: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    --compras-bg-container: rgba(255, 255, 255, 0.1);
+    --compras-bg-card: rgba(255, 255, 255, 0.1);
+    --compras-bg-card-dark: rgba(0, 0, 0, 0.2);
+    --compras-bg-light: rgba(255, 255, 255, 0.05);
+    --compras-bg-input: rgba(255, 255, 255, 0.1);
+
+    /* Textos */
+    --compras-text-white: #ffffff;
+    --compras-text-white-muted: rgba(255, 255, 255, 0.7);
+    --compras-text-white-soft: rgba(255, 255, 255, 0.6);
+    --compras-text-white-dim: rgba(255, 255, 255, 0.5);
+
+    /* Bordes y Sombras */
+    --compras-border: rgba(255, 255, 255, 0.2);
+    --compras-border-light: rgba(255, 255, 255, 0.1);
+    --compras-border-dashed: rgba(255, 255, 255, 0.3);
+
+    /* Stats Cards - Iconos */
+    --compras-stat-pending-bg: rgba(245, 158, 11, 0.2);
+    --compras-stat-pending-color: #f59e0b;
+    --compras-stat-approved-bg: rgba(16, 185, 129, 0.2);
+    --compras-stat-approved-color: #10b981;
+    --compras-stat-projects-bg: rgba(59, 130, 246, 0.2);
+    --compras-stat-projects-color: #3b82f6;
+
+    /* Badges */
+    --compras-badge-pending-bg: rgba(245, 158, 11, 0.3);
+    --compras-badge-pending-text: #fcd34d;
+    --compras-badge-approved-bg: rgba(16, 185, 129, 0.2);
+    --compras-badge-approved-text: #6ee7b7;
+    --compras-badge-rejected-bg: rgba(239, 68, 68, 0.2);
+    --compras-badge-rejected-text: #fca5a5;
+    --compras-badge-unpaid-bg: rgba(59, 130, 246, 0.3);
+    --compras-badge-unpaid-text: #60a5fa;
+
+    /* Order Type Badges */
+    --compras-type-material-bg: rgba(59, 130, 246, 0.2);
+    --compras-type-material-text: #60a5fa;
+    --compras-type-service-bg: rgba(139, 92, 246, 0.2);
+    --compras-type-service-text: #a78bfa;
+
+    /* Currency Badges */
+    --compras-currency-pen: #dc2626;
+    --compras-currency-usd: #2563eb;
+
+    /* Buttons */
+    --compras-btn-approve-bg: #10b981;
+    --compras-btn-approve-hover: #059669;
+    --compras-btn-reject-bg: rgba(239, 68, 68, 0.2);
+    --compras-btn-reject-text: #fca5a5;
+    --compras-btn-reject-hover: rgba(239, 68, 68, 0.3);
+    --compras-btn-confirm-bg: #3b82f6;
+    --compras-btn-confirm-hover: #2563eb;
+
+    /* Modal */
+    --compras-modal-bg: #1e293b;
+    --compras-modal-overlay: rgba(0, 0, 0, 0.7);
+
+    /* Toast */
+    --compras-toast-success: #10b981;
+    --compras-toast-error: #ef4444;
+
+    /* Transiciones */
+    --compras-transition: all 0.3s ease;
+    --compras-transition-fast: all 0.2s ease;
+
+    /* Radios de borde */
+    --compras-radius-sm: 6px;
+    --compras-radius-md: 8px;
+    --compras-radius-lg: 12px;
+    --compras-radius-xl: 16px;
+    --compras-radius-full: 9999px;
+
+    /* Approval Details */
+    --compras-approval-bg: rgba(16, 185, 129, 0.1);
+    --compras-approval-border: rgba(16, 185, 129, 0.2);
+    --compras-notes-bg: rgba(59, 130, 246, 0.1);
+    --compras-notes-border: #3b82f6;
+
+    /* IGV */
+    --compras-igv-bg: rgba(16, 185, 129, 0.1);
+    --compras-igv-text: #6ee7b7;
+
+    /* Exchange Rate */
+    --compras-exchange-bg: rgba(59, 130, 246, 0.1);
+}
+
+/* ============================================
+   MODO OSCURO
+   ============================================ */
+.dark-mode,
+body.dark-mode .compras-layout {
+    /* Fondos - Modo Oscuro */
+    --compras-bg-page: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --compras-bg-color-1: #0f172a;
+    --compras-bg-color-2: #1e293b;
+    --compras-bg-radial-1: rgba(16, 185, 129, 0.1);
+    --compras-bg-radial-2: rgba(5, 150, 105, 0.05);
+}
