@@ -153,6 +153,12 @@ class CompraController extends Controller
                     'approved_by' => auth()->id(),
                     'approved_at' => now(),
                     'notes' => $request->input('notes'),
+                    'issue_date' => $request->input('issue_date'),
+                    'payment_type' => $request->input('payment_type'),
+                    'payment_date' => $request->input('payment_type') === 'cash' ? $request->input('payment_date') : null,
+                    'due_date' => $request->input('payment_type') === 'loan' ? $request->input('due_date') : null,
+                    'seller_name' => $request->input('seller_name'),
+                    'seller_document' => $request->input('seller_document'),
                     'updated_at' => now()
                 ]);
 

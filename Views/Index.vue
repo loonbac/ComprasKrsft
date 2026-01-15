@@ -172,15 +172,38 @@
                   <span v-else class="amount-rejected">Rechazada</span>
                 </div>
 
-                <!-- Notes (for approved orders) -->
-                <div v-if="order.notes && order.status === 'approved'" class="order-notes">
-                  <span class="notes-label">📝 Notas:</span>
-                  <p>{{ order.notes }}</p>
-                </div>
-
-                <!-- Approval Info -->
-                <div v-if="order.status === 'approved' && order.approved_at" class="approval-info">
-                  <span>✓ Aprobado el {{ formatDate(order.approved_at) }}</span>
+                <!-- Approval Details (for approved orders) -->
+                <div v-if="order.status === 'approved'" class="approval-details">
+                  <div class="detail-grid">
+                    <div v-if="order.seller_name" class="detail-item">
+                      <span class="detail-label">👤 Proveedor</span>
+                      <span class="detail-value">{{ order.seller_name }}</span>
+                      <span v-if="order.seller_document" class="detail-sub">{{ order.seller_document }}</span>
+                    </div>
+                    <div v-if="order.issue_date" class="detail-item">
+                      <span class="detail-label">📅 Fecha Emisión</span>
+                      <span class="detail-value">{{ formatDate(order.issue_date) }}</span>
+                    </div>
+                    <div v-if="order.payment_type" class="detail-item">
+                      <span class="detail-label">💳 Tipo Pago</span>
+                      <span class="detail-value">{{ order.payment_type === 'cash' ? '💵 Al Contado' : '📆 A Crédito' }}</span>
+                    </div>
+                    <div v-if="order.payment_type === 'cash' && order.payment_date" class="detail-item">
+                      <span class="detail-label">📅 Fecha Pago</span>
+                      <span class="detail-value">{{ formatDate(order.payment_date) }}</span>
+                    </div>
+                    <div v-if="order.payment_type === 'loan' && order.due_date" class="detail-item">
+                      <span class="detail-label">⏰ Vencimiento</span>
+                      <span class="detail-value due-date">{{ formatDate(order.due_date) }}</span>
+                    </div>
+                  </div>
+                  <div v-if="order.notes" class="order-notes">
+                    <span class="notes-label">📝 Notas:</span>
+                    <p>{{ order.notes }}</p>
+                  </div>
+                  <div class="approval-stamp">
+                    ✓ Aprobado el {{ formatDate(order.approved_at) }}
+                  </div>
                 </div>
 
                 <!-- Actions -->
@@ -224,31 +247,77 @@
               </div>
 
               <form @submit.prevent="approveOrder" class="approve-form">
-                <div class="form-row">
-                  <div class="form-group flex-1">
-                    <label>Moneda</label>
-                    <select v-model="approveForm.currency" class="input-field" @change="onCurrencyChange">
-                      <option value="PEN">🇵🇪 Soles (PEN)</option>
-                      <option value="USD">🇺🇸 Dólares (USD)</option>
-                    </select>
+                <!-- Seller Info -->
+                <div class="form-section">
+                  <h4>👤 Proveedor</h4>
+                  <div class="form-group">
+                    <label>Nombre / Razón Social *</label>
+                    <input v-model="approveForm.seller_name" type="text" required placeholder="Ej: Juan Pérez / Empresa SAC" class="input-field" />
                   </div>
-                  <div class="form-group flex-1">
-                    <label>{{ approveForm.currency === 'USD' ? 'Monto en USD' : 'Monto en S/' }}</label>
-                    <input v-model.number="approveForm.amount" type="number" step="0.01" min="0.01" required class="input-field" />
+                  <div class="form-group">
+                    <label>DNI / RUC (opcional)</label>
+                    <input v-model="approveForm.seller_document" type="text" placeholder="Ej: 12345678 / 20123456789" class="input-field" />
                   </div>
                 </div>
 
-                <div v-if="approveForm.currency === 'USD'" class="exchange-rate-info">
-                  <div v-if="loadingRate" class="loading-rate">
-                    <span class="spinner-small"></span> Obteniendo tipo de cambio...
+                <!-- Amount -->
+                <div class="form-section">
+                  <h4>💰 Monto</h4>
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label>Moneda</label>
+                      <select v-model="approveForm.currency" class="input-field" @change="onCurrencyChange">
+                        <option value="PEN">🇵🇪 Soles (PEN)</option>
+                        <option value="USD">🇺🇸 Dólares (USD)</option>
+                      </select>
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>{{ approveForm.currency === 'USD' ? 'Monto en USD' : 'Monto en S/' }} *</label>
+                      <input v-model.number="approveForm.amount" type="number" step="0.01" min="0.01" required class="input-field" />
+                    </div>
                   </div>
-                  <div v-else-if="currentExchangeRate > 0">
-                    <p class="rate-value">📊 Tipo de cambio: <strong>1 USD = S/ {{ currentExchangeRate.toFixed(4) }}</strong></p>
-                    <p class="converted-value" v-if="approveForm.amount > 0">
-                      💰 Monto en soles: <strong>S/ {{ formatNumber(approveForm.amount * currentExchangeRate) }}</strong>
-                    </p>
+
+                  <div v-if="approveForm.currency === 'USD'" class="exchange-rate-info">
+                    <div v-if="loadingRate" class="loading-rate">
+                      <span class="spinner-small"></span> Obteniendo tipo de cambio...
+                    </div>
+                    <div v-else-if="currentExchangeRate > 0">
+                      <p class="rate-value">📊 T.C: <strong>1 USD = S/ {{ currentExchangeRate.toFixed(4) }}</strong></p>
+                      <p class="converted-value" v-if="approveForm.amount > 0">
+                        💰 Total en soles: <strong>S/ {{ formatNumber(approveForm.amount * currentExchangeRate) }}</strong>
+                      </p>
+                    </div>
+                    <div v-else class="rate-error">⚠️ No se pudo obtener el tipo de cambio</div>
                   </div>
-                  <div v-else class="rate-error">⚠️ No se pudo obtener el tipo de cambio</div>
+                </div>
+
+                <!-- Dates and Payment -->
+                <div class="form-section">
+                  <h4>📅 Fechas y Pago</h4>
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label>Fecha de Emisión *</label>
+                      <input v-model="approveForm.issue_date" type="date" required class="input-field" />
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>Tipo de Pago *</label>
+                      <select v-model="approveForm.payment_type" required class="input-field">
+                        <option value="">Seleccionar...</option>
+                        <option value="cash">💵 Al Contado</option>
+                        <option value="loan">📆 A Crédito (Préstamo)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div v-if="approveForm.payment_type === 'cash'" class="form-group">
+                    <label>Fecha de Pago *</label>
+                    <input v-model="approveForm.payment_date" type="date" required class="input-field" />
+                  </div>
+
+                  <div v-if="approveForm.payment_type === 'loan'" class="form-group">
+                    <label>Fecha de Vencimiento *</label>
+                    <input v-model="approveForm.due_date" type="date" required class="input-field" />
+                  </div>
                 </div>
 
                 <div class="form-group">
@@ -258,7 +327,7 @@
 
                 <div class="modal-footer">
                   <button type="button" @click="closeApproveModal" class="btn-cancel">Cancelar</button>
-                  <button type="submit" :disabled="approving || (approveForm.currency === 'USD' && currentExchangeRate <= 0)" class="btn-submit">
+                  <button type="submit" :disabled="approving || !canApprove" class="btn-submit">
                     {{ approving ? 'Aprobando...' : 'Aprobar Compra' }}
                   </button>
                 </div>
@@ -293,14 +362,36 @@ const toast = ref({ show: false, message: '', type: 'success' });
 const expandedProjects = ref([]);
 
 const stats = ref({ pending: 0, approved: 0, rejected: 0, total_approved_amount: 0 });
-const approveForm = ref({ amount: 0, currency: 'PEN', notes: '' });
+const approveForm = ref({ 
+  amount: 0, 
+  currency: 'PEN', 
+  notes: '',
+  issue_date: new Date().toISOString().split('T')[0],
+  payment_type: '',
+  payment_date: '',
+  due_date: '',
+  seller_name: '',
+  seller_document: ''
+});
 
 // Computed
+const canApprove = computed(() => {
+  if (approveForm.value.amount <= 0) return false;
+  if (!approveForm.value.seller_name) return false;
+  if (!approveForm.value.issue_date) return false;
+  if (!approveForm.value.payment_type) return false;
+  if (approveForm.value.payment_type === 'cash' && !approveForm.value.payment_date) return false;
+  if (approveForm.value.payment_type === 'loan' && !approveForm.value.due_date) return false;
+  if (approveForm.value.currency === 'USD' && currentExchangeRate.value <= 0) return false;
+  return true;
+});
+
 const getModuleName = () => {
   const path = window.location.pathname;
   const match = path.match(/^\/([^\/]+)/);
   return match ? match[1] : 'compraskrsft';
 };
+
 
 const apiBase = computed(() => `/api/${getModuleName()}`);
 
@@ -408,7 +499,17 @@ const loadStats = async () => {
 
 const openApproveModal = (order) => {
   selectedOrder.value = order;
-  approveForm.value = { amount: 0, currency: 'PEN', notes: '' };
+  approveForm.value = { 
+    amount: 0, 
+    currency: 'PEN', 
+    notes: '',
+    issue_date: new Date().toISOString().split('T')[0],
+    payment_type: '',
+    payment_date: '',
+    due_date: '',
+    seller_name: '',
+    seller_document: ''
+  };
   currentExchangeRate.value = 0;
   showApproveModal.value = true;
 };
@@ -794,6 +895,69 @@ onMounted(() => {
 .exchange-info { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
 .amount-pending { color: #fcd34d; }
 .amount-rejected { color: #fca5a5; }
+
+/* Approval Details */
+.approval-details {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.detail-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.detail-value.due-date {
+  color: #fcd34d;
+}
+
+.detail-sub {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+}
+
+.approval-stamp {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255,255,255,0.2);
+  font-size: 0.8rem;
+  color: #6ee7b7;
+}
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+
+.form-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.8);
+}
 
 .order-actions { display: flex; gap: 10px; margin-top: 12px; }
 .btn-approve, .btn-reject {
