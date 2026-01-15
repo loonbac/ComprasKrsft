@@ -1,7 +1,7 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - ESTILOS DE COMPONENTES
    Layout, paneles, botones y elementos UI
-   Versión 3.0.3 - Matched Proyectos Style
+   Versión 3.0.4 - SVG Icons + No Emojis
    ============================================ */
 
 /* ============================================
@@ -32,6 +32,71 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
+}
+
+/* ============================================
+   SVG ICON SIZES
+   ============================================ */
+.tab-icon {
+    width: 18px;
+    height: 18px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.filter-icon {
+    width: 16px;
+    height: 16px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.badge-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.detail-icon {
+    width: 14px;
+    height: 14px;
+    vertical-align: text-bottom;
+    margin-right: 4px;
+}
+
+.section-icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: text-bottom;
+    margin-right: 6px;
+}
+
+.modal-icon {
+    width: 24px;
+    height: 24px;
+    vertical-align: text-bottom;
+    margin-right: 8px;
+}
+
+.inline-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: text-bottom;
+    margin-right: 4px;
+}
+
+.btn-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.stamp-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: text-bottom;
+    margin-right: 4px;
+    color: var(--compras-success);
 }
 
 /* ============================================

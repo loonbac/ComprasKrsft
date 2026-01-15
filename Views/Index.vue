@@ -71,15 +71,18 @@
         <!-- Main Tabs -->
         <div class="main-tabs">
           <button @click="activeTab = 'pending'" :class="{ active: activeTab === 'pending' }" class="main-tab">
-            🕐 Por Aprobar
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Por Aprobar
             <span class="tab-badge pending-badge">{{ stats.pending }}</span>
           </button>
           <button @click="activeTab = 'unpaid'" :class="{ active: activeTab === 'unpaid' }" class="main-tab">
-            💳 Por Pagar
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Por Pagar
             <span class="tab-badge unpaid-badge">{{ approvedUnpaidOrders.length }}</span>
           </button>
           <button @click="activeTab = 'paid'" :class="{ active: activeTab === 'paid' }" class="main-tab">
-            ✅ Pagadas
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Pagadas
           </button>
         </div>
 
@@ -89,10 +92,12 @@
             Todas
           </button>
           <button @click="filterStatus = 'pending'" :class="{ active: filterStatus === 'pending' }" class="filter-btn pending">
-            🕐 Pendientes
+            <svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Pendientes
           </button>
           <button @click="filterStatus = 'approved'" :class="{ active: filterStatus === 'approved' }" class="filter-btn approved">
-            ✓ Aprobadas
+            <svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Aprobadas
           </button>
         </div>
 
@@ -148,7 +153,9 @@
               >
                 <div class="order-header">
                   <div class="order-type-badge" :class="order.type">
-                    {{ order.type === 'service' ? '🔧 Servicio' : '📦 Materiales' }}
+                    <svg v-if="order.type === 'service'" class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    <svg v-else class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    {{ order.type === 'service' ? 'Servicio' : 'Materiales' }}
                   </div>
                   <div class="order-status-badge" :class="order.status">
                     {{ getStatusText(order.status) }}
@@ -193,40 +200,41 @@
                 <div v-if="order.status === 'approved'" class="approval-details">
                   <div class="detail-grid">
                     <div v-if="order.seller_name" class="detail-item">
-                      <span class="detail-label">👤 Proveedor</span>
+                      <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Proveedor</span>
                       <span class="detail-value">{{ order.seller_name }}</span>
                       <span v-if="order.seller_document" class="detail-sub">{{ order.seller_document }}</span>
                     </div>
                     <div v-if="order.issue_date" class="detail-item">
-                      <span class="detail-label">📅 Fecha Emisión</span>
+                      <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Fecha Emisión</span>
                       <span class="detail-value">{{ formatDate(order.issue_date) }}</span>
                     </div>
                     <div v-if="order.payment_type" class="detail-item">
-                      <span class="detail-label">💳 Tipo Pago</span>
-                      <span class="detail-value">{{ order.payment_type === 'cash' ? '💵 Al Contado' : '📆 A Crédito' }}</span>
+                      <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Tipo Pago</span>
+                      <span class="detail-value">{{ order.payment_type === 'cash' ? 'Al Contado' : 'A Crédito' }}</span>
                     </div>
                     <div v-if="order.payment_type === 'cash' && order.payment_date" class="detail-item">
-                      <span class="detail-label">📅 Fecha Pago</span>
+                      <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Fecha Pago</span>
                       <span class="detail-value">{{ formatDate(order.payment_date) }}</span>
                     </div>
                     <div v-if="order.payment_type === 'loan' && order.due_date" class="detail-item">
-                      <span class="detail-label">⏰ Vencimiento</span>
+                      <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Vencimiento</span>
                       <span class="detail-value due-date">{{ formatDate(order.due_date) }}</span>
                     </div>
                   </div>
                   <div v-if="order.notes" class="order-notes">
-                    <span class="notes-label">📝 Notas:</span>
+                    <span class="notes-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Notas:</span>
                     <p>{{ order.notes }}</p>
                   </div>
                   <div class="approval-stamp">
-                    ✓ Aprobado el {{ formatDate(order.approved_at) }}
+                    <svg class="stamp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Aprobado el {{ formatDate(order.approved_at) }}
                   </div>
                 </div>
 
                 <!-- Actions -->
                 <div v-if="order.status === 'pending'" class="order-actions">
-                  <button @click="openApproveModal(order)" class="btn-approve">✓ Aprobar</button>
-                  <button @click="rejectOrder(order.id)" class="btn-reject">✗ Rechazar</button>
+                  <button @click="openApproveModal(order)" class="btn-approve"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Aprobar</button>
+                  <button @click="rejectOrder(order.id)" class="btn-reject"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Rechazar</button>
                 </div>
               </div>
 
@@ -268,9 +276,14 @@
                 >
                   <div class="order-header">
                     <div class="order-type-badge" :class="order.type">
-                      {{ order.type === 'service' ? '🔧 Servicio' : '📦 Materiales' }}
+                      <svg v-if="order.type === 'service'" class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                      <svg v-else class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                      {{ order.type === 'service' ? 'Servicio' : 'Materiales' }}
                     </div>
-                    <div class="order-status-badge approved-unpaid">💳 Por Pagar</div>
+                    <div class="order-status-badge approved-unpaid">
+                      <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                      Por Pagar
+                    </div>
                   </div>
 
                   <div class="order-description">
@@ -292,7 +305,8 @@
 
                   <div class="order-actions">
                     <button @click="openPaymentModal(order)" class="btn-confirm-payment">
-                      💳 Confirmar Pago
+                      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                      Confirmar Pago
                     </button>
                   </div>
                 </div>
@@ -338,7 +352,7 @@
               <form @submit.prevent="approveOrder" class="approve-form">
                 <!-- Seller Info with Autocomplete -->
                 <div class="form-section">
-                  <h4>👤 Proveedor</h4>
+                  <h4><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Proveedor</h4>
                   <div class="form-group autocomplete-wrapper">
                     <label>Nombre / Razón Social *</label>
                     <input 
@@ -370,13 +384,13 @@
 
                 <!-- Amount -->
                 <div class="form-section">
-                  <h4>💰 Monto</h4>
+                  <h4><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Monto</h4>
                   <div class="form-row">
                     <div class="form-group flex-1">
                       <label>Moneda</label>
                       <select v-model="approveForm.currency" class="input-field" @change="onCurrencyChange">
-                        <option value="PEN">🇵🇪 Soles (PEN)</option>
-                        <option value="USD">🇺🇸 Dólares (USD)</option>
+                        <option value="PEN">PEN - Soles</option>
+                        <option value="USD">USD - Dólares</option>
                       </select>
                     </div>
                     <div class="form-group flex-1">
@@ -390,18 +404,18 @@
                       <span class="spinner-small"></span> Obteniendo tipo de cambio...
                     </div>
                     <div v-else-if="currentExchangeRate > 0">
-                      <p class="rate-value">📊 T.C: <strong>1 USD = S/ {{ currentExchangeRate.toFixed(4) }}</strong></p>
+                      <p class="rate-value"><svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> T.C: <strong>1 USD = S/ {{ currentExchangeRate.toFixed(4) }}</strong></p>
                       <p class="converted-value" v-if="approveForm.amount > 0">
-                        💰 Total en soles: <strong>S/ {{ formatNumber(approveForm.amount * currentExchangeRate) }}</strong>
+                        <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Total en soles: <strong>S/ {{ formatNumber(approveForm.amount * currentExchangeRate) }}</strong>
                       </p>
                     </div>
-                    <div v-else class="rate-error">⚠️ No se pudo obtener el tipo de cambio</div>
+                    <div v-else class="rate-error"><svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> No se pudo obtener el tipo de cambio</div>
                   </div>
                 </div>
 
                 <!-- IGV -->
                 <div class="form-section">
-                  <h4>📋 IGV</h4>
+                  <h4><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> IGV</h4>
                   <div class="form-row">
                     <div class="form-group">
                       <label class="checkbox-label">
@@ -421,7 +435,7 @@
                   </div>
                 </div>
                 <div class="form-section">
-                  <h4>📅 Fechas y Pago</h4>
+                  <h4><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Fechas y Pago</h4>
                   <div class="form-row">
                     <div class="form-group flex-1">
                       <label>Fecha de Emisión *</label>
@@ -431,8 +445,8 @@
                       <label>Tipo de Pago *</label>
                       <select v-model="approveForm.payment_type" required class="input-field">
                         <option value="">Seleccionar...</option>
-                        <option value="cash">💵 Al Contado</option>
-                        <option value="loan">📆 A Crédito (Préstamo)</option>
+                        <option value="cash">Al Contado</option>
+                        <option value="loan">A Crédito (Préstamo)</option>
                       </select>
                     </div>
                   </div>
@@ -470,7 +484,7 @@
         <div v-if="showPaymentModal" class="modal-overlay" @click.self="closePaymentModal">
           <div class="modal-content">
             <div class="modal-header">
-              <h2>💳 Confirmar Pago</h2>
+              <h2><svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Confirmar Pago</h2>
               <button @click="closePaymentModal" class="btn-close">×</button>
             </div>
             
@@ -486,7 +500,7 @@
 
               <form @submit.prevent="confirmPayment" class="payment-form">
                 <div class="form-section">
-                  <h4>📄 Datos del Comprobante</h4>
+                  <h4><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Datos del Comprobante</h4>
                   <div class="form-row">
                     <div class="form-group flex-1">
                       <label>Tipo CP/DOC *</label>
@@ -524,7 +538,7 @@
                 </div>
 
                 <div class="form-section">
-                  <h4>📎 Comprobante de Pago (opcional)</h4>
+                  <h4><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> Comprobante de Pago (opcional)</h4>
                   <div class="form-group">
                     <input 
                       type="file" 
@@ -539,7 +553,7 @@
                 <div class="modal-footer">
                   <button type="button" @click="closePaymentModal" class="btn-cancel">Cancelar</button>
                   <button type="submit" :disabled="confirmingPayment" class="btn-submit btn-confirm">
-                    {{ confirmingPayment ? 'Confirmando...' : '✓ Confirmar Pago' }}
+                    {{ confirmingPayment ? 'Confirmando...' : 'Confirmar Pago' }}
                   </button>
                 </div>
               </form>
