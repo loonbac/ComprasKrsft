@@ -77,6 +77,26 @@ class CompraController extends Controller
     }
 
     /**
+     * Get unique sellers from approved orders for autocomplete
+     */
+    public function getSellers()
+    {
+        $sellers = DB::table($this->ordersTable)
+            ->whereNotNull('seller_name')
+            ->where('seller_name', '!=', '')
+            ->where('status', 'approved')
+            ->select('seller_name', 'seller_document')
+            ->distinct()
+            ->orderBy('seller_name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'sellers' => $sellers
+        ]);
+    }
+
+    /**
      * Detalle de una orden
      */
     public function show($id)

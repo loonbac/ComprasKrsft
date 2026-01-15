@@ -247,12 +247,31 @@
               </div>
 
               <form @submit.prevent="approveOrder" class="approve-form">
-                <!-- Seller Info -->
+                <!-- Seller Info with Autocomplete -->
                 <div class="form-section">
                   <h4>👤 Proveedor</h4>
-                  <div class="form-group">
+                  <div class="form-group autocomplete-wrapper">
                     <label>Nombre / Razón Social *</label>
-                    <input v-model="approveForm.seller_name" type="text" required placeholder="Ej: Juan Pérez / Empresa SAC" class="input-field" />
+                    <input 
+                      v-model="approveForm.seller_name" 
+                      type="text" 
+                      required 
+                      placeholder="Escriba para buscar..." 
+                      class="input-field"
+                      @input="filterSellers"
+                      @focus="showSuggestions = true"
+                      @blur="hideSuggestions"
+                    />
+                    <ul v-if="showSuggestions && filteredSellers.length > 0" class="suggestions-list">
+                      <li 
+                        v-for="seller in filteredSellers" 
+                        :key="seller.seller_name"
+                        @mousedown.prevent="selectSeller(seller)"
+                      >
+                        <span class="seller-name">{{ seller.seller_name }}</span>
+                        <span v-if="seller.seller_document" class="seller-doc">{{ seller.seller_document }}</span>
+                      </li>
+                    </ul>
                   </div>
                   <div class="form-group">
                     <label>DNI / RUC (opcional)</label>
@@ -360,6 +379,11 @@ const showApproveModal = ref(false);
 const selectedOrder = ref(null);
 const toast = ref({ show: false, message: '', type: 'success' });
 const expandedProjects = ref([]);
+
+// Sellers autocomplete
+const allSellers = ref([]);
+const filteredSellers = ref([]);
+const showSuggestions = ref(false);
 
 const stats = ref({ pending: 0, approved: 0, rejected: 0, total_approved_amount: 0 });
 const approveForm = ref({ 
@@ -511,12 +535,56 @@ const openApproveModal = (order) => {
     seller_document: ''
   };
   currentExchangeRate.value = 0;
+  showSuggestions.value = false;
+  filteredSellers.value = [];
   showApproveModal.value = true;
+  loadSellers();
 };
 
 const closeApproveModal = () => {
   showApproveModal.value = false;
   selectedOrder.value = null;
+  showSuggestions.value = false;
+};
+
+// Sellers autocomplete
+const loadSellers = async () => {
+  try {
+    const res = await fetch(`${apiBase.value}/sellers`);
+    const data = await res.json();
+    if (data.success) {
+      allSellers.value = data.sellers || [];
+    }
+  } catch (e) {
+    console.error('Error loading sellers:', e);
+  }
+};
+
+const filterSellers = () => {
+  const query = approveForm.value.seller_name.toLowerCase().trim();
+  if (query.length < 1) {
+    filteredSellers.value = allSellers.value.slice(0, 5);
+  } else {
+    filteredSellers.value = allSellers.value
+      .filter(s => 
+        s.seller_name.toLowerCase().includes(query) || 
+        (s.seller_document && s.seller_document.includes(query))
+      )
+      .slice(0, 5);
+  }
+  showSuggestions.value = true;
+};
+
+const selectSeller = (seller) => {
+  approveForm.value.seller_name = seller.seller_name;
+  approveForm.value.seller_document = seller.seller_document || '';
+  showSuggestions.value = false;
+};
+
+const hideSuggestions = () => {
+  setTimeout(() => {
+    showSuggestions.value = false;
+  }, 150);
 };
 
 const onCurrencyChange = async () => {
@@ -957,6 +1025,53 @@ onMounted(() => {
   margin: 0 0 12px 0;
   font-size: 0.9rem;
   color: rgba(255,255,255,0.8);
+}
+
+/* Autocomplete */
+.autocomplete-wrapper {
+  position: relative;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  margin-top: 4px;
+  list-style: none;
+  padding: 0;
+}
+
+.suggestions-list li {
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.suggestions-list li:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.suggestions-list li:last-child {
+  border-bottom: none;
+}
+
+.seller-name {
+  font-weight: 500;
+}
+
+.seller-doc {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
 }
 
 .order-actions { display: flex; gap: 10px; margin-top: 12px; }
