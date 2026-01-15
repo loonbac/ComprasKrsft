@@ -1,11 +1,11 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - TEMA DE COLORES
    Variables CSS específicas del módulo
-   Versión 3.0.2 - Refactored CSS Variables + Icon
+   Versión 3.0.3 - Matched Proyectos/Trabajadores Style
    ============================================ */
 
 :root {
-    /* Colores Primarios del Módulo (Green) */
+    /* Colores Primarios del Módulo (Green - Module Identity) */
     --compras-primary: #10b981;
     --compras-primary-dark: #059669;
     --compras-primary-light: #6ee7b7;
@@ -18,6 +18,9 @@
     --compras-bg-radial-1: rgba(16, 185, 129, 0.15);
     --compras-bg-radial-2: rgba(5, 150, 105, 0.1);
 
+    /* Toggle Border - Modo Claro */
+    --compras-toggle-border: #94a3b8;
+
     /* Colores de Estado */
     --compras-success: #10b981;
     --compras-success-dark: #059669;
@@ -28,48 +31,52 @@
     --compras-info: #3b82f6;
     --compras-info-light: #60a5fa;
 
-    /* Fondos - Modo Claro */
-    --compras-bg-page: linear-gradient(135deg, #065f46 0%, #047857 100%);
-    --compras-bg-container: rgba(255, 255, 255, 0.1);
-    --compras-bg-card: rgba(255, 255, 255, 0.1);
-    --compras-bg-card-dark: rgba(0, 0, 0, 0.2);
-    --compras-bg-light: rgba(255, 255, 255, 0.05);
-    --compras-bg-input: rgba(255, 255, 255, 0.1);
+    /* Fondos - Modo Claro (SOLID like Proyectos) */
+    --compras-bg-page: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+    --compras-bg-container: rgba(255, 255, 255, 0.95);
+    --compras-bg-card: #ffffff;
+    --compras-bg-card-hover: #f8fafc;
+    --compras-bg-light: #f8fafc;
+    --compras-bg-input: #ffffff;
 
-    /* Textos */
+    /* Textos - Modo Claro (DARK text like Proyectos) */
+    --compras-text-dark: #1e293b;
+    --compras-text-gray: #64748b;
+    --compras-text-light: #94a3b8;
+    --compras-text-muted: #475569;
     --compras-text-white: #ffffff;
     --compras-text-white-muted: rgba(255, 255, 255, 0.7);
     --compras-text-white-soft: rgba(255, 255, 255, 0.6);
-    --compras-text-white-dim: rgba(255, 255, 255, 0.5);
 
     /* Bordes y Sombras */
-    --compras-border: rgba(255, 255, 255, 0.2);
-    --compras-border-light: rgba(255, 255, 255, 0.1);
-    --compras-border-dashed: rgba(255, 255, 255, 0.3);
+    --compras-border: #e2e8f0;
+    --compras-border-light: #f1f5f9;
+    --compras-border-white: rgba(255, 255, 255, 0.2);
+    --compras-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.08);
+    --compras-shadow-md: 0 8px 25px rgba(0, 0, 0, 0.12);
+    --compras-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
+    --compras-shadow-primary: 0 4px 12px rgba(16, 185, 129, 0.4);
 
-    /* Stats Cards - Iconos */
-    --compras-stat-pending-bg: rgba(245, 158, 11, 0.2);
-    --compras-stat-pending-color: #f59e0b;
-    --compras-stat-approved-bg: rgba(16, 185, 129, 0.2);
-    --compras-stat-approved-color: #10b981;
-    --compras-stat-projects-bg: rgba(59, 130, 246, 0.2);
-    --compras-stat-projects-color: #3b82f6;
+    /* Stats Cards - Icons with solid backgrounds */
+    --compras-stat-pending-bg: #f59e0b;
+    --compras-stat-approved-bg: #10b981;
+    --compras-stat-projects-bg: #3b82f6;
 
     /* Badges */
-    --compras-badge-pending-bg: rgba(245, 158, 11, 0.3);
-    --compras-badge-pending-text: #fcd34d;
-    --compras-badge-approved-bg: rgba(16, 185, 129, 0.2);
-    --compras-badge-approved-text: #6ee7b7;
-    --compras-badge-rejected-bg: rgba(239, 68, 68, 0.2);
-    --compras-badge-rejected-text: #fca5a5;
-    --compras-badge-unpaid-bg: rgba(59, 130, 246, 0.3);
-    --compras-badge-unpaid-text: #60a5fa;
+    --compras-badge-pending-bg: rgba(245, 158, 11, 0.15);
+    --compras-badge-pending-text: #f59e0b;
+    --compras-badge-approved-bg: rgba(16, 185, 129, 0.15);
+    --compras-badge-approved-text: #10b981;
+    --compras-badge-rejected-bg: rgba(239, 68, 68, 0.15);
+    --compras-badge-rejected-text: #ef4444;
+    --compras-badge-unpaid-bg: rgba(59, 130, 246, 0.15);
+    --compras-badge-unpaid-text: #3b82f6;
 
     /* Order Type Badges */
-    --compras-type-material-bg: rgba(59, 130, 246, 0.2);
-    --compras-type-material-text: #60a5fa;
-    --compras-type-service-bg: rgba(139, 92, 246, 0.2);
-    --compras-type-service-text: #a78bfa;
+    --compras-type-material-bg: rgba(59, 130, 246, 0.15);
+    --compras-type-material-text: #3b82f6;
+    --compras-type-service-bg: rgba(139, 92, 246, 0.15);
+    --compras-type-service-text: #8b5cf6;
 
     /* Currency Badges */
     --compras-currency-pen: #dc2626;
@@ -78,9 +85,9 @@
     /* Buttons */
     --compras-btn-approve-bg: #10b981;
     --compras-btn-approve-hover: #059669;
-    --compras-btn-reject-bg: rgba(239, 68, 68, 0.2);
-    --compras-btn-reject-text: #fca5a5;
-    --compras-btn-reject-hover: rgba(239, 68, 68, 0.3);
+    --compras-btn-reject-bg: rgba(239, 68, 68, 0.1);
+    --compras-btn-reject-text: #ef4444;
+    --compras-btn-reject-hover: rgba(239, 68, 68, 0.2);
     --compras-btn-confirm-bg: #3b82f6;
     --compras-btn-confirm-hover: #2563eb;
 
@@ -101,20 +108,14 @@
     --compras-radius-md: 8px;
     --compras-radius-lg: 12px;
     --compras-radius-xl: 16px;
+    --compras-radius-2xl: 20px;
     --compras-radius-full: 9999px;
 
-    /* Approval Details */
-    --compras-approval-bg: rgba(16, 185, 129, 0.1);
-    --compras-approval-border: rgba(16, 185, 129, 0.2);
-    --compras-notes-bg: rgba(59, 130, 246, 0.1);
-    --compras-notes-border: #3b82f6;
-
-    /* IGV */
-    --compras-igv-bg: rgba(16, 185, 129, 0.1);
-    --compras-igv-text: #6ee7b7;
-
-    /* Exchange Rate */
-    --compras-exchange-bg: rgba(59, 130, 246, 0.1);
+    /* Progress Bar Colors */
+    --compras-progress-good: #10b981;
+    --compras-progress-warning: #f59e0b;
+    --compras-progress-critical: #ef4444;
+    --compras-progress-bg: #e2e8f0;
 }
 
 /* ============================================
@@ -123,9 +124,35 @@
 .dark-mode,
 body.dark-mode .compras-layout {
     /* Fondos - Modo Oscuro */
-    --compras-bg-page: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --compras-bg-page: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    --compras-bg-container: rgba(30, 41, 59, 0.95);
+    --compras-bg-card: #1e293b;
+    --compras-bg-card-hover: #334155;
+    --compras-bg-light: #334155;
+    --compras-bg-input: #1e293b;
     --compras-bg-color-1: #0f172a;
     --compras-bg-color-2: #1e293b;
     --compras-bg-radial-1: rgba(16, 185, 129, 0.1);
     --compras-bg-radial-2: rgba(5, 150, 105, 0.05);
+
+    /* Textos - Modo Oscuro */
+    --compras-text-dark: #f1f5f9;
+    --compras-text-gray: #cbd5e1;
+    --compras-text-light: #94a3b8;
+    --compras-text-muted: #e2e8f0;
+
+    /* Bordes - Modo Oscuro */
+    --compras-border: #334155;
+    --compras-border-light: #1e293b;
+
+    /* Sombras - Modo Oscuro */
+    --compras-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
+    --compras-shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
+    --compras-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+    /* Progress - Modo Oscuro */
+    --compras-progress-bg: rgba(0, 0, 0, 0.3);
+
+    /* Toggle Border - Modo Oscuro */
+    --compras-toggle-border: #f59e0b;
 }
