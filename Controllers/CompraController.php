@@ -162,6 +162,17 @@ class CompraController extends Controller
                 }
             }
 
+            // IGV calculation
+            $igvEnabled = $request->boolean('igv_enabled', false);
+            $igvRate = floatval($request->input('igv_rate', 18.00));
+            $igvAmount = 0;
+            $totalWithIgv = $amountPen;
+            
+            if ($igvEnabled) {
+                $igvAmount = $amountPen * ($igvRate / 100);
+                $totalWithIgv = $amountPen + $igvAmount;
+            }
+
             DB::table($this->ordersTable)
                 ->where('id', $id)
                 ->update([
@@ -169,6 +180,10 @@ class CompraController extends Controller
                     'currency' => $currency,
                     'exchange_rate' => $exchangeRate,
                     'amount_pen' => $amountPen,
+                    'igv_enabled' => $igvEnabled,
+                    'igv_rate' => $igvRate,
+                    'igv_amount' => $igvAmount,
+                    'total_with_igv' => $totalWithIgv,
                     'status' => 'approved',
                     'approved_by' => auth()->id(),
                     'approved_at' => now(),
@@ -285,6 +300,89 @@ class CompraController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Orden rechazada'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get approved but unpaid orders
+     */
+    public function approvedUnpaid()
+    {
+        $orders = DB::table($this->ordersTable)
+            ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->select([
+                'purchase_orders.*',
+                'projects.name as project_name'
+            ])
+            ->where('purchase_orders.status', 'approved')
+            ->where('purchase_orders.payment_confirmed', false)
+            ->orderBy('purchase_orders.approved_at', 'desc')
+            ->get()
+            ->map(function ($order) {
+                $order->materials = $order->materials ? json_decode($order->materials, true) : [];
+                return $order;
+            });
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders,
+            'total' => $orders->count()
+        ]);
+    }
+
+    /**
+     * Confirm payment for an approved order
+     */
+    public function confirmPayment(Request $request, $id)
+    {
+        $order = DB::table($this->ordersTable)->find($id);
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
+        }
+
+        if ($order->status !== 'approved') {
+            return response()->json(['success' => false, 'message' => 'La orden debe estar aprobada'], 400);
+        }
+
+        $request->validate([
+            'cdp_type' => 'required|string|max:10',
+            'cdp_serie' => 'required|string|max:20',
+            'cdp_number' => 'required|string|max:20',
+        ]);
+
+        try {
+            $proofPath = null;
+            
+            // Handle file upload
+            if ($request->hasFile('payment_proof')) {
+                $file = $request->file('payment_proof');
+                $filename = 'proof_' . $id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
+            }
+
+            DB::table($this->ordersTable)
+                ->where('id', $id)
+                ->update([
+                    'payment_confirmed' => true,
+                    'payment_confirmed_at' => now(),
+                    'payment_confirmed_by' => auth()->id(),
+                    'cdp_type' => $request->input('cdp_type'),
+                    'cdp_serie' => $request->input('cdp_serie'),
+                    'cdp_number' => $request->input('cdp_number'),
+                    'payment_proof' => $proofPath,
+                    'updated_at' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pago confirmado exitosamente'
             ]);
         } catch (\Exception $e) {
             return response()->json([

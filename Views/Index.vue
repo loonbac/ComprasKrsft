@@ -68,33 +68,50 @@
           </div>
         </div>
 
-        <!-- Filter Buttons -->
-        <div class="filter-bar">
+        <!-- Main Tabs -->
+        <div class="main-tabs">
+          <button @click="activeTab = 'pending'" :class="{ active: activeTab === 'pending' }" class="main-tab">
+            🕐 Por Aprobar
+            <span class="tab-badge pending-badge">{{ stats.pending }}</span>
+          </button>
+          <button @click="activeTab = 'unpaid'" :class="{ active: activeTab === 'unpaid' }" class="main-tab">
+            💳 Por Pagar
+            <span class="tab-badge unpaid-badge">{{ approvedUnpaidOrders.length }}</span>
+          </button>
+          <button @click="activeTab = 'paid'" :class="{ active: activeTab === 'paid' }" class="main-tab">
+            ✅ Pagadas
+          </button>
+        </div>
+
+        <!-- Filter Buttons (only for pending tab) -->
+        <div v-if="activeTab === 'pending'" class="filter-bar">
           <button @click="filterStatus = 'all'" :class="{ active: filterStatus === 'all' }" class="filter-btn">
             Todas
           </button>
           <button @click="filterStatus = 'pending'" :class="{ active: filterStatus === 'pending' }" class="filter-btn pending">
-            🕐 Pendientes ({{ stats.pending }})
+            🕐 Pendientes
           </button>
           <button @click="filterStatus = 'approved'" :class="{ active: filterStatus === 'approved' }" class="filter-btn approved">
             ✓ Aprobadas
           </button>
         </div>
 
-        <!-- Loading -->
-        <div v-if="loading" class="loading-container">
-          <div class="loading-spinner"></div>
-          <span>Cargando órdenes...</span>
-        </div>
+        <!-- TAB: Por Aprobar -->
+        <template v-if="activeTab === 'pending'">
+          <!-- Loading -->
+          <div v-if="loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <span>Cargando órdenes...</span>
+          </div>
 
-        <!-- Empty State -->
-        <div v-else-if="projectsWithOrders.length === 0" class="empty-state">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17" />
-          </svg>
-          <h3>No hay órdenes</h3>
-          <p>Las órdenes de compra aparecerán aquí cuando se creen desde Proyectos</p>
-        </div>
+          <!-- Empty State -->
+          <div v-else-if="projectsWithOrders.length === 0" class="empty-state">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17" />
+            </svg>
+            <h3>No hay órdenes</h3>
+            <p>Las órdenes de compra aparecerán aquí cuando se creen desde Proyectos</p>
+          </div>
 
         <!-- Projects List with Orders -->
         <div v-else class="projects-list">
@@ -219,6 +236,78 @@
             </div>
           </div>
         </div>
+        </template>
+
+        <!-- TAB: Por Pagar -->
+        <template v-if="activeTab === 'unpaid'">
+          <div v-if="unpaidProjectsWithOrders.length === 0" class="empty-state">
+            <h3>No hay compras pendientes de pago</h3>
+            <p>Las compras aprobadas aparecerán aquí para confirmar su pago</p>
+          </div>
+
+          <div v-else class="projects-list">
+            <div 
+              v-for="project in unpaidProjectsWithOrders" 
+              :key="'unpaid-' + project.id" 
+              class="project-section"
+              :class="{ expanded: expandedUnpaidProjects.includes(project.id) }"
+            >
+              <div class="project-header" @click="toggleUnpaidProject(project.id)">
+                <div class="project-info">
+                  <span class="expand-icon">{{ expandedUnpaidProjects.includes(project.id) ? '▼' : '▶' }}</span>
+                  <h2>{{ project.name }}</h2>
+                  <span class="order-count unpaid-count">{{ project.orders.length }} por pagar</span>
+                </div>
+              </div>
+
+              <div v-if="expandedUnpaidProjects.includes(project.id)" class="orders-container">
+                <div
+                  v-for="order in project.orders"
+                  :key="order.id"
+                  class="order-card status-approved-unpaid"
+                >
+                  <div class="order-header">
+                    <div class="order-type-badge" :class="order.type">
+                      {{ order.type === 'service' ? '🔧 Servicio' : '📦 Materiales' }}
+                    </div>
+                    <div class="order-status-badge approved-unpaid">💳 Por Pagar</div>
+                  </div>
+
+                  <div class="order-description">
+                    <h3>{{ order.description }}</h3>
+                    <p class="order-date">Aprobado {{ formatDate(order.approved_at) }}</p>
+                  </div>
+
+                  <div class="order-amount">
+                    <div class="amount-approved-wrap">
+                      <span class="currency-badge" :class="order.currency">{{ order.currency }}</span>
+                      <span class="amount-approved">
+                        {{ order.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(order.total_with_igv || order.amount) }}
+                      </span>
+                    </div>
+                    <div v-if="order.igv_enabled" class="igv-info">
+                      (Incluye IGV {{ order.igv_rate }}%)
+                    </div>
+                  </div>
+
+                  <div class="order-actions">
+                    <button @click="openPaymentModal(order)" class="btn-confirm-payment">
+                      💳 Confirmar Pago
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- TAB: Pagadas -->
+        <template v-if="activeTab === 'paid'">
+          <div class="empty-state">
+            <h3>Compras Pagadas</h3>
+            <p>Las compras con pago confirmado se muestran en la pestaña "Por Aprobar" con filtro "Aprobadas"</p>
+          </div>
+        </template>
       </main>
 
       <!-- Approve Modal -->
@@ -310,7 +399,27 @@
                   </div>
                 </div>
 
-                <!-- Dates and Payment -->
+                <!-- IGV -->
+                <div class="form-section">
+                  <h4>📋 IGV</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="checkbox-label">
+                        <input type="checkbox" v-model="approveForm.igv_enabled" />
+                        Aplicar IGV
+                      </label>
+                    </div>
+                    <div v-if="approveForm.igv_enabled" class="form-group flex-1">
+                      <label>Tasa IGV (%)</label>
+                      <input v-model.number="approveForm.igv_rate" type="number" step="0.01" min="0" class="input-field" />
+                    </div>
+                  </div>
+                  <div v-if="approveForm.igv_enabled && approveForm.amount > 0" class="igv-preview">
+                    <p>Subtotal: S/ {{ formatNumber(getSubtotal) }}</p>
+                    <p>IGV ({{ approveForm.igv_rate }}%): S/ {{ formatNumber(getIgvAmount) }}</p>
+                    <p class="total-igv"><strong>Total: S/ {{ formatNumber(getTotalWithIgv) }}</strong></p>
+                  </div>
+                </div>
                 <div class="form-section">
                   <h4>📅 Fechas y Pago</h4>
                   <div class="form-row">
@@ -348,6 +457,89 @@
                   <button type="button" @click="closeApproveModal" class="btn-cancel">Cancelar</button>
                   <button type="submit" :disabled="approving || !canApprove" class="btn-submit">
                     {{ approving ? 'Aprobando...' : 'Aprobar Compra' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
+      <!-- Payment Confirmation Modal -->
+      <Teleport to="body">
+        <div v-if="showPaymentModal" class="modal-overlay" @click.self="closePaymentModal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>💳 Confirmar Pago</h2>
+              <button @click="closePaymentModal" class="btn-close">×</button>
+            </div>
+            
+            <div class="modal-body" v-if="paymentOrder">
+              <div class="order-summary">
+                <p><strong>Proyecto:</strong> {{ paymentOrder.project_name }}</p>
+                <p><strong>Descripción:</strong> {{ paymentOrder.description }}</p>
+                <p><strong>Monto:</strong> 
+                  {{ paymentOrder.currency === 'USD' ? '$' : 'S/' }} 
+                  {{ formatNumber(paymentOrder.total_with_igv || paymentOrder.amount) }}
+                </p>
+              </div>
+
+              <form @submit.prevent="confirmPayment" class="payment-form">
+                <div class="form-section">
+                  <h4>📄 Datos del Comprobante</h4>
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label>Tipo CP/DOC *</label>
+                      <input 
+                        v-model="paymentForm.cdp_type" 
+                        type="text" 
+                        required 
+                        placeholder="Ej: 01, 03"
+                        pattern="[0-9]+"
+                        class="input-field" 
+                      />
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>Serie CDP *</label>
+                      <input 
+                        v-model="paymentForm.cdp_serie" 
+                        type="text" 
+                        required 
+                        placeholder="Ej: F001"
+                        class="input-field" 
+                      />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Nro CP/DOC *</label>
+                    <input 
+                      v-model="paymentForm.cdp_number" 
+                      type="text" 
+                      required 
+                      placeholder="Ej: 00001234"
+                      pattern="[0-9]+"
+                      class="input-field" 
+                    />
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <h4>📎 Comprobante de Pago (opcional)</h4>
+                  <div class="form-group">
+                    <input 
+                      type="file" 
+                      @change="onPaymentProofChange"
+                      accept="image/*,.pdf"
+                      class="input-file"
+                    />
+                    <p class="hint">Foto o documento del comprobante</p>
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" @click="closePaymentModal" class="btn-cancel">Cancelar</button>
+                  <button type="submit" :disabled="confirmingPayment" class="btn-submit btn-confirm">
+                    {{ confirmingPayment ? 'Confirmando...' : '✓ Confirmar Pago' }}
                   </button>
                 </div>
               </form>
@@ -395,7 +587,23 @@ const approveForm = ref({
   payment_date: '',
   due_date: '',
   seller_name: '',
-  seller_document: ''
+  seller_document: '',
+  igv_enabled: false,
+  igv_rate: 18.00
+});
+
+// Payment confirmation
+const activeTab = ref('pending'); // 'pending', 'unpaid', 'paid'
+const approvedUnpaidOrders = ref([]);
+const expandedUnpaidProjects = ref([]);
+const showPaymentModal = ref(false);
+const paymentOrder = ref(null);
+const confirmingPayment = ref(false);
+const paymentForm = ref({
+  cdp_type: '',
+  cdp_serie: '',
+  cdp_number: '',
+  payment_proof: null
 });
 
 // Computed
@@ -408,6 +616,40 @@ const canApprove = computed(() => {
   if (approveForm.value.payment_type === 'loan' && !approveForm.value.due_date) return false;
   if (approveForm.value.currency === 'USD' && currentExchangeRate.value <= 0) return false;
   return true;
+});
+
+// IGV computed
+const getSubtotal = computed(() => {
+  const base = approveForm.value.amount;
+  if (approveForm.value.currency === 'USD' && currentExchangeRate.value > 0) {
+    return base * currentExchangeRate.value;
+  }
+  return base;
+});
+
+const getIgvAmount = computed(() => {
+  return getSubtotal.value * (approveForm.value.igv_rate / 100);
+});
+
+const getTotalWithIgv = computed(() => {
+  return getSubtotal.value + getIgvAmount.value;
+});
+
+// Group unpaid orders by project
+const unpaidProjectsWithOrders = computed(() => {
+  const projectMap = {};
+  
+  approvedUnpaidOrders.value.forEach(order => {
+    const projectId = order.project_id;
+    const projectName = order.project_name || 'Sin Proyecto';
+    
+    if (!projectMap[projectId]) {
+      projectMap[projectId] = { id: projectId, name: projectName, orders: [] };
+    }
+    projectMap[projectId].orders.push(order);
+  });
+  
+  return Object.values(projectMap).sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const getModuleName = () => {
@@ -532,7 +774,9 @@ const openApproveModal = (order) => {
     payment_date: '',
     due_date: '',
     seller_name: '',
-    seller_document: ''
+    seller_document: '',
+    igv_enabled: false,
+    igv_rate: 18.00
   };
   currentExchangeRate.value = 0;
   showSuggestions.value = false;
@@ -545,6 +789,85 @@ const closeApproveModal = () => {
   showApproveModal.value = false;
   selectedOrder.value = null;
   showSuggestions.value = false;
+};
+
+// Load approved but unpaid orders
+const loadApprovedUnpaid = async () => {
+  try {
+    const res = await fetch(`${apiBase.value}/approved-unpaid`);
+    const data = await res.json();
+    if (data.success) {
+      approvedUnpaidOrders.value = data.orders || [];
+      expandedUnpaidProjects.value = unpaidProjectsWithOrders.value.map(p => p.id);
+    }
+  } catch (e) {
+    console.error('Error:', e);
+  }
+};
+
+// Payment confirmation
+const openPaymentModal = (order) => {
+  paymentOrder.value = order;
+  paymentForm.value = { cdp_type: '', cdp_serie: '', cdp_number: '', payment_proof: null };
+  showPaymentModal.value = true;
+};
+
+const closePaymentModal = () => {
+  showPaymentModal.value = false;
+  paymentOrder.value = null;
+};
+
+const onPaymentProofChange = (e) => {
+  paymentForm.value.payment_proof = e.target.files[0] || null;
+};
+
+const confirmPayment = async () => {
+  if (!paymentForm.value.cdp_type || !paymentForm.value.cdp_serie || !paymentForm.value.cdp_number) {
+    showToast('Complete todos los campos', 'error');
+    return;
+  }
+
+  try {
+    confirmingPayment.value = true;
+    
+    const formData = new FormData();
+    formData.append('cdp_type', paymentForm.value.cdp_type);
+    formData.append('cdp_serie', paymentForm.value.cdp_serie);
+    formData.append('cdp_number', paymentForm.value.cdp_number);
+    if (paymentForm.value.payment_proof) {
+      formData.append('payment_proof', paymentForm.value.payment_proof);
+    }
+
+    const res = await fetch(`${apiBase.value}/${paymentOrder.value.id}/confirm-payment`, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': getCsrfToken() },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('Pago confirmado', 'success');
+      closePaymentModal();
+      await loadApprovedUnpaid();
+      await loadOrders();
+      await loadStats();
+    } else {
+      showToast(data.message || 'Error', 'error');
+    }
+  } catch (e) {
+    showToast('Error de conexión', 'error');
+  } finally {
+    confirmingPayment.value = false;
+  }
+};
+
+const toggleUnpaidProject = (projectId) => {
+  const idx = expandedUnpaidProjects.value.indexOf(projectId);
+  if (idx >= 0) {
+    expandedUnpaidProjects.value.splice(idx, 1);
+  } else {
+    expandedUnpaidProjects.value.push(projectId);
+  }
 };
 
 // Sellers autocomplete
@@ -664,6 +987,7 @@ const rejectOrder = async (orderId) => {
 onMounted(() => {
   loadOrders();
   loadStats();
+  loadApprovedUnpaid();
 });
 </script>
 
@@ -763,6 +1087,98 @@ onMounted(() => {
   transition: 0.4s;
 }
 .theme-switch input:checked + .slider:before { transform: translateX(30px); }
+
+/* Main Tabs */
+.main-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.main-tab {
+  flex: 1;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.main-tab:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.main-tab.active { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+.tab-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.pending-badge { background: rgba(245, 158, 11, 0.3); color: #fcd34d; }
+.unpaid-badge { background: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+
+/* IGV Preview */
+.igv-preview {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.igv-preview p { margin: 4px 0; }
+.total-igv { color: #6ee7b7; font-size: 1rem; }
+
+/* Checkbox Label */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.checkbox-label input { width: 18px; height: 18px; }
+
+/* Unpaid section */
+.unpaid-count { background: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+.status-approved-unpaid { border-left-color: #3b82f6; }
+.order-status-badge.approved-unpaid { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+
+.igv-info { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+.btn-confirm-payment {
+  width: 100%;
+  padding: 12px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-confirm-payment:hover { background: #2563eb; }
+
+.btn-confirm { background: #10b981; }
+.btn-confirm:hover { background: #059669; }
+
+.input-file {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1px dashed rgba(255,255,255,0.3);
+  border-radius: 8px;
+  color: #fff;
+}
+.hint { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 6px; }
 
 /* Stats */
 .stats-grid {
