@@ -342,18 +342,29 @@ body.dark-mode .compras-layout .theme-toggle .sun-icon {
 }
 
 .tab-badge {
-    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
     border-radius: var(--compras-radius-full);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
 }
 
-.pending-badge {
-    background: var(--compras-badge-warning-bg);
-    color: var(--compras-badge-warning-text);
+.tab-badge.pending-badge {
+    background: #fb923c;
+    color: white;
+    border: none;
 }
 
-.unpaid-badge {
+body.dark-mode .tab-badge.pending-badge {
+    background: #fb923c;
+    color: white;
+}
+
+.tab-badge.unpaid-badge {
     background: var(--compras-badge-info-bg);
     color: var(--compras-badge-info-text);
 }
@@ -975,13 +986,14 @@ body.dark-mode .order-status-badge.paid {
 }
 
 .btn-reject {
-    background: var(--compras-btn-reject-bg);
-    color: var(--compras-btn-reject-text);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: #ef4444;
+    color: white;
+    border: none;
 }
 
 .btn-reject:hover {
-    background: var(--compras-btn-reject-hover);
+    background: #dc2626;
+    transform: translateY(-2px);
 }
 
 .btn-confirm-payment {
