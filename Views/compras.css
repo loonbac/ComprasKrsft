@@ -602,11 +602,18 @@ body.dark-mode .compras-layout .theme-toggle .sun-icon {
     align-items: center;
     gap: 6px;
     padding: 4px 12px;
-    background: var(--compras-badge-pending-bg);
+    background: rgba(251, 146, 60, 0.15);
+    border: 1px solid #fb923c;
     border-radius: var(--compras-radius-full);
     font-size: 13px;
-    color: var(--compras-badge-pending-text);
+    color: #ea580c;
     font-weight: 500;
+}
+
+body.dark-mode .pending-badge {
+    background: rgba(251, 146, 60, 0.2);
+    border-color: #fb923c;
+    color: #fdba74;
 }
 
 .igv-badge {
@@ -628,6 +635,31 @@ body.dark-mode .compras-layout .theme-toggle .sun-icon {
     font-size: 14px;
     color: var(--compras-success);
     font-weight: 600;
+}
+
+.order-count.paid-count {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--compras-success);
+}
+
+body.dark-mode .order-count.paid-count {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.order-status-badge.paid {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--compras-success);
+    border: 1px solid currentColor;
+}
+
+body.dark-mode .order-status-badge.paid {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.order-card.status-paid {
+    border-left: 4px solid var(--compras-success);
 }
 
 .orders-container {

@@ -224,7 +224,10 @@
             >
               <div class="project-header" @click="toggleUnpaidProject(project.id)">
                 <div class="project-info">
-                  <span class="expand-icon">{{ expandedUnpaidProjects.includes(project.id) ? '▼' : '▶' }}</span>
+                  <span class="expand-icon">
+                    <svg v-if="expandedUnpaidProjects.includes(project.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </span>
                   <h2>{{ project.name }}</h2>
                   <span class="order-count unpaid-count">{{ project.orders.length }} por pagar</span>
                 </div>
@@ -288,31 +291,72 @@
             <p>Las órdenes con pago confirmado aparecerán aquí</p>
           </div>
 
-          <!-- Paid Orders List -->
-          <div v-else class="paid-orders-list">
-            <div v-for="order in paidOrders" :key="order.id" class="paid-order-card">
-              <div class="paid-order-header">
-                <div class="order-project">
-                  <svg class="project-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-                  {{ order.project_name }}
+          <!-- Paid Projects List -->
+          <div v-else class="projects-list">
+            <div 
+              v-for="project in paidProjectsWithOrders" 
+              :key="'paid-' + project.id" 
+              class="project-section"
+              :class="{ expanded: expandedPaidProjects.includes(project.id) }"
+            >
+              <div class="project-header" @click="togglePaidProject(project.id)">
+                <div class="project-info">
+                  <span class="expand-icon">
+                    <svg v-if="expandedPaidProjects.includes(project.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </span>
+                  <h2>{{ project.name }}</h2>
+                  <span class="order-count paid-count">
+                    <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    {{ project.orders.length }} pagadas
+                  </span>
                 </div>
-                <span class="paid-status-badge">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                  Pagado
-                </span>
               </div>
-              
-              <div class="paid-order-content">
-                <h3>{{ order.description }}</h3>
-                <div class="paid-order-details">
-                  <div class="paid-amount">
-                    <span class="currency-badge" :class="order.currency">{{ order.currency }}</span>
-                    <span class="amount">{{ order.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(order.total_with_igv || order.amount) }}</span>
-                    <span v-if="order.igv_enabled" class="igv-badge">+IGV</span>
+
+              <div v-if="expandedPaidProjects.includes(project.id)" class="orders-container">
+                <div
+                  v-for="order in project.orders"
+                  :key="order.id"
+                  class="order-card status-paid"
+                >
+                  <div class="order-header">
+                    <div class="order-type-badge" :class="order.type">
+                      <svg v-if="order.type === 'service'" class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                      <svg v-else class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                      {{ order.type === 'service' ? 'Servicio' : 'Materiales' }}
+                    </div>
+                    <div class="order-status-badge paid">
+                      <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                      Pagado
+                    </div>
                   </div>
-                  <div class="payment-info">
-                    <span class="cdp-info">{{ order.cdp_type }} {{ order.cdp_serie }}-{{ order.cdp_number }}</span>
-                    <span class="payment-date">Pagado {{ formatDate(order.payment_confirmed_at) }}</span>
+
+                  <div class="order-description">
+                    <h3>{{ order.description }}</h3>
+                    <p class="order-date">Pagado {{ formatDate(order.payment_confirmed_at) }}</p>
+                  </div>
+
+                  <div class="order-amount">
+                    <div class="amount-approved-wrap">
+                      <span class="currency-badge" :class="order.currency">{{ order.currency }}</span>
+                      <span class="amount-approved">
+                        {{ order.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(order.total_with_igv || order.amount) }}
+                      </span>
+                      <span v-if="order.igv_enabled" class="igv-badge">+IGV</span>
+                    </div>
+                  </div>
+
+                  <div class="approval-details">
+                    <div class="detail-grid">
+                      <div class="detail-item">
+                        <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Comprobante</span>
+                        <span class="detail-value">{{ order.cdp_type }} {{ order.cdp_serie }}-{{ order.cdp_number }}</span>
+                      </div>
+                      <div v-if="order.seller_name" class="detail-item">
+                        <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Proveedor</span>
+                        <span class="detail-value">{{ order.seller_name }}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -609,6 +653,7 @@ const activeTab = ref('pending'); // 'pending', 'unpaid', 'paid'
 const approvedUnpaidOrders = ref([]);
 const paidOrders = ref([]);
 const expandedUnpaidProjects = ref([]);
+const expandedPaidProjects = ref([]);
 const showPaymentModal = ref(false);
 const paymentOrder = ref(null);
 const confirmingPayment = ref(false);
@@ -702,6 +747,23 @@ const filteredProjects = computed(() => {
   return projectsWithOrders.value.filter(project => 
     project.orders.some(o => o.status === filterStatus.value)
   );
+});
+
+const paidProjectsWithOrders = computed(() => {
+  const projectMap = {};
+  paidOrders.value.forEach(order => {
+    const projectId = order.project_id;
+    const projectName = order.project_name;
+    if (!projectMap[projectId]) {
+      projectMap[projectId] = {
+        id: projectId,
+        name: projectName,
+        orders: []
+      };
+    }
+    projectMap[projectId].orders.push(order);
+  });
+  return Object.values(projectMap).sort((a, b) => a.name.localeCompare(b.name));
 });
 
 // Methods
@@ -831,6 +893,10 @@ const loadPaidOrders = async () => {
     const data = await res.json();
     if (data.success) {
       paidOrders.value = data.orders || [];
+      // Auto-expand all paid projects after load
+      setTimeout(() => {
+        expandedPaidProjects.value = paidProjectsWithOrders.value.map(p => p.id);
+      }, 100);
     }
   } catch (e) {
     console.error('Error loading paid orders:', e);
@@ -899,6 +965,15 @@ const toggleUnpaidProject = (projectId) => {
     expandedUnpaidProjects.value.splice(idx, 1);
   } else {
     expandedUnpaidProjects.value.push(projectId);
+  }
+};
+
+const togglePaidProject = (projectId) => {
+  const idx = expandedPaidProjects.value.indexOf(projectId);
+  if (idx >= 0) {
+    expandedPaidProjects.value.splice(idx, 1);
+  } else {
+    expandedPaidProjects.value.push(projectId);
   }
 };
 
