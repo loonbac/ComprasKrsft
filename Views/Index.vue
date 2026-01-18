@@ -83,10 +83,17 @@
             <!-- Project Header -->
             <div class="project-header" @click="toggleProject(project.id)">
               <div class="project-info">
-                <span class="expand-icon">{{ expandedProjects.includes(project.id) ? '▼' : '▶' }}</span>
+                <span class="expand-icon">
+                  <svg v-if="expandedProjects.includes(project.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
                 <h2>{{ project.name }}</h2>
-                <span class="order-count">{{ project.orders.length }} órdenes</span>
+                <span class="order-count">
+                  <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  {{ project.orders.length }} órdenes
+                </span>
                 <span class="pending-badge" v-if="getProjectPendingCount(project) > 0">
+                  <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   {{ getProjectPendingCount(project) }} pendientes
                 </span>
               </div>
@@ -137,8 +144,9 @@
                   <div v-if="order.status === 'approved'" class="amount-approved-wrap">
                     <span class="currency-badge" :class="order.currency">{{ order.currency }}</span>
                     <span class="amount-approved">
-                      {{ order.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(order.amount) }}
+                      {{ order.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(order.total_with_igv || order.amount) }}
                     </span>
+                    <span v-if="order.igv_enabled" class="igv-badge">+IGV</span>
                     <div v-if="order.currency === 'USD' && order.exchange_rate" class="exchange-info">
                       <span>T.C: {{ parseFloat(order.exchange_rate).toFixed(4) }}</span>
                       <span>= S/ {{ formatNumber(order.amount_pen) }}</span>
@@ -271,9 +279,44 @@
 
         <!-- TAB: Pagadas -->
         <template v-if="activeTab === 'paid'">
-          <div class="empty-state">
-            <h3>Compras Pagadas</h3>
-            <p>Las compras con pago confirmado se muestran en la pestaña "Por Aprobar" con filtro "Aprobadas"</p>
+          <!-- Empty State -->
+          <div v-if="paidOrders.length === 0" class="empty-state">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3>No hay compras pagadas</h3>
+            <p>Las órdenes con pago confirmado aparecerán aquí</p>
+          </div>
+
+          <!-- Paid Orders List -->
+          <div v-else class="paid-orders-list">
+            <div v-for="order in paidOrders" :key="order.id" class="paid-order-card">
+              <div class="paid-order-header">
+                <div class="order-project">
+                  <svg class="project-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                  {{ order.project_name }}
+                </div>
+                <span class="paid-status-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Pagado
+                </span>
+              </div>
+              
+              <div class="paid-order-content">
+                <h3>{{ order.description }}</h3>
+                <div class="paid-order-details">
+                  <div class="paid-amount">
+                    <span class="currency-badge" :class="order.currency">{{ order.currency }}</span>
+                    <span class="amount">{{ order.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(order.total_with_igv || order.amount) }}</span>
+                    <span v-if="order.igv_enabled" class="igv-badge">+IGV</span>
+                  </div>
+                  <div class="payment-info">
+                    <span class="cdp-info">{{ order.cdp_type }} {{ order.cdp_serie }}-{{ order.cdp_number }}</span>
+                    <span class="payment-date">Pagado {{ formatDate(order.payment_confirmed_at) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </template>
       </main>
@@ -564,6 +607,7 @@ const approveForm = ref({
 // Payment confirmation
 const activeTab = ref('pending'); // 'pending', 'unpaid', 'paid'
 const approvedUnpaidOrders = ref([]);
+const paidOrders = ref([]);
 const expandedUnpaidProjects = ref([]);
 const showPaymentModal = ref(false);
 const paymentOrder = ref(null);
@@ -781,6 +825,18 @@ const loadApprovedUnpaid = async () => {
   }
 };
 
+const loadPaidOrders = async () => {
+  try {
+    const res = await fetch(`${apiBase.value}/paid-orders`);
+    const data = await res.json();
+    if (data.success) {
+      paidOrders.value = data.orders || [];
+    }
+  } catch (e) {
+    console.error('Error loading paid orders:', e);
+  }
+};
+
 // Payment confirmation
 const openPaymentModal = (order) => {
   paymentOrder.value = order;
@@ -968,6 +1024,7 @@ onMounted(() => {
   loadOrders();
   loadStats();
   loadApprovedUnpaid();
+  loadPaidOrders();
 });
 </script>
 

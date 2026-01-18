@@ -337,6 +337,33 @@ class CompraController extends Controller
     }
 
     /**
+     * Get paid orders (payment_confirmed = true)
+     */
+    public function paidOrders()
+    {
+        $orders = DB::table($this->ordersTable)
+            ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->select([
+                'purchase_orders.*',
+                'projects.name as project_name'
+            ])
+            ->where('purchase_orders.status', 'approved')
+            ->where('purchase_orders.payment_confirmed', true)
+            ->orderBy('purchase_orders.payment_confirmed_at', 'desc')
+            ->get()
+            ->map(function ($order) {
+                $order->materials = $order->materials ? json_decode($order->materials, true) : [];
+                return $order;
+            });
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders,
+            'total' => $orders->count()
+        ]);
+    }
+
+    /**
      * Confirm payment for an approved order
      */
     public function confirmPayment(Request $request, $id)
