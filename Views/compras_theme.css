@@ -1,7 +1,7 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - TEMA DE COLORES
    Variables CSS específicas del módulo
-   Versión 3.0.4 - SVG Icons + No Emojis
+   Versión 3.0.5 - Matched Trabajadores Style
    ============================================ */
 
 :root {
@@ -10,13 +10,11 @@
     --compras-primary-dark: #059669;
     --compras-primary-light: #6ee7b7;
     --compras-secondary: #047857;
-    --compras-gradient: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    --compras-gradient: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
 
     /* Colores para Animación del Fondo */
-    --compras-bg-color-1: #065f46;
+    --compras-bg-color-1: #10b981;
     --compras-bg-color-2: #047857;
-    --compras-bg-radial-1: rgba(16, 185, 129, 0.15);
-    --compras-bg-radial-2: rgba(5, 150, 105, 0.1);
 
     /* Toggle Border - Modo Claro */
     --compras-toggle-border: #94a3b8;
@@ -27,62 +25,50 @@
     --compras-danger: #ef4444;
     --compras-danger-dark: #dc2626;
     --compras-warning: #f59e0b;
-    --compras-warning-light: #fcd34d;
     --compras-info: #3b82f6;
-    --compras-info-light: #60a5fa;
 
-    /* Fondos - Modo Claro (SOLID like Proyectos) */
-    --compras-bg-page: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+    /* Fondos - Modo Claro */
+    --compras-bg-page: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
     --compras-bg-container: rgba(255, 255, 255, 0.95);
     --compras-bg-card: #ffffff;
-    --compras-bg-card-hover: #f8fafc;
     --compras-bg-light: #f8fafc;
     --compras-bg-input: #ffffff;
 
-    /* Textos - Modo Claro (DARK text like Proyectos) */
+    /* Textos - Modo Claro */
     --compras-text-dark: #1e293b;
     --compras-text-gray: #64748b;
     --compras-text-light: #94a3b8;
     --compras-text-muted: #475569;
-    --compras-text-white: #ffffff;
-    --compras-text-white-muted: rgba(255, 255, 255, 0.7);
-    --compras-text-white-soft: rgba(255, 255, 255, 0.6);
 
     /* Bordes y Sombras */
     --compras-border: #e2e8f0;
     --compras-border-light: #f1f5f9;
-    --compras-border-white: rgba(255, 255, 255, 0.2);
     --compras-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.08);
     --compras-shadow-md: 0 8px 25px rgba(0, 0, 0, 0.12);
     --compras-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
     --compras-shadow-primary: 0 4px 12px rgba(16, 185, 129, 0.4);
 
-    /* Stats Cards - Icons with solid backgrounds */
-    --compras-stat-pending-bg: #f59e0b;
-    --compras-stat-approved-bg: #10b981;
-    --compras-stat-projects-bg: #3b82f6;
+    /* Badges - Activo/Aprobado */
+    --compras-badge-success-bg: rgba(16, 185, 129, 0.1);
+    --compras-badge-success-text: #10b981;
 
-    /* Badges */
-    --compras-badge-pending-bg: rgba(245, 158, 11, 0.15);
-    --compras-badge-pending-text: #f59e0b;
-    --compras-badge-approved-bg: rgba(16, 185, 129, 0.15);
-    --compras-badge-approved-text: #10b981;
-    --compras-badge-rejected-bg: rgba(239, 68, 68, 0.15);
-    --compras-badge-rejected-text: #ef4444;
-    --compras-badge-unpaid-bg: rgba(59, 130, 246, 0.15);
-    --compras-badge-unpaid-text: #3b82f6;
+    /* Badges - Rechazado */
+    --compras-badge-danger-bg: rgba(239, 68, 68, 0.1);
+    --compras-badge-danger-text: #ef4444;
 
-    /* Order Type Badges */
-    --compras-type-material-bg: rgba(59, 130, 246, 0.15);
-    --compras-type-material-text: #3b82f6;
-    --compras-type-service-bg: rgba(139, 92, 246, 0.15);
-    --compras-type-service-text: #8b5cf6;
+    /* Badges - Pendiente */
+    --compras-badge-warning-bg: rgba(245, 158, 11, 0.1);
+    --compras-badge-warning-text: #f59e0b;
 
-    /* Currency Badges */
-    --compras-currency-pen: #dc2626;
-    --compras-currency-usd: #2563eb;
+    /* Badges - Por Pagar */
+    --compras-badge-info-bg: rgba(59, 130, 246, 0.1);
+    --compras-badge-info-text: #3b82f6;
 
-    /* Buttons */
+    /* Badges - Default */
+    --compras-badge-default-bg: #f1f5f9;
+    --compras-badge-default-text: #64748b;
+
+    /* Botones de Acción */
     --compras-btn-approve-bg: #10b981;
     --compras-btn-approve-hover: #059669;
     --compras-btn-reject-bg: rgba(239, 68, 68, 0.1);
@@ -91,9 +77,14 @@
     --compras-btn-confirm-bg: #3b82f6;
     --compras-btn-confirm-hover: #2563eb;
 
+    /* Iconos de Stats (Colores planos) */
+    --compras-stat-pending-bg: #f59e0b;
+    --compras-stat-approved-bg: #10b981;
+    --compras-stat-projects-bg: #3b82f6;
+
     /* Modal */
-    --compras-modal-bg: #1e293b;
-    --compras-modal-overlay: rgba(0, 0, 0, 0.7);
+    --compras-modal-bg: #ffffff;
+    --compras-modal-overlay: rgba(0, 0, 0, 0.5);
 
     /* Toast */
     --compras-toast-success: #10b981;
@@ -104,36 +95,24 @@
     --compras-transition-fast: all 0.2s ease;
 
     /* Radios de borde */
-    --compras-radius-sm: 6px;
-    --compras-radius-md: 8px;
-    --compras-radius-lg: 12px;
-    --compras-radius-xl: 16px;
-    --compras-radius-2xl: 20px;
+    --compras-radius-sm: 8px;
+    --compras-radius-md: 12px;
+    --compras-radius-lg: 16px;
+    --compras-radius-xl: 20px;
+    --compras-radius-2xl: 24px;
     --compras-radius-full: 9999px;
-
-    /* Progress Bar Colors */
-    --compras-progress-good: #10b981;
-    --compras-progress-warning: #f59e0b;
-    --compras-progress-critical: #ef4444;
-    --compras-progress-bg: #e2e8f0;
 }
 
 /* ============================================
-   MODO OSCURO
+   MODO OSCURO - Using body.dark-mode like Trabajadores
    ============================================ */
-.dark-mode,
-body.dark-mode .compras-layout {
+body.dark-mode {
     /* Fondos - Modo Oscuro */
     --compras-bg-page: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
     --compras-bg-container: rgba(30, 41, 59, 0.95);
     --compras-bg-card: #1e293b;
-    --compras-bg-card-hover: #334155;
     --compras-bg-light: #334155;
     --compras-bg-input: #1e293b;
-    --compras-bg-color-1: #0f172a;
-    --compras-bg-color-2: #1e293b;
-    --compras-bg-radial-1: rgba(16, 185, 129, 0.1);
-    --compras-bg-radial-2: rgba(5, 150, 105, 0.05);
 
     /* Textos - Modo Oscuro */
     --compras-text-dark: #f1f5f9;
@@ -150,9 +129,13 @@ body.dark-mode .compras-layout {
     --compras-shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
     --compras-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
 
-    /* Progress - Modo Oscuro */
-    --compras-progress-bg: rgba(0, 0, 0, 0.3);
+    /* Modal - Modo Oscuro */
+    --compras-modal-bg: #1e293b;
+
+    /* Colores para Animación del Fondo - Modo Oscuro */
+    --compras-bg-color-1: #0f172a;
+    --compras-bg-color-2: #1e293b;
 
     /* Toggle Border - Modo Oscuro */
-    --compras-toggle-border: #f59e0b;
+    --compras-toggle-border: #10b981;
 }

@@ -1,7 +1,7 @@
 {
     "name": "ComprasKrsft",
-    "display_name": "Gestión de Compras",
-    "version": "3.0.4",
+    "display_name": "COMPRAS",
+    "version": "3.0.5",
     "description": "Sistema de gestión de órdenes de compra y aprobación de gastos. Permite aprobar materiales y servicios vinculados a proyectos.",
     "icon": "icon.svg",
     "color": "#10b981",

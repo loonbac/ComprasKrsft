@@ -1,37 +1,402 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - ESTILOS DE COMPONENTES
    Layout, paneles, botones y elementos UI
-   Versión 3.0.4 - SVG Icons + No Emojis
+   Versión 3.0.5 - Matched Trabajadores Style
    ============================================ */
 
 /* ============================================
-   LAYOUT BASE - Now matches Proyectos
+   LAYOUT PRINCIPAL - Same as Trabajadores
    ============================================ */
 .compras-layout {
-    min-height: 100vh;
-    background: var(--compras-gradient);
     position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }
 
-.animated-background {
-    position: fixed;
+.compras-bg {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background:
-        radial-gradient(circle at 20% 80%, var(--compras-bg-radial-1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, var(--compras-bg-radial-2) 0%, transparent 50%);
-    pointer-events: none;
+    background: linear-gradient(135deg, var(--compras-bg-color-1), var(--compras-bg-color-2));
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
     z-index: 0;
 }
 
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
 .compras-container {
-    position: relative;
-    z-index: 1;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
+    position: fixed;
+    top: 30px;
+    left: 30px;
+    right: 30px;
+    bottom: 30px;
+    background: var(--compras-bg-container);
+    backdrop-filter: blur(20px);
+    border-radius: var(--compras-radius-2xl);
+    padding: 30px 40px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    overflow: hidden;
+    box-shadow: var(--compras-shadow-lg);
+}
+
+/* ============================================
+   HEADER - Same as Trabajadores
+   ============================================ */
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--compras-border);
+    margin-bottom: 24px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-left h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--compras-text-dark);
+    margin: 0;
+}
+
+.title-icon {
+    width: 32px;
+    height: 32px;
+    color: var(--compras-primary);
+}
+
+.btn-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--compras-primary);
+    border: none;
+    border-radius: var(--compras-radius-md);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--compras-transition);
+}
+
+.btn-back:hover {
+    background: var(--compras-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--compras-shadow-primary);
+}
+
+.btn-back svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ============================================
+   THEME TOGGLE - Button like Trabajadores
+   ============================================ */
+.theme-toggle {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 2px solid var(--compras-toggle-border);
+    border-radius: var(--compras-radius-full);
+    color: var(--compras-text-gray);
+    cursor: pointer;
+    transition: var(--compras-transition);
+}
+
+.theme-toggle:hover {
+    border-color: var(--compras-primary);
+    color: var(--compras-primary);
+}
+
+.theme-toggle svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Sun/Moon icon toggle */
+body:not(.dark-mode) .compras-layout .theme-toggle .moon-icon {
+    display: none;
+}
+
+body:not(.dark-mode) .compras-layout .theme-toggle .sun-icon {
+    display: block;
+}
+
+body.dark-mode .compras-layout .theme-toggle .moon-icon {
+    display: block;
+}
+
+body.dark-mode .compras-layout .theme-toggle .sun-icon {
+    display: none;
+}
+
+/* ============================================
+   TABS - Same as Trabajadores
+   ============================================ */
+.tabs-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--compras-border);
+}
+
+.tab-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--compras-text-gray);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--compras-transition);
+}
+
+.tab-button:hover {
+    color: var(--compras-text-dark);
+}
+
+.tab-button.tab-active {
+    color: var(--compras-primary);
+    border-bottom-color: var(--compras-primary);
+}
+
+.tab-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.module-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Custom Scrollbar */
+.module-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.module-content::-webkit-scrollbar-track {
+    background: var(--compras-bg-light);
+    border-radius: 4px;
+}
+
+.module-content::-webkit-scrollbar-thumb {
+    background: var(--compras-border);
+    border-radius: 4px;
+}
+
+.module-content::-webkit-scrollbar-thumb:hover {
+    background: var(--compras-text-light);
+}
+
+/* ============================================
+   STATS GRID - Same as Trabajadores
+   ============================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    background: var(--compras-bg-card);
+    border-radius: var(--compras-radius-xl);
+    box-shadow: var(--compras-shadow-sm);
+    transition: var(--compras-transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--compras-shadow-md);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--compras-radius-lg);
+}
+
+.stat-icon svg {
+    width: 32px;
+    height: 32px;
+    color: white;
+}
+
+.stat-pending .stat-icon {
+    background: var(--compras-stat-pending-bg);
+}
+
+.stat-approved .stat-icon {
+    background: var(--compras-stat-approved-bg);
+}
+
+.stat-projects .stat-icon {
+    background: var(--compras-stat-projects-bg);
+}
+
+.stat-content h3 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--compras-text-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 8px 0;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--compras-text-dark);
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-amount,
+.stat-subtitle {
+    font-size: 13px;
+    color: var(--compras-text-light);
+    margin: 8px 0 0 0;
+}
+
+/* ============================================
+   MAIN TABS - For Por Aprobar/Por Pagar/Pagadas
+   ============================================ */
+.main-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--compras-border);
+}
+
+.main-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--compras-text-gray);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--compras-transition);
+}
+
+.main-tab:hover {
+    color: var(--compras-text-dark);
+}
+
+.main-tab.active {
+    color: var(--compras-primary);
+    border-bottom-color: var(--compras-primary);
+}
+
+.main-tab svg {
+    width: 18px;
+    height: 18px;
+}
+
+.tab-badge {
+    padding: 2px 8px;
+    border-radius: var(--compras-radius-full);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.pending-badge {
+    background: var(--compras-badge-warning-bg);
+    color: var(--compras-badge-warning-text);
+}
+
+.unpaid-badge {
+    background: var(--compras-badge-info-bg);
+    color: var(--compras-badge-info-text);
+}
+
+/* ============================================
+   FILTER BAR
+   ============================================ */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: var(--compras-bg-light);
+    border: 1px solid var(--compras-border);
+    border-radius: var(--compras-radius-md);
+    color: var(--compras-text-gray);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
+}
+
+.filter-btn:hover {
+    background: var(--compras-bg-card);
+    color: var(--compras-text-dark);
+    border-color: var(--compras-primary);
+}
+
+.filter-btn.active {
+    background: var(--compras-primary);
+    color: white;
+    border-color: var(--compras-primary);
+}
+
+.filter-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
 /* ============================================
@@ -40,15 +405,11 @@
 .tab-icon {
     width: 18px;
     height: 18px;
-    stroke-linecap: round;
-    stroke-linejoin: round;
 }
 
 .filter-icon {
     width: 16px;
     height: 16px;
-    stroke-linecap: round;
-    stroke-linejoin: round;
 }
 
 .badge-icon {
@@ -100,325 +461,6 @@
 }
 
 /* ============================================
-   HEADER - Glassmorphism on gradient
-   ============================================ */
-.module-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    padding: 16px 24px;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    border-radius: var(--compras-radius-xl);
-    color: var(--compras-text-white);
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.header-left h1 {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0;
-    color: var(--compras-text-white);
-}
-
-.title-icon {
-    width: 28px;
-    height: 28px;
-}
-
-.btn-back {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: var(--compras-primary);
-    border: none;
-    border-radius: var(--compras-radius-md);
-    color: var(--compras-text-white);
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--compras-transition-fast);
-}
-
-.btn-back:hover {
-    background: var(--compras-primary-dark);
-    transform: translateY(-1px);
-}
-
-.btn-back svg {
-    width: 18px;
-    height: 18px;
-}
-
-/* ============================================
-   THEME TOGGLE
-   ============================================ */
-.theme-toggle {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--compras-radius-full);
-    background: transparent;
-    border: 2px solid var(--compras-border-white);
-    color: var(--compras-text-white);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: var(--compras-transition);
-}
-
-.theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.theme-toggle svg {
-    width: 22px;
-    height: 22px;
-}
-
-/* Legacy slider toggle */
-.theme-switch {
-    position: relative;
-    width: 50px;
-    height: 26px;
-}
-
-.theme-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 26px;
-    transition: var(--compras-transition);
-}
-
-.slider:before {
-    content: "";
-    position: absolute;
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background: var(--compras-text-white);
-    border-radius: 50%;
-    transition: var(--compras-transition);
-}
-
-.theme-switch input:checked+.slider:before {
-    transform: translateX(24px);
-}
-
-/* ============================================
-   MODULE CONTENT - Solid white container
-   ============================================ */
-.module-content {
-    background: var(--compras-bg-container);
-    border-radius: var(--compras-radius-2xl);
-    padding: 24px;
-    box-shadow: var(--compras-shadow-lg);
-}
-
-/* ============================================
-   STATS GRID - Solid cards like Proyectos
-   ============================================ */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
-}
-
-.stat-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 20px 24px;
-    background: var(--compras-bg-card);
-    border-radius: var(--compras-radius-xl);
-    box-shadow: var(--compras-shadow-sm);
-    cursor: pointer;
-    transition: var(--compras-transition-fast);
-    border: 1px solid var(--compras-border);
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--compras-shadow-md);
-}
-
-.stat-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: var(--compras-radius-lg);
-}
-
-.stat-icon svg {
-    width: 26px;
-    height: 26px;
-    color: var(--compras-text-white);
-}
-
-.stat-pending .stat-icon {
-    background: var(--compras-stat-pending-bg);
-}
-
-.stat-approved .stat-icon {
-    background: var(--compras-stat-approved-bg);
-}
-
-.stat-projects .stat-icon {
-    background: var(--compras-stat-projects-bg);
-}
-
-.stat-content h3 {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--compras-text-gray);
-    margin: 0 0 4px 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.stat-number {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0;
-    color: var(--compras-text-dark);
-}
-
-.stat-amount {
-    font-size: 0.8rem;
-    color: var(--compras-text-gray);
-    margin: 4px 0 0 0;
-}
-
-/* ============================================
-   MAIN TABS - Match Proyectos style
-   ============================================ */
-.main-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    background: var(--compras-bg-light);
-    padding: 6px;
-    border-radius: var(--compras-radius-lg);
-    border: 1px solid var(--compras-border);
-}
-
-.main-tab {
-    flex: 1;
-    padding: 12px 20px;
-    background: transparent;
-    border: none;
-    border-radius: var(--compras-radius-md);
-    color: var(--compras-text-gray);
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: var(--compras-transition-fast);
-}
-
-.main-tab:hover {
-    background: var(--compras-bg-card);
-    color: var(--compras-text-dark);
-}
-
-.main-tab.active {
-    background: var(--compras-primary);
-    color: var(--compras-text-white);
-    box-shadow: var(--compras-shadow-primary);
-}
-
-.main-tab svg {
-    width: 18px;
-    height: 18px;
-}
-
-.tab-badge {
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.pending-badge {
-    background: var(--compras-badge-pending-bg);
-    color: var(--compras-badge-pending-text);
-}
-
-.unpaid-badge {
-    background: var(--compras-badge-unpaid-bg);
-    color: var(--compras-badge-unpaid-text);
-}
-
-/* ============================================
-   FILTER BAR
-   ============================================ */
-.filter-bar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.filter-btn {
-    padding: 8px 16px;
-    background: var(--compras-bg-card);
-    border: 1px solid var(--compras-border);
-    border-radius: var(--compras-radius-md);
-    color: var(--compras-text-gray);
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--compras-transition-fast);
-}
-
-.filter-btn:hover {
-    background: var(--compras-bg-light);
-    color: var(--compras-text-dark);
-}
-
-.filter-btn.active {
-    background: var(--compras-primary);
-    color: var(--compras-text-white);
-    border-color: var(--compras-primary);
-}
-
-.filter-btn.pending.active {
-    background: var(--compras-warning);
-    border-color: var(--compras-warning);
-}
-
-.filter-btn.approved.active {
-    background: var(--compras-success);
-    border-color: var(--compras-success);
-}
-
-/* ============================================
    LOADING & EMPTY STATES
    ============================================ */
 .loading-container {
@@ -461,7 +503,7 @@
 
 .empty-state h3 {
     margin: 0 0 8px 0;
-    font-size: 1.2rem;
+    font-size: 18px;
     color: var(--compras-text-dark);
 }
 
@@ -510,11 +552,12 @@
 .expand-icon {
     font-size: 12px;
     color: var(--compras-text-light);
+    transition: var(--compras-transition-fast);
 }
 
 .project-info h2 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 16px;
     font-weight: 600;
     color: var(--compras-text-dark);
 }
@@ -522,18 +565,18 @@
 .order-count {
     padding: 4px 12px;
     background: var(--compras-bg-light);
-    border-radius: 20px;
-    font-size: 0.8rem;
+    border-radius: var(--compras-radius-full);
+    font-size: 13px;
     color: var(--compras-text-gray);
 }
 
 .order-count.unpaid-count {
-    background: var(--compras-badge-unpaid-bg);
-    color: var(--compras-badge-unpaid-text);
+    background: var(--compras-badge-info-bg);
+    color: var(--compras-badge-info-text);
 }
 
 .total-approved {
-    font-size: 0.9rem;
+    font-size: 14px;
     color: var(--compras-success);
     font-weight: 600;
 }
@@ -555,7 +598,7 @@
 .order-card {
     background: var(--compras-bg-card);
     border-radius: var(--compras-radius-lg);
-    padding: 16px;
+    padding: 20px;
     margin-bottom: 12px;
     border: 1px solid var(--compras-border);
     border-left: 4px solid transparent;
@@ -587,13 +630,13 @@
 
 .order-type-badge,
 .order-status-badge {
-    padding: 4px 10px;
-    border-radius: var(--compras-radius-full);
-    font-size: 0.75rem;
-    font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--compras-radius-full);
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .order-type-badge svg,
@@ -603,44 +646,44 @@
 }
 
 .order-type-badge.material {
-    background: var(--compras-type-material-bg);
-    color: var(--compras-type-material-text);
+    background: var(--compras-badge-info-bg);
+    color: var(--compras-badge-info-text);
 }
 
 .order-type-badge.service {
-    background: var(--compras-type-service-bg);
-    color: var(--compras-type-service-text);
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
 }
 
 .order-status-badge.pending {
-    background: var(--compras-badge-pending-bg);
-    color: var(--compras-badge-pending-text);
+    background: var(--compras-badge-warning-bg);
+    color: var(--compras-badge-warning-text);
 }
 
 .order-status-badge.approved {
-    background: var(--compras-badge-approved-bg);
-    color: var(--compras-badge-approved-text);
+    background: var(--compras-badge-success-bg);
+    color: var(--compras-badge-success-text);
 }
 
 .order-status-badge.rejected {
-    background: var(--compras-badge-rejected-bg);
-    color: var(--compras-badge-rejected-text);
+    background: var(--compras-badge-danger-bg);
+    color: var(--compras-badge-danger-text);
 }
 
 .order-status-badge.approved-unpaid {
-    background: var(--compras-badge-unpaid-bg);
-    color: var(--compras-badge-unpaid-text);
+    background: var(--compras-badge-info-bg);
+    color: var(--compras-badge-info-text);
 }
 
 .order-description h3 {
     margin: 0 0 4px 0;
-    font-size: 1rem;
+    font-size: 16px;
     color: var(--compras-text-dark);
 }
 
 .order-date {
     margin: 0;
-    font-size: 0.8rem;
+    font-size: 13px;
     color: var(--compras-text-gray);
 }
 
@@ -655,7 +698,7 @@
 
 .materials-list h4 {
     margin: 0 0 8px 0;
-    font-size: 0.85rem;
+    font-size: 13px;
     color: var(--compras-text-dark);
 }
 
@@ -666,45 +709,46 @@
 }
 
 .materials-list li {
-    font-size: 0.85rem;
+    font-size: 13px;
+    margin-bottom: 4px;
 }
 
 /* Order Amount */
 .order-amount {
-    margin: 12px 0;
+    margin: 16px 0;
 }
 
 .amount-approved-wrap {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
 .currency-badge {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--compras-text-white);
+    padding: 4px 10px;
+    border-radius: var(--compras-radius-sm);
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
 }
 
 .currency-badge.PEN {
-    background: var(--compras-currency-pen);
+    background: #dc2626;
 }
 
 .currency-badge.USD {
-    background: var(--compras-currency-usd);
+    background: #2563eb;
 }
 
 .amount-approved {
-    font-size: 1.25rem;
+    font-size: 24px;
     font-weight: 700;
     color: var(--compras-text-dark);
 }
 
 .exchange-info {
-    font-size: 0.8rem;
+    font-size: 13px;
     color: var(--compras-text-gray);
 }
 
@@ -718,7 +762,7 @@
 }
 
 .igv-info {
-    font-size: 0.8rem;
+    font-size: 13px;
     color: var(--compras-text-gray);
     margin-top: 4px;
 }
@@ -727,33 +771,38 @@
    APPROVAL DETAILS
    ============================================ */
 .approval-details {
-    margin-top: 12px;
-    padding: 12px;
-    background: rgba(16, 185, 129, 0.08);
+    margin-top: 16px;
+    padding: 16px;
+    background: rgba(16, 185, 129, 0.05);
     border-radius: var(--compras-radius-md);
     border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .detail-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
-    margin-bottom: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 .detail-item {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .detail-label {
-    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
     color: var(--compras-text-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .detail-value {
-    font-size: 0.85rem;
+    font-size: 14px;
     font-weight: 600;
     color: var(--compras-text-dark);
 }
@@ -763,36 +812,43 @@
 }
 
 .detail-sub {
-    font-size: 0.75rem;
+    font-size: 12px;
     color: var(--compras-text-light);
 }
 
 .approval-stamp {
-    margin-top: 10px;
-    padding-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 1px dashed var(--compras-border);
-    font-size: 0.8rem;
+    font-size: 13px;
     color: var(--compras-success);
+    font-weight: 500;
 }
 
 /* Order Notes */
 .order-notes {
     margin-top: 12px;
-    padding: 10px;
-    background: rgba(59, 130, 246, 0.08);
+    padding: 12px;
+    background: rgba(59, 130, 246, 0.05);
     border-radius: var(--compras-radius-sm);
     border-left: 3px solid var(--compras-info);
 }
 
 .notes-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 13px;
     color: var(--compras-text-dark);
 }
 
 .order-notes p {
-    margin: 6px 0 0 0;
-    font-size: 0.9rem;
+    margin: 8px 0 0 0;
+    font-size: 14px;
     color: var(--compras-text-gray);
 }
 
@@ -801,23 +857,24 @@
    ============================================ */
 .order-actions {
     display: flex;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 12px;
+    margin-top: 16px;
 }
 
 .btn-approve,
 .btn-reject {
     flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: var(--compras-radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--compras-transition-fast);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
+    padding: 12px;
+    border: none;
+    border-radius: var(--compras-radius-md);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--compras-transition-fast);
 }
 
 .btn-approve svg,
@@ -827,12 +884,13 @@
 }
 
 .btn-approve {
-    background: var(--compras-success);
-    color: var(--compras-text-white);
+    background: var(--compras-btn-approve-bg);
+    color: white;
 }
 
 .btn-approve:hover {
-    background: var(--compras-success-dark);
+    background: var(--compras-btn-approve-hover);
+    transform: translateY(-2px);
 }
 
 .btn-reject {
@@ -846,19 +904,25 @@
 }
 
 .btn-confirm-payment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     width: 100%;
     padding: 12px;
-    background: var(--compras-info);
+    background: var(--compras-btn-confirm-bg);
     border: none;
     border-radius: var(--compras-radius-md);
-    color: var(--compras-text-white);
+    color: white;
     font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
     transition: var(--compras-transition-fast);
 }
 
 .btn-confirm-payment:hover {
     background: var(--compras-btn-confirm-hover);
+    transform: translateY(-2px);
 }
 
 .btn-confirm {
@@ -887,10 +951,10 @@
 }
 
 .modal-content {
-    background: var(--compras-bg-card);
+    background: var(--compras-modal-bg);
     border-radius: var(--compras-radius-xl);
     width: 90%;
-    max-width: 500px;
+    max-width: 520px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: var(--compras-shadow-lg);
@@ -900,35 +964,45 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--compras-border);
 }
 
 .modal-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 20px;
     color: var(--compras-text-dark);
 }
 
 .btn-close {
-    background: none;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--compras-bg-light);
     border: none;
+    border-radius: var(--compras-radius-full);
     color: var(--compras-text-gray);
-    font-size: 24px;
+    font-size: 20px;
     cursor: pointer;
     transition: var(--compras-transition-fast);
 }
 
 .btn-close:hover {
+    background: var(--compras-badge-danger-bg);
     color: var(--compras-danger);
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 24px;
 }
 
 .order-summary {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     padding: 16px;
     background: var(--compras-bg-light);
     border-radius: var(--compras-radius-md);
@@ -937,6 +1011,7 @@
 .order-summary p {
     margin: 8px 0;
     color: var(--compras-text-dark);
+    font-size: 14px;
 }
 
 .materials-preview ul {
@@ -948,7 +1023,7 @@
     display: flex;
     gap: 12px;
     justify-content: flex-end;
-    padding-top: 16px;
+    padding-top: 20px;
     border-top: 1px solid var(--compras-border);
 }
 
@@ -958,6 +1033,7 @@
     border: 1px solid var(--compras-border);
     border-radius: var(--compras-radius-md);
     color: var(--compras-text-dark);
+    font-weight: 600;
     cursor: pointer;
     transition: var(--compras-transition-fast);
 }
@@ -971,7 +1047,7 @@
     background: var(--compras-success);
     border: none;
     border-radius: var(--compras-radius-md);
-    color: var(--compras-text-white);
+    color: white;
     font-weight: 600;
     cursor: pointer;
     transition: var(--compras-transition-fast);
@@ -979,43 +1055,55 @@
 
 .btn-submit:hover {
     background: var(--compras-success-dark);
+    transform: translateY(-2px);
 }
 
 .btn-submit:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
 }
 
 /* ============================================
    FORMS
    ============================================ */
 .form-section {
-    margin-bottom: 20px;
-    padding: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
     background: var(--compras-bg-light);
     border-radius: var(--compras-radius-md);
+    border: 1px solid var(--compras-border);
 }
 
 .form-section h4 {
-    margin: 0 0 12px 0;
-    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--compras-text-dark);
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 16px;
 }
 
 .form-group {
     margin-bottom: 16px;
 }
 
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
 .form-group label {
     display: block;
-    margin-bottom: 6px;
-    font-size: 0.85rem;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--compras-text-gray);
 }
 
@@ -1025,7 +1113,7 @@
 
 .input-field {
     width: 100%;
-    padding: 12px;
+    padding: 12px 16px;
     background: var(--compras-bg-input);
     border: 1px solid var(--compras-border);
     border-radius: var(--compras-radius-md);
@@ -1044,13 +1132,13 @@
     width: 100%;
     padding: 12px;
     background: var(--compras-bg-input);
-    border: 1px dashed var(--compras-border);
+    border: 2px dashed var(--compras-border);
     border-radius: var(--compras-radius-md);
     color: var(--compras-text-dark);
 }
 
 .hint {
-    font-size: 0.8rem;
+    font-size: 12px;
     color: var(--compras-text-light);
     margin-top: 6px;
 }
@@ -1059,43 +1147,45 @@
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
     font-weight: 500;
     color: var(--compras-text-dark);
 }
 
 .checkbox-label input {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     accent-color: var(--compras-primary);
 }
 
 /* IGV Preview */
 .igv-preview {
-    margin-top: 12px;
-    padding: 10px;
-    background: rgba(16, 185, 129, 0.08);
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(16, 185, 129, 0.05);
     border-radius: var(--compras-radius-sm);
-    font-size: 0.9rem;
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .igv-preview p {
-    margin: 4px 0;
+    margin: 6px 0;
+    font-size: 14px;
     color: var(--compras-text-dark);
 }
 
 .total-igv {
     color: var(--compras-success);
-    font-size: 1rem;
+    font-size: 16px;
 }
 
 /* Exchange Rate */
 .exchange-rate-info {
     margin: 16px 0;
     padding: 12px;
-    background: rgba(59, 130, 246, 0.08);
+    background: rgba(59, 130, 246, 0.05);
     border-radius: var(--compras-radius-md);
+    border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .rate-value {
@@ -1110,6 +1200,9 @@
 }
 
 .rate-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     color: var(--compras-danger);
 }
 
@@ -1152,7 +1245,7 @@
 }
 
 .suggestions-list li {
-    padding: 10px 12px;
+    padding: 12px 16px;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
@@ -1175,7 +1268,7 @@
 }
 
 .seller-doc {
-    font-size: 0.8rem;
+    font-size: 12px;
     color: var(--compras-text-light);
 }
 
@@ -1184,14 +1277,15 @@
    ============================================ */
 .toast {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 24px;
+    right: 24px;
     padding: 16px 24px;
     border-radius: var(--compras-radius-md);
-    color: var(--compras-text-white);
+    color: white;
     z-index: 2000;
     animation: slideIn 0.3s ease;
     box-shadow: var(--compras-shadow-md);
+    font-weight: 500;
 }
 
 @keyframes slideIn {
@@ -1207,29 +1301,51 @@
 }
 
 .toast.success {
-    background: var(--compras-success);
+    background: var(--compras-toast-success);
 }
 
 .toast.error {
-    background: var(--compras-danger);
+    background: var(--compras-toast-error);
 }
 
 /* ============================================
    RESPONSIVE
    ============================================ */
+@media (max-width: 1024px) {
+    .compras-container {
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+        padding: 24px;
+    }
+}
+
 @media (max-width: 768px) {
     .compras-container {
-        padding: 10px;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        padding: 16px;
     }
 
     .module-header {
         flex-direction: column;
         gap: 16px;
-        padding: 16px;
+        align-items: flex-start;
     }
 
-    .module-content {
-        padding: 16px;
+    .header-left {
+        flex-wrap: wrap;
+    }
+
+    .header-left h1 {
+        font-size: 18px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 
     .main-tabs {
@@ -1247,9 +1363,5 @@
     .modal-content {
         width: 95%;
         max-height: 95vh;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
     }
 }
