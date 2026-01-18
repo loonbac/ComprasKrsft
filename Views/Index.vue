@@ -251,9 +251,9 @@
                         Por Pagar
                       </div>
                     </div>
-                    <div class="expiration-pill" :class="{ 'urgent': getDaysRemaining(order.approved_at) <= 5 }">
+                    <div class="expiration-pill" :class="{ 'urgent': getDaysRemainingFromOrder(order) <= 5 }">
                       <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                      {{ getDaysRemaining(order.approved_at) }} días para vencer
+                      {{ getDaysRemainingFromOrder(order) }} días para vencer
                     </div>
                   </div>
 
@@ -266,11 +266,11 @@
                   <div class="dates-info-row">
                     <div class="date-item">
                       <span class="date-label">F. Emisión</span>
-                      <span class="date-value">{{ formatDate(order.issue_date) || formatDate(order.approved_at) }}</span>
+                      <span class="date-value">{{ formatDate(order.issue_date) || '-' }}</span>
                     </div>
                     <div class="date-item">
                       <span class="date-label">F. Vencimiento</span>
-                      <span class="date-value">{{ formatDate(getDueDate(order.approved_at)) }}</span>
+                      <span class="date-value">{{ formatDate(order.due_date || order.payment_date) || '-' }}</span>
                     </div>
                   </div>
 
@@ -838,6 +838,21 @@ const getDueDate = (approvalDate, days = 30) => {
   const date = new Date(approvalDate);
   date.setDate(date.getDate() + days);
   return date;
+};
+
+// Get days remaining using actual due_date or payment_date from order
+const getDaysRemainingFromOrder = (order) => {
+  if (!order) return 0;
+  // Use actual due_date (for loan) or payment_date (for cash)
+  const targetDate = order.due_date || order.payment_date || null;
+  if (!targetDate) {
+    // Fallback: calculate 30 days from approved_at
+    return getDaysRemaining(order.approved_at);
+  }
+  const today = new Date();
+  const dueDate = new Date(targetDate);
+  const diffTime = dueDate - today;
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
 const getDaysRemaining = (approvalDate) => {
