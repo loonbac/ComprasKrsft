@@ -831,7 +831,20 @@ const showToast = (message, type = 'success') => {
 
 const formatNumber = (num) => parseFloat(num || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+// Fix timezone issue: date-only strings (YYYY-MM-DD) get interpreted as UTC midnight
+// which shifts to previous day in local timezone. Parse manually to avoid this.
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  // Check if it's a date-only string (YYYY-MM-DD format)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    // Parse as local date, not UTC
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  // For datetime strings (with time component), use normal parsing
+  return new Date(dateStr).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
 const getDueDate = (approvalDate, days = 30) => {
   if (!approvalDate) return null;
