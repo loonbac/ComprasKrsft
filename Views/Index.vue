@@ -240,14 +240,20 @@
                   class="order-card status-approved-unpaid"
                 >
                   <div class="order-header">
-                    <div class="order-type-badge" :class="order.type">
-                      <svg v-if="order.type === 'service'" class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                      <svg v-else class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                      {{ order.type === 'service' ? 'Servicio' : 'Materiales' }}
+                    <div class="badges-row">
+                      <div class="order-type-badge" :class="order.type">
+                        <svg v-if="order.type === 'service'" class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        <svg v-else class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                        {{ order.type === 'service' ? 'Servicio' : 'Materiales' }}
+                      </div>
+                      <div class="order-status-badge approved-unpaid">
+                        <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        Por Pagar
+                      </div>
                     </div>
-                    <div class="order-status-badge approved-unpaid">
-                      <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                      Por Pagar
+                    <div class="expiration-pill" :class="{ 'urgent': getDaysRemaining(order.approved_at) <= 5 }">
+                      <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      {{ getDaysRemaining(order.approved_at) }} días para vencer
                     </div>
                   </div>
 
@@ -262,9 +268,7 @@
                       <span class="amount-approved">
                         {{ order.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(order.total_with_igv || order.amount) }}
                       </span>
-                    </div>
-                    <div v-if="order.igv_enabled" class="igv-info">
-                      (Incluye IGV {{ order.igv_rate }}%)
+                      <span v-if="order.igv_enabled" class="pill-badge igv">+IGV</span>
                     </div>
                   </div>
 
@@ -784,6 +788,21 @@ const showToast = (message, type = 'success') => {
 const formatNumber = (num) => parseFloat(num || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+
+const getDueDate = (approvalDate, days = 30) => {
+  if (!approvalDate) return null;
+  const date = new Date(approvalDate);
+  date.setDate(date.getDate() + days);
+  return date;
+};
+
+const getDaysRemaining = (approvalDate) => {
+  if (!approvalDate) return 0;
+  const today = new Date();
+  const dueDate = getDueDate(approvalDate);
+  const diffTime = dueDate - today;
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
 
 const getStatusText = (status) => ({ pending: 'Pendiente', approved: 'Aprobada', rejected: 'Rechazada' }[status] || status);
 

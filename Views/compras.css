@@ -347,10 +347,14 @@ body.dark-mode .compras-layout .theme-toggle .sun-icon {
     justify-content: center;
     min-width: 20px;
     height: 20px;
-    padding: 0 6px;
-    border-radius: var(--compras-radius-full);
+    padding: 0 4px;
+    /* Slightly reduced padding to favor circle shape */
+    border-radius: 999px;
+    /* Absolute pill shape */
     font-size: 11px;
     font-weight: 700;
+    aspect-ratio: 1 / 1;
+    /* Tries to keep it square/circle if content fits */
 }
 
 .tab-badge.pending-badge {
@@ -628,13 +632,64 @@ body.dark-mode .pending-badge {
 }
 
 .igv-badge {
-    padding: 2px 6px;
-    background: var(--compras-badge-success-bg);
-    color: var(--compras-badge-success-text);
-    border-radius: var(--compras-radius-sm);
+    padding: 2px 8px;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--compras-success);
+    border: 1px solid var(--compras-success);
+    border-radius: 999px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     margin-left: 6px;
+}
+
+.pill-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.pill-badge.igv {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--compras-success);
+    border: 1px solid var(--compras-success);
+}
+
+.badges-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.expiration-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--compras-bg-light);
+    color: var(--compras-text-gray);
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 999px;
+}
+
+.expiration-pill.urgent {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--compras-danger);
+    font-weight: 600;
+}
+
+.expiration-pill.safe {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.expiration-pill svg {
+    width: 14px;
+    height: 14px;
 }
 
 .order-count.unpaid-count {
