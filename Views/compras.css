@@ -1823,3 +1823,67 @@ body.dark-mode .order-status-badge.paid {
     font-weight: 700;
     color: var(--compras-success);
 }
+
+/* --- Dark Mode Fixes v3.1.6 --- */
+body.dark-mode .supplier-box {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(100, 116, 139, 0.3);
+}
+
+body.dark-mode .supplier-divider {
+    background: rgba(100, 116, 139, 0.3);
+}
+
+body.dark-mode .supplier-label {
+    color: #94a3b8;
+}
+
+body.dark-mode .supplier-value {
+    color: #e2e8f0;
+}
+
+body.dark-mode .supplier-sub {
+    color: #94a3b8;
+}
+
+body.dark-mode .fin-label {
+    color: #94a3b8;
+}
+
+body.dark-mode .fin-value {
+    color: #e2e8f0;
+}
+
+/* --- Modal Further Compaction v3.1.6 --- */
+.modal-content {
+    max-width: 450px !important;
+}
+
+.form-section {
+    padding: 12px !important;
+    margin-bottom: 8px !important;
+}
+
+.form-section-title {
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 6px !important;
+}
+
+.form-row {
+    gap: 8px !important;
+}
+
+.materials-preview {
+    padding: 8px !important;
+    margin-top: 8px !important;
+}
+
+.materials-preview ul {
+    margin: 4px 0 0 0 !important;
+    padding-left: 16px !important;
+}
+
+.materials-preview li {
+    font-size: 12px !important;
+}
