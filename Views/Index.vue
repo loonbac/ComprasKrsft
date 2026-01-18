@@ -350,34 +350,48 @@
                     </div>
                   </div>
 
-                  <div class="supplier-box" v-if="order.seller_name || order.cdp_number || order.cdp_serie">
-                    <div class="supplier-group" v-if="order.cdp_number || order.cdp_serie">
-                        <div class="supplier-label">
-                            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> 
-                            COMPROBANTE
+                  <div class="supplier-box" v-if="order.seller_name || order.payment_confirmed">
+                    <!-- Header -->
+                    <div class="supplier-header-row">
+                        <div class="supplier-col">
+                             <div class="supplier-label">PROVEEDOR</div>
+                             <div class="supplier-value">{{ order.seller_name || 'Sin Proveedor' }}</div>
+                             <div class="supplier-sub" v-if="order.seller_document">{{ order.seller_document }}</div>
                         </div>
-                        <div class="supplier-value">{{ order.cdp_serie ? order.cdp_serie + '-' : '' }}{{ order.cdp_number }}</div>
-                    </div>
-                    <div class="supplier-group" v-if="order.seller_name">
-                        <div class="supplier-label">
-                            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
-                            PROVEEDOR
+                        <div class="supplier-col text-right">
+                             <div class="supplier-label">COMPROBANTE</div>
+                             <div class="supplier-value">{{ order.cdp_serie ? order.cdp_serie + '-' : '' }}{{ order.cdp_number || 'S/N' }}</div>
                         </div>
-                        <div class="supplier-value">{{ order.seller_name }}</div>
-                        <div class="supplier-sub" v-if="order.seller_document">{{ order.seller_document }}</div>
                     </div>
-                  </div>
 
-                  <div class="approval-details">
-                    <div class="detail-grid">
-                      <div class="detail-item">
-                        <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Comprobante</span>
-                        <span class="detail-value">{{ order.cdp_type }} {{ order.cdp_serie }}-{{ order.cdp_number }}</span>
-                      </div>
-                      <div v-if="order.seller_name" class="detail-item">
-                        <span class="detail-label"><svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Proveedor</span>
-                        <span class="detail-value">{{ order.seller_name }}</span>
-                      </div>
+                    <div class="supplier-divider"></div>
+
+                    <!-- Financial Grid -->
+                    <div class="financial-grid">
+                        <div class="fin-item">
+                            <span class="fin-label">F. Emisión</span>
+                            <span class="fin-value">{{ formatDate(order.issue_date) || '-' }}</span>
+                        </div>
+                        <div class="fin-item">
+                            <span class="fin-label">F. Vcto/Pago</span>
+                            <span class="fin-value">{{ formatDate(order.payment_confirmed_at || order.payment_date) }}</span>
+                        </div>
+                        <div class="fin-item">
+                            <span class="fin-label">BI Gravado DG</span>
+                            <span class="fin-value">{{ order.currency }} {{ formatNumber(order.igv_enabled ? (order.total_with_igv - order.igv_amount) : 0) }}</span>
+                        </div>
+                         <div class="fin-item">
+                            <span class="fin-label">IGV / IPM DG</span>
+                            <span class="fin-value">{{ order.currency }} {{ formatNumber(order.igv_amount || 0) }}</span>
+                        </div>
+                         <div class="fin-item">
+                            <span class="fin-label">Valor Adq. NG</span>
+                            <span class="fin-value">{{ order.currency }} {{ formatNumber(!order.igv_enabled ? (order.total_with_igv || order.amount) : 0) }}</span>
+                        </div>
+                         <div class="fin-item total">
+                            <span class="fin-label">TOTAL</span>
+                            <span class="fin-value total-text">{{ order.currency }} {{ formatNumber(order.total_with_igv || order.amount) }}</span>
+                        </div>
                     </div>
                   </div>
                 </div>

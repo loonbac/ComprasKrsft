@@ -1695,9 +1695,72 @@ body.dark-mode .order-status-badge.paid {
     opacity: 0.7;
 }
 
-/* Force Tab Badge Fix */
+/* Force Tab Badge Fix: Dynamic Pill (Relaxed) */
 .tab-badge.pending-badge {
-    padding: 0 4px !important;
+    padding: 0 7px !important;
     min-width: 20px;
     justify-content: center;
+    aspect-ratio: auto !important;
+    border-radius: 999px;
+}
+
+/* Detailed Financial Grid */
+.supplier-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.supplier-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.supplier-col.text-right {
+    align-items: flex-end;
+    text-align: right;
+}
+
+.supplier-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 12px 0;
+}
+
+.financial-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 500px) {
+    .financial-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.fin-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.fin-label {
+    font-size: 10px;
+    color: var(--compras-text-gray);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.fin-value {
+    font-size: 13px;
+    color: var(--compras-text-dark);
+    font-weight: 500;
+}
+
+.fin-item.total .fin-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--compras-success);
 }
