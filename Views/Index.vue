@@ -18,7 +18,7 @@
             <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            COMPRAS
+            GESTIÓN DE COMPRAS
           </h1>
         </div>
         <div class="header-right">
@@ -35,45 +35,7 @@
       </header>
 
       <main class="module-content">
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-          <div class="stat-card stat-pending" @click="filterStatus = 'pending'">
-            <div class="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div class="stat-content">
-              <h3>PENDIENTES</h3>
-              <p class="stat-number">{{ stats.pending }}</p>
-            </div>
-          </div>
-
-          <div class="stat-card stat-approved" @click="filterStatus = 'approved'">
-            <div class="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div class="stat-content">
-              <h3>APROBADAS</h3>
-              <p class="stat-number">{{ stats.approved }}</p>
-              <p class="stat-amount">S/ {{ formatNumber(stats.total_approved_amount) }}</p>
-            </div>
-          </div>
-
-          <div class="stat-card stat-projects">
-            <div class="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <div class="stat-content">
-              <h3>PROYECTOS</h3>
-              <p class="stat-number">{{ projectsWithOrders.length }}</p>
-            </div>
-          </div>
-        </div>
+        <!-- Stats/Signalizations will be added here later -->
 
         <!-- Main Tabs -->
         <div class="main-tabs">
@@ -90,21 +52,6 @@
           <button @click="activeTab = 'paid'" :class="{ active: activeTab === 'paid' }" class="main-tab">
             <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             Pagadas
-          </button>
-        </div>
-
-        <!-- Filter Buttons (only for pending tab) -->
-        <div v-if="activeTab === 'pending'" class="filter-bar">
-          <button @click="filterStatus = 'all'" :class="{ active: filterStatus === 'all' }" class="filter-btn">
-            Todas
-          </button>
-          <button @click="filterStatus = 'pending'" :class="{ active: filterStatus === 'pending' }" class="filter-btn pending">
-            <svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            Pendientes
-          </button>
-          <button @click="filterStatus = 'approved'" :class="{ active: filterStatus === 'approved' }" class="filter-btn approved">
-            <svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            Aprobadas
           </button>
         </div>
 
