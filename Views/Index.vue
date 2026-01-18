@@ -262,6 +262,18 @@
                     <p class="order-date">Aprobado {{ formatDate(order.approved_at) }}</p>
                   </div>
 
+                  <!-- Dates Info -->
+                  <div class="dates-info-row">
+                    <div class="date-item">
+                      <span class="date-label">F. Emisión</span>
+                      <span class="date-value">{{ formatDate(order.issue_date) || formatDate(order.approved_at) }}</span>
+                    </div>
+                    <div class="date-item">
+                      <span class="date-label">F. Vencimiento</span>
+                      <span class="date-value">{{ formatDate(getDueDate(order.approved_at)) }}</span>
+                    </div>
+                  </div>
+
                   <div class="order-amount">
                     <div class="amount-approved-wrap">
                       <span class="currency-badge" :class="order.currency">{{ order.currency }}</span>
