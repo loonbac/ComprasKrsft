@@ -18,6 +18,7 @@ Route::get('/{id}', "{$ctrl}@show")->where('id', '[0-9]+');
 // Acciones
 Route::put('/{id}/approve', "{$ctrl}@approve")->where('id', '[0-9]+');
 Route::put('/{id}/reject', "{$ctrl}@reject")->where('id', '[0-9]+');
+Route::post('/approve-bulk', "{$ctrl}@approveBulk");
 
 // Payment confirmation
 Route::get('/approved-unpaid', "{$ctrl}@approvedUnpaid");

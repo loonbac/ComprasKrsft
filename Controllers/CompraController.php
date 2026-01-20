@@ -212,6 +212,109 @@ class CompraController extends Controller
     }
 
     /**
+     * Aprobar múltiples órdenes de compra en lote
+     * Comparten: proveedor, factura, fechas, IGV
+     * Cada orden tiene su precio individual
+     */
+    public function approveBulk(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'required|integer',
+            'prices' => 'required|array',
+            'prices.*' => 'required|numeric|min:0.01',
+            'currency' => 'required|in:PEN,USD',
+            'seller_name' => 'required|string',
+        ]);
+
+        try {
+            $orderIds = $request->input('order_ids');
+            $prices = $request->input('prices'); // { order_id: amount }
+            $currency = $request->input('currency');
+            $igvEnabled = $request->boolean('igv_enabled', false);
+            $igvRate = floatval($request->input('igv_rate', 18.00));
+
+            // Verify all orders are pending
+            $pendingCount = DB::table($this->ordersTable)
+                ->whereIn('id', $orderIds)
+                ->where('status', 'pending')
+                ->count();
+
+            if ($pendingCount !== count($orderIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Algunas órdenes ya fueron procesadas'
+                ], 400);
+            }
+
+            // Get exchange rate if USD
+            $exchangeRate = null;
+            if ($currency === 'USD') {
+                $exchangeRate = $this->getExchangeRate();
+                if (!$exchangeRate) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No se pudo obtener el tipo de cambio'
+                    ], 400);
+                }
+            }
+
+            // Generate batch ID
+            $batchId = 'BATCH-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+
+            // Shared data
+            $sharedData = [
+                'status' => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'batch_id' => $batchId,
+                'currency' => $currency,
+                'exchange_rate' => $exchangeRate,
+                'igv_enabled' => $igvEnabled,
+                'igv_rate' => $igvRate,
+                'seller_name' => $request->input('seller_name'),
+                'seller_document' => $request->input('seller_document'),
+                'issue_date' => $request->input('issue_date'),
+                'payment_type' => $request->input('payment_type'),
+                'payment_date' => $request->input('payment_type') === 'cash' ? $request->input('payment_date') : null,
+                'due_date' => $request->input('payment_type') === 'loan' ? $request->input('due_date') : null,
+                'notes' => $request->input('notes'),
+                'updated_at' => now()
+            ];
+
+            // Update each order with its individual price
+            foreach ($orderIds as $orderId) {
+                $amount = floatval($prices[$orderId] ?? 0);
+                if ($amount <= 0) continue;
+
+                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
+                $igvAmount = $igvEnabled ? $amountPen * ($igvRate / 100) : 0;
+                $totalWithIgv = $amountPen + $igvAmount;
+
+                DB::table($this->ordersTable)
+                    ->where('id', $orderId)
+                    ->update(array_merge($sharedData, [
+                        'amount' => $amount,
+                        'amount_pen' => $amountPen,
+                        'igv_amount' => $igvAmount,
+                        'total_with_igv' => $totalWithIgv
+                    ]));
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => count($orderIds) . ' órdenes aprobadas exitosamente',
+                'batch_id' => $batchId
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Obtener tipo de cambio USD -> PEN desde SUNAT (API decolecta)
      */
     protected function getExchangeRate($date = null)
