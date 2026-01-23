@@ -723,15 +723,15 @@ body.dark-mode .theme-toggle .moon-icon {
 .modal-content {
   background: var(--compras-modal-bg);
   border-radius: var(--compras-radius-xl);
-  width: 100%;
-  max-width: 550px;
-  max-height: 90vh;
+  width: min(960px, 95vw);
+  max-height: 92vh;
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: var(--compras-shadow-lg);
 }
 
 .modal-lg {
-  max-width: 700px;
+  max-width: 1080px;
 }
 
 .modal-header {
@@ -791,6 +791,7 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .form-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 10px;
 }
@@ -799,6 +800,11 @@ body.dark-mode .theme-toggle .moon-icon {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.payment-form .form-row .form-group {
+  flex: 1;
+  min-width: 200px;
 }
 
 .form-group.flex-1 {
