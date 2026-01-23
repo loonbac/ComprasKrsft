@@ -871,16 +871,48 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 /* Batch Summary */
-.batch-summary {
-  padding: 16px;
+/* Payment Summary Card */
+.payment-summary-card {
   background: var(--compras-bg-light);
-  border-radius: var(--compras-radius-sm);
-  margin-bottom: 20px;
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+  padding: 14px 16px;
+  margin-bottom: 18px;
 }
 
-.batch-summary p {
-  margin: 4px 0;
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.summary-row:not(:last-child) {
+  border-bottom: 1px solid var(--compras-border);
+}
+
+.summary-row.total-row {
+  padding-top: 10px;
+  border-top: 2px solid var(--compras-border);
+  border-bottom: none;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  color: var(--compras-text-gray);
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 0.95rem;
   color: var(--compras-text-dark);
+  font-weight: 600;
+}
+
+.summary-value.total-amount {
+  font-size: 1.1rem;
+  color: var(--compras-primary);
+  font-weight: 700;
 }
 
 /* Buttons */

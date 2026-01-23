@@ -362,25 +362,35 @@
             </div>
             
             <div class="modal-body" v-if="paymentBatch">
-              <div class="batch-summary">
-                <p><strong>Lote:</strong> {{ paymentBatch.batch_id }}</p>
-                <p><strong>Proveedor:</strong> {{ paymentBatch.seller_name }}</p>
-                <p><strong>Total:</strong> {{ paymentBatch.currency }} {{ formatNumber(paymentBatch.total) }}</p>
+              <!-- Batch Summary Card -->
+              <div class="payment-summary-card">
+                <div class="summary-row">
+                  <span class="summary-label">Lote:</span>
+                  <span class="summary-value">{{ paymentBatch.batch_id }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Proveedor:</span>
+                  <span class="summary-value">{{ paymentBatch.seller_name }}</span>
+                </div>
+                <div class="summary-row total-row">
+                  <span class="summary-label">Total:</span>
+                  <span class="summary-value total-amount">{{ paymentBatch.currency }} {{ formatNumber(paymentBatch.total) }}</span>
+                </div>
               </div>
 
               <form @submit.prevent="confirmPayment" class="payment-form">
                 <div class="form-section">
                   <h4>Datos del Comprobante</h4>
                   <div class="form-row">
-                    <div class="form-group flex-1">
+                    <div class="form-group">
                       <label>Tipo CP *</label>
                       <input v-model="paymentForm.cdp_type" type="text" required placeholder="01, 03" class="input-field" />
                     </div>
-                    <div class="form-group flex-1">
+                    <div class="form-group">
                       <label>Serie *</label>
                       <input v-model="paymentForm.cdp_serie" type="text" required placeholder="F001" class="input-field" />
                     </div>
-                    <div class="form-group flex-1">
+                    <div class="form-group">
                       <label>Número *</label>
                       <input v-model="paymentForm.cdp_number" type="text" required placeholder="00001234" class="input-field" />
                     </div>
