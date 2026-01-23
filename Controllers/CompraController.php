@@ -626,4 +626,200 @@ class CompraController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    /**
+     * Exportar órdenes pagadas a Excel (formato contable)
+     * Formato compatible con registros de compras SUNAT
+     */
+    public function exportPaidExcel(Request $request)
+    {
+        $orders = DB::table($this->ordersTable)
+            ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->select([
+                'purchase_orders.*',
+                'projects.name as project_name'
+            ])
+            ->where('purchase_orders.status', 'approved')
+            ->where('purchase_orders.payment_confirmed', true)
+            ->orderBy('purchase_orders.issue_date', 'asc')
+            ->orderBy('purchase_orders.payment_confirmed_at', 'asc')
+            ->get();
+
+        // Generate XML Spreadsheet (Excel compatible)
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
+        $xml .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Styles>
+  <Style ss:ID="Header">
+   <Font ss:Bold="1" ss:Size="9"/>
+   <Interior ss:Color="#10b981" ss:Pattern="Solid"/>
+   <Font ss:Color="#FFFFFF"/>
+   <Alignment ss:Horizontal="Center" ss:WrapText="1"/>
+  </Style>
+  <Style ss:ID="Date">
+   <NumberFormat ss:Format="dd/mm/yyyy"/>
+  </Style>
+  <Style ss:ID="Number">
+   <NumberFormat ss:Format="#,##0.00"/>
+  </Style>
+  <Style ss:ID="Rate">
+   <NumberFormat ss:Format="#,##0.000"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Registro de Compras">
+  <Table>
+   <Column ss:Width="80"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="60"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="50"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="200"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="50"/>
+   <Column ss:Width="60"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="60"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="70"/>
+   <Row>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">FECHA DE EMISIÓN</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">FECHA VCTO/PAGO</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">TIPO CP/DOC</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">SERIE DEL CDP</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">NRO CP O DOC</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">TIPO DOC</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">NRO DOCUMENTO</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">RAZÓN SOCIAL / NOMBRE</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">BI GRAVADO</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">IGV/IPM</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">NO GRAVADO</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">IGV</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">TOTAL CP</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">MONEDA</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">T. CAMBIO</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">F. EMISIÓN MOD</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">TIPO CP MOD</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">NRO CP MOD</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">COD DAM/DSI</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">NRO DAM/DSI</Data></Cell>
+   </Row>';
+
+        foreach ($orders as $order) {
+            // Determine document type based on seller_document length
+            $docType = '';
+            $sellerDoc = $order->seller_document ?? '';
+            if (strlen($sellerDoc) === 11) {
+                $docType = '6'; // RUC
+            } elseif (strlen($sellerDoc) === 8) {
+                $docType = '1'; // DNI
+            }
+
+            // Format dates
+            $issueDate = $order->issue_date ? date('Y-m-d', strtotime($order->issue_date)) : '';
+            $dueDate = $order->due_date ?? $order->payment_date ?? '';
+            if ($dueDate) {
+                $dueDate = date('Y-m-d', strtotime($dueDate));
+            }
+
+            // Calculate base amount (without IGV)
+            $baseAmount = floatval($order->amount_pen ?? $order->amount ?? 0);
+            $igvAmount = floatval($order->igv_amount ?? 0);
+            $totalAmount = floatval($order->total_with_igv ?? $baseAmount);
+
+            // If IGV is enabled but igv_amount is 0, recalculate
+            if ($order->igv_enabled && $igvAmount == 0 && $baseAmount > 0) {
+                $igvRate = floatval($order->igv_rate ?? 18);
+                $igvAmount = $baseAmount * ($igvRate / 100);
+                $totalAmount = $baseAmount + $igvAmount;
+            }
+
+            $xml .= '   <Row>';
+            
+            // FECHA DE EMISIÓN
+            $xml .= '<Cell ss:StyleID="Date"><Data ss:Type="' . ($issueDate ? 'DateTime' : 'String') . '">' . 
+                    ($issueDate ? $issueDate . 'T00:00:00.000' : '') . '</Data></Cell>';
+            
+            // FECHA VCTO/PAGO
+            $xml .= '<Cell ss:StyleID="Date"><Data ss:Type="' . ($dueDate ? 'DateTime' : 'String') . '">' . 
+                    ($dueDate ? $dueDate . 'T00:00:00.000' : '') . '</Data></Cell>';
+            
+            // TIPO CP/DOC
+            $xml .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order->cdp_type ?? '') . '</Data></Cell>';
+            
+            // SERIE DEL CDP
+            $xml .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order->cdp_serie ?? '') . '</Data></Cell>';
+            
+            // NRO CP O DOC
+            $xml .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order->cdp_number ?? '') . '</Data></Cell>';
+            
+            // TIPO DOC IDENTIDAD
+            $xml .= '<Cell><Data ss:Type="String">' . $docType . '</Data></Cell>';
+            
+            // NRO DOC IDENTIDAD
+            $xml .= '<Cell><Data ss:Type="String">' . htmlspecialchars($sellerDoc) . '</Data></Cell>';
+            
+            // APELLIDOS NOMBRES / RAZÓN SOCIAL
+            $xml .= '<Cell><Data ss:Type="String">' . htmlspecialchars($order->seller_name ?? '') . '</Data></Cell>';
+            
+            // BI GRAVADO DG (Base imponible)
+            $xml .= '<Cell ss:StyleID="Number"><Data ss:Type="Number">' . number_format($baseAmount, 2, '.', '') . '</Data></Cell>';
+            
+            // IGV / IPM DG
+            $xml .= '<Cell ss:StyleID="Number"><Data ss:Type="Number">' . number_format($igvAmount, 2, '.', '') . '</Data></Cell>';
+            
+            // VALOR ADQ. NO GRAVADO (vacío)
+            $xml .= '<Cell><Data ss:Type="String"></Data></Cell>';
+            
+            // IGV (repetido)
+            $xml .= '<Cell ss:StyleID="Number"><Data ss:Type="Number">' . number_format($igvAmount, 2, '.', '') . '</Data></Cell>';
+            
+            // TOTAL CP
+            $xml .= '<Cell ss:StyleID="Number"><Data ss:Type="Number">' . number_format($totalAmount, 2, '.', '') . '</Data></Cell>';
+            
+            // MONEDA
+            $xml .= '<Cell><Data ss:Type="String">' . ($order->currency ?? 'PEN') . '</Data></Cell>';
+            
+            // TIPO CAMBIO
+            $exchangeRate = $order->currency === 'USD' && $order->exchange_rate ? 
+                number_format($order->exchange_rate, 3, '.', '') : '';
+            $xml .= '<Cell ss:StyleID="Rate"><Data ss:Type="' . ($exchangeRate ? 'Number' : 'String') . '">' . $exchangeRate . '</Data></Cell>';
+            
+            // FECHA EMISIÓN DOC MODIFICADO (vacío)
+            $xml .= '<Cell><Data ss:Type="String"></Data></Cell>';
+            
+            // TIPO CP MODIFICADO (vacío)
+            $xml .= '<Cell><Data ss:Type="String"></Data></Cell>';
+            
+            // NRO CP MODIFICADO (vacío)
+            $xml .= '<Cell><Data ss:Type="String"></Data></Cell>';
+            
+            // COD DAM O DSI (vacío)
+            $xml .= '<Cell><Data ss:Type="String"></Data></Cell>';
+            
+            // NRO DAM O DSI (vacío)
+            $xml .= '<Cell><Data ss:Type="String"></Data></Cell>';
+            
+            $xml .= '</Row>' . "\n";
+        }
+
+        $xml .= '  </Table>
+ </Worksheet>
+</Workbook>';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => 'attachment; filename="registro_compras_' . date('Y-m-d') . '.xls"',
+            'Cache-Control' => 'max-age=0',
+        ];
+
+        return response($xml, 200, $headers);
+    }
 }

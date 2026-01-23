@@ -191,6 +191,18 @@
 
         <!-- TAB: Pagadas -->
         <template v-if="activeTab === 'paid'">
+          <!-- Export Button -->
+          <div v-if="paidBatches.length > 0" class="export-bar">
+            <button @click="exportPaidExcel" class="btn-export">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Exportar Registro de Compras
+            </button>
+          </div>
+
           <div v-if="paidBatches.length === 0" class="empty-state">
             <h3>No hay compras pagadas</h3>
             <p>Las compras con pago confirmado aparecerán aquí</p>
@@ -585,6 +597,11 @@ const loadOrders = async () => {
     }
   } catch (e) { console.error(e); }
   loading.value = false;
+};
+
+// Export paid orders to Excel
+const exportPaidExcel = () => {
+  window.location.href = `${apiBase.value}/export-paid`;
 };
 
 const loadApprovedUnpaid = async () => {
