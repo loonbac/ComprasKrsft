@@ -14,7 +14,7 @@
 }
 
 .compras-container {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -40,6 +40,12 @@
   gap: 20px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .header-left h1 {
   display: flex;
   align-items: center;
@@ -53,6 +59,47 @@
 .title-icon {
   width: 28px;
   height: 28px;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--compras-radius-full);
+  border: 2px solid var(--compras-toggle-border);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--compras-transition-fast);
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.theme-toggle svg {
+  width: 22px;
+  height: 22px;
+}
+
+.theme-toggle .sun-icon {
+  display: block;
+}
+
+.theme-toggle .moon-icon {
+  display: none;
+}
+
+body.dark-mode .theme-toggle .sun-icon {
+  display: none;
+}
+
+body.dark-mode .theme-toggle .moon-icon {
+  display: block;
 }
 
 .btn-back {

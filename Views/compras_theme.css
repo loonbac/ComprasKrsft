@@ -1,20 +1,20 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - TEMA DE COLORES
    Variables CSS específicas del módulo
-   Versión 3.0.5 - Matched Trabajadores Style
+   Versión 4.2.0 - Aligned with Trabajadores Style
    ============================================ */
 
 :root {
-    /* Colores Primarios del Módulo (Green - Module Identity) */
-    --compras-primary: #10b981;
-    --compras-primary-dark: #059669;
-    --compras-primary-light: #6ee7b7;
-    --compras-secondary: #047857;
-    --compras-gradient: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    /* Colores Primarios del Módulo (Teal/Cyan - Match Trabajadores) */
+    --compras-primary: #0AA4A4;
+    --compras-primary-dark: #087A7A;
+    --compras-primary-light: #08C6B6;
+    --compras-secondary: #2F6FBF;
+    --compras-gradient: linear-gradient(135deg, #0AA4A4 0%, #08C6B6 50%, #2F6FBF 100%);
 
     /* Colores para Animación del Fondo */
-    --compras-bg-color-1: #10b981;
-    --compras-bg-color-2: #047857;
+    --compras-bg-color-1: #0AA4A4;
+    --compras-bg-color-2: #2F6FBF;
 
     /* Toggle Border - Modo Claro */
     --compras-toggle-border: #94a3b8;
@@ -40,6 +40,7 @@
     --compras-text-gray: #64748b;
     --compras-text-light: #94a3b8;
     --compras-text-muted: #475569;
+    --compras-text-white: #ffffff;
 
     /* Bordes y Sombras */
     --compras-border: #e2e8f0;
@@ -47,22 +48,22 @@
     --compras-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.08);
     --compras-shadow-md: 0 8px 25px rgba(0, 0, 0, 0.12);
     --compras-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
-    --compras-shadow-primary: 0 4px 12px rgba(16, 185, 129, 0.4);
+    --compras-shadow-primary: 0 4px 12px rgba(10, 164, 164, 0.4);
 
     /* Badges - Activo/Aprobado */
-    --compras-badge-success-bg: rgba(16, 185, 129, 0.1);
+    --compras-badge-success-bg: rgba(16, 185, 129, 0.15);
     --compras-badge-success-text: #10b981;
 
     /* Badges - Rechazado */
-    --compras-badge-danger-bg: rgba(239, 68, 68, 0.1);
+    --compras-badge-danger-bg: rgba(239, 68, 68, 0.15);
     --compras-badge-danger-text: #ef4444;
 
     /* Badges - Pendiente */
-    --compras-badge-warning-bg: rgba(245, 158, 11, 0.1);
+    --compras-badge-warning-bg: rgba(245, 158, 11, 0.15);
     --compras-badge-warning-text: #f59e0b;
 
     /* Badges - Por Pagar */
-    --compras-badge-info-bg: rgba(59, 130, 246, 0.1);
+    --compras-badge-info-bg: rgba(59, 130, 246, 0.15);
     --compras-badge-info-text: #3b82f6;
 
     /* Badges - Default */
@@ -84,8 +85,8 @@
     --compras-stat-projects-bg: #3b82f6;
 
     /* Modal */
-    --compras-modal-bg: #ffffff;
-    --compras-modal-overlay: rgba(0, 0, 0, 0.5);
+    --compras-modal-bg: #1e293b;
+    --compras-modal-overlay: rgba(0, 0, 0, 0.7);
 
     /* Toast */
     --compras-toast-success: #10b981;
@@ -96,11 +97,11 @@
     --compras-transition-fast: all 0.2s ease;
 
     /* Radios de borde */
-    --compras-radius-sm: 8px;
-    --compras-radius-md: 12px;
-    --compras-radius-lg: 16px;
-    --compras-radius-xl: 20px;
-    --compras-radius-2xl: 24px;
+    --compras-radius-sm: 6px;
+    --compras-radius-md: 8px;
+    --compras-radius-lg: 12px;
+    --compras-radius-xl: 16px;
+    --compras-radius-2xl: 20px;
     --compras-radius-full: 9999px;
 }
 
@@ -138,5 +139,5 @@ body.dark-mode {
     --compras-bg-color-2: #1e293b;
 
     /* Toggle Border - Modo Oscuro */
-    --compras-toggle-border: #10b981;
+    --compras-toggle-border: #0AA4A4;
 }
