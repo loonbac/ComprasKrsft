@@ -19,19 +19,14 @@
   padding: 20px;
 }
 
-/* Header - Visible frosted glass style */
+/* Header - Now inside white container */
 .module-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding: 16px 24px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: var(--compras-radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--compras-border);
 }
 
 .header-left {
@@ -50,9 +45,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--compras-text-dark);
   margin: 0;
 }
 
@@ -66,9 +61,9 @@
   width: 44px;
   height: 44px;
   border-radius: var(--compras-radius-full);
-  border: 2px solid var(--compras-toggle-border);
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  border: 2px solid var(--compras-border);
+  background: var(--compras-bg-light);
+  color: var(--compras-text-dark);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -77,7 +72,7 @@
 }
 
 .theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--compras-border);
   transform: scale(1.05);
 }
 
@@ -107,17 +102,18 @@ body.dark-mode .theme-toggle .moon-icon {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  border-radius: 8px;
-  color: #fff;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background 0.2s;
+  font-weight: 500;
+  transition: var(--compras-transition-fast);
 }
 
 .btn-back:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--compras-border);
 }
 
 .btn-back svg {
@@ -173,10 +169,12 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .tab-badge {
-  padding: 2px 10px;
+  padding: 4px 12px;
   border-radius: var(--compras-radius-full);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
+  min-width: 28px;
+  text-align: center;
 }
 
 .pending-badge {
