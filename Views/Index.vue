@@ -93,36 +93,41 @@
                   <th class="col-check">
                     <input type="checkbox" @change="toggleSelectAll" :checked="allSelected" />
                   </th>
-                  <th class="col-project">Proyecto</th>
-                  <th class="col-type">Tipo</th>
-                  <th class="col-description">Material/Descripción</th>
-                  <th class="col-qty">Cantidad</th>
-                  <th class="col-date">Fecha</th>
-                  <th class="col-actions">Acciones</th>
+                  <th class="col-item">ITEM</th>
+                  <th class="col-project">PROYECTO</th>
+                  <th class="col-type">TIPO</th>
+                  <th class="col-description">DESCRIPCIÓN</th>
+                  <th class="col-qty">CANT</th>
+                  <th class="col-und">UND</th>
+                  <th class="col-diam">DIÁMETRO</th>
+                  <th class="col-serie">SERIE</th>
+                  <th class="col-mat">MATERIAL</th>
+                  <th class="col-date">FECHA</th>
+                  <th class="col-actions">ACCIONES</th>
                 </tr>
               </thead>
               <tbody>
                 <tr 
-                  v-for="order in paginatedOrders" 
+                  v-for="(order, index) in paginatedOrders" 
                   :key="order.id"
                   :class="{ selected: selectedOrders.includes(order.id) }"
                 >
                   <td class="col-check">
                     <input type="checkbox" :checked="selectedOrders.includes(order.id)" @change="toggleSelect(order.id)" />
                   </td>
+                  <td class="col-item">{{ index + 1 }}</td>
                   <td class="col-project">{{ order.project_name }}</td>
                   <td class="col-type">
                     <span class="type-badge" :class="order.type">
                       {{ order.type === 'service' ? 'Servicio' : 'Material' }}
                     </span>
                   </td>
-                  <td class="col-description">
-                    <div class="material-name">{{ getOrderTitle(order) }}</div>
-                    <div v-if="order.materials?.length > 1" class="material-count">
-                      +{{ order.materials.length - 1 }} más
-                    </div>
-                  </td>
+                  <td class="col-description">{{ getOrderTitle(order) }}</td>
                   <td class="col-qty">{{ getOrderQty(order) }}</td>
+                  <td class="col-und">{{ order.unit || 'UND' }}</td>
+                  <td class="col-diam">{{ order.diameter || '-' }}</td>
+                  <td class="col-serie">{{ order.series || '-' }}</td>
+                  <td class="col-mat">{{ order.material_type || '-' }}</td>
                   <td class="col-date">{{ formatDate(order.created_at) }}</td>
                   <td class="col-actions">
                     <button @click="openSingleApproveModal(order)" class="btn-sm btn-approve">Aprobar</button>
