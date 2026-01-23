@@ -416,7 +416,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .btn-approve {
-  background: #10b981;
+  background: var(--compras-primary);
   color: #fff;
 }
 
@@ -474,7 +474,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .batch-card.paid {
-  border-left-color: #10b981;
+  border-left-color: var(--compras-primary);
 }
 
 .batch-header {
@@ -550,7 +550,7 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .item-amount {
   font-weight: 600;
-  color: #10b981;
+  color: var(--compras-primary);
 }
 
 .batch-footer {
@@ -711,7 +711,7 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .input-field:focus {
   outline: none;
-  border-color: #10b981;
+  border-color: var(--compras-primary);
 }
 
 .input-file {
@@ -860,7 +860,7 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .btn-submit {
   padding: 10px 24px;
-  background: #10b981;
+  background: var(--compras-primary);
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -870,7 +870,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #059669;
+  background: var(--compras-primary-dark);
 }
 
 .btn-submit:disabled {
@@ -892,7 +892,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .toast.success {
-  background: #10b981;
+  background: var(--compras-toast-success);
 }
 
 .toast.error {
