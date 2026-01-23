@@ -109,14 +109,14 @@
               </thead>
               <tbody>
                 <tr 
-                  v-for="(order, index) in paginatedOrders" 
+                  v-for="order in paginatedOrders" 
                   :key="order.id"
                   :class="{ selected: selectedOrders.includes(order.id) }"
                 >
                   <td class="col-check">
                     <input type="checkbox" :checked="selectedOrders.includes(order.id)" @change="toggleSelect(order.id)" />
                   </td>
-                  <td class="col-item">{{ index + 1 }}</td>
+                  <td class="col-item">{{ order.item_number || '-' }}</td>
                   <td class="col-project">{{ order.project_name }}</td>
                   <td class="col-type">
                     <span class="type-badge" :class="order.type">
