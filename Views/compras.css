@@ -131,11 +131,10 @@ body.dark-mode .theme-toggle .moon-icon {
 .module-content {
   flex: 1;
   background: var(--compras-bg-container);
-  \n border-radius: var(--compras-radius-lg);
-  \n padding: 24px;
-  \n box-shadow: var(--compras-shadow-md);
-  \n overflow: auto;
-  \n
+  border-radius: var(--compras-radius-lg);
+  padding: 24px;
+  box-shadow: var(--compras-shadow-md);
+  overflow: auto;
 }
 
 /* Tabs - Updated for white container */
