@@ -131,8 +131,10 @@
                   <td class="col-mat">{{ order.material_type || '-' }}</td>
                   <td class="col-date">{{ formatDate(order.created_at) }}</td>
                   <td class="col-actions">
-                    <button @click="openSingleApproveModal(order)" class="btn-sm btn-approve">Aprobar</button>
-                    <button @click="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
+                    <div class="action-buttons">
+                      <button @click="openSingleApproveModal(order)" class="btn-sm btn-approve">Aprobar</button>
+                      <button @click="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

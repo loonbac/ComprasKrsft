@@ -445,8 +445,13 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .col-actions {
   width: 180px;
-  display: flex;
+  text-align: center;
+}
+
+.col-actions .action-buttons {
+  display: inline-flex;
   gap: 6px;
+  justify-content: center;
 }
 
 .btn-sm {
