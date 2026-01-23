@@ -398,21 +398,22 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .col-actions {
   width: 180px;
+  display: flex;
+  gap: 6px;
 }
 
 .btn-sm {
   padding: 6px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--compras-radius-sm);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  margin-right: 6px;
-  transition: opacity 0.2s;
+  transition: var(--compras-transition-fast);
 }
 
 .btn-sm:hover {
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .btn-approve {
@@ -421,7 +422,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .btn-reject {
-  background: #ef4444;
+  background: var(--compras-danger);
   color: #fff;
 }
 
@@ -589,24 +590,24 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .btn-confirm-payment {
   padding: 10px 20px;
-  background: #3b82f6;
+  background: var(--compras-info);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--compras-radius-sm);
   color: #fff;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: var(--compras-transition-fast);
 }
 
 .btn-confirm-payment:hover {
-  background: #2563eb;
+  background: var(--compras-btn-confirm-hover);
 }
 
-/* Modal */
+/* Modal - Structure only, colors in theme */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--compras-modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -615,13 +616,13 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 16px;
+  background: var(--compras-modal-bg);
+  border-radius: var(--compras-radius-xl);
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--compras-shadow-lg);
 }
 
 .modal-lg {
@@ -633,24 +634,29 @@ body.dark-mode .theme-toggle .moon-icon {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--compras-border);
 }
 
 .modal-header h2 {
   font-size: 1.2rem;
-  color: #fff;
+  color: var(--compras-text-dark);
   margin: 0;
 }
 
 .btn-close {
   width: 32px;
   height: 32px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--compras-bg-light);
   border: none;
-  border-radius: 8px;
-  color: #fff;
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
   font-size: 1.3rem;
   cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-close:hover {
+  background: var(--compras-border);
 }
 
 .modal-body {
@@ -662,7 +668,7 @@ body.dark-mode .theme-toggle .moon-icon {
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--compras-border);
 }
 
 /* Form Styles */
@@ -672,10 +678,10 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .form-section h4 {
   font-size: 0.95rem;
-  color: #fff;
+  color: var(--compras-text-dark);
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--compras-border);
 }
 
 .form-row {
@@ -700,17 +706,17 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .form-group label {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--compras-text-gray);
 }
 
 .input-field {
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  color: #fff;
+  background: var(--compras-bg-input);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
   font-size: 0.9rem;
-  transition: border-color 0.2s;
+  transition: var(--compras-transition-fast);
 }
 
 .input-field:focus {
@@ -720,17 +726,17 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .input-file {
   padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: #fff;
+  background: var(--compras-bg-light);
+  border: 1px dashed var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #fff;
+  color: var(--compras-text-dark);
   font-weight: 500;
   cursor: pointer;
 }
@@ -743,15 +749,15 @@ body.dark-mode .theme-toggle .moon-icon {
 /* Exchange Info */
 .exchange-info {
   padding: 12px;
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 8px;
+  background: var(--compras-badge-info-bg);
+  border-radius: var(--compras-radius-sm);
   margin-bottom: 16px;
-  color: #60a5fa;
+  color: var(--compras-badge-info-text);
   font-size: 0.9rem;
 }
 
 .exchange-info .error {
-  color: #f87171;
+  color: var(--compras-danger);
 }
 
 /* Pricing List */
@@ -768,8 +774,8 @@ body.dark-mode .theme-toggle .moon-icon {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  background: var(--compras-bg-light);
+  border-radius: var(--compras-radius-sm);
 }
 
 .pricing-info {
@@ -780,17 +786,17 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .pricing-project {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--compras-text-gray);
 }
 
 .pricing-material {
-  color: #fff;
+  color: var(--compras-text-dark);
   font-weight: 500;
 }
 
 .pricing-qty {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--compras-text-gray);
 }
 
 .pricing-input {
@@ -800,7 +806,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .currency-prefix {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--compras-text-gray);
   font-weight: 600;
 }
 
@@ -813,8 +819,8 @@ body.dark-mode .theme-toggle .moon-icon {
 .totals-section {
   margin-top: 20px;
   padding: 16px;
-  background: rgba(16, 185, 129, 0.1);
-  border-radius: 8px;
+  background: var(--compras-badge-success-bg);
+  border-radius: var(--compras-radius-sm);
 }
 
 .totals-section .total-row {
@@ -826,40 +832,41 @@ body.dark-mode .theme-toggle .moon-icon {
 .totals-section .total-final {
   padding-top: 8px;
   margin-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: 1px solid var(--compras-border);
 }
 
 .pen-equivalent {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--compras-text-gray);
   font-size: 0.85rem;
 }
 
 /* Batch Summary */
 .batch-summary {
   padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  background: var(--compras-bg-light);
+  border-radius: var(--compras-radius-sm);
   margin-bottom: 20px;
 }
 
 .batch-summary p {
   margin: 4px 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--compras-text-dark);
 }
 
 /* Buttons */
 .btn-cancel {
   padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--compras-bg-light);
   border: none;
-  border-radius: 8px;
-  color: #fff;
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
   font-weight: 500;
   cursor: pointer;
+  transition: var(--compras-transition-fast);
 }
 
 .btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--compras-border);
 }
 
 .btn-submit {
@@ -900,7 +907,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .toast.error {
-  background: #ef4444;
+  background: var(--compras-toast-error);
 }
 
 @keyframes slideIn {

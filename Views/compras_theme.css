@@ -84,9 +84,9 @@
     --compras-stat-approved-bg: #10b981;
     --compras-stat-projects-bg: #3b82f6;
 
-    /* Modal */
-    --compras-modal-bg: #1e293b;
-    --compras-modal-overlay: rgba(0, 0, 0, 0.7);
+    /* Modal - Light mode white background */
+    --compras-modal-bg: #ffffff;
+    --compras-modal-overlay: rgba(0, 0, 0, 0.5);
 
     /* Toast */
     --compras-toast-success: #10b981;
