@@ -28,7 +28,8 @@
     --compras-info: #3b82f6;
 
     /* Fondos - Modo Claro */
-    --compras-bg-page: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    --compras-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    --compras-bg-page: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
     --compras-bg-container: rgba(255, 255, 255, 0.95);
     --compras-bg-card: #ffffff;
     --compras-bg-light: #f8fafc;
