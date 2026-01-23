@@ -25,14 +25,16 @@
   overflow: hidden;
 }
 
-/* Header - Now inside white container */
+/* Header - Fixed at top of container */
 .module-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  padding: 16px 24px;
+  background: var(--compras-bg-container);
+  border-radius: var(--compras-radius-lg) var(--compras-radius-lg) 0 0;
   border-bottom: 2px solid var(--compras-border);
+  flex-shrink: 0;
 }
 
 .header-left {
@@ -127,14 +129,15 @@ body.dark-mode .theme-toggle .moon-icon {
   height: 18px;
 }
 
-/* Main Content - White container like ProyectosKrsft */
+/* Main Content - Scrollable area */
 .module-content {
   flex: 1;
   background: var(--compras-bg-container);
-  border-radius: var(--compras-radius-lg);
+  border-radius: 0 0 var(--compras-radius-lg) var(--compras-radius-lg);
   padding: 24px;
   box-shadow: var(--compras-shadow-md);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Tabs - Updated for white container */
@@ -308,6 +311,7 @@ body.dark-mode .theme-toggle .moon-icon {
 .orders-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .orders-table th,
