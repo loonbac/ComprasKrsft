@@ -305,18 +305,59 @@ body.dark-mode .theme-toggle .moon-icon {
   color: var(--compras-text-dark);
 }
 
+/* Export bar in Pagadas */
+.export-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+.btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--compras-gradient);
+  color: #fff;
+  border: none;
+  border-radius: var(--compras-radius-md);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: var(--compras-shadow-md);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-export svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--compras-shadow-lg);
+}
+
+.btn-export:active {
+  transform: translateY(0);
+  opacity: 0.92;
+}
+
 /* Table - Updated for white container */
 .table-container {
   background: var(--compras-bg-card);
   border: 1px solid var(--compras-border);
   border-radius: var(--compras-radius-md);
-  overflow: hidden;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .orders-table {
   width: 100%;
+  min-width: 1080px;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .orders-table th,
@@ -324,6 +365,8 @@ body.dark-mode .theme-toggle .moon-icon {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid var(--compras-border);
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .orders-table th {
@@ -367,13 +410,22 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .col-project {
-  max-width: 140px;
+  min-width: 160px;
+  max-width: 260px;
   color: var(--compras-text-dark);
   font-weight: 600;
 }
 
 .col-type {
   width: 100px;
+}
+
+.col-description {
+  min-width: 260px;
+}
+
+.col-actions {
+  min-width: 160px;
 }
 
 .type-badge {
