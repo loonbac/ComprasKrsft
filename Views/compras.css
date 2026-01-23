@@ -19,10 +19,15 @@
   left: 30px;
   right: 30px;
   bottom: 30px;
-  padding: 20px 30px;
+  background: var(--compras-bg-container);
+  backdrop-filter: blur(20px);
+  border-radius: var(--compras-radius-xl);
+  padding: 0;
   display: flex;
   flex-direction: column;
+  z-index: 10;
   overflow: hidden;
+  box-shadow: var(--compras-shadow-lg);
 }
 
 /* Header - Fixed at top of container */
@@ -175,7 +180,7 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .main-tab.active {
   background: var(--compras-primary);
-  color: #fff;
+  color: var(--compras-text-white);
   box-shadow: var(--compras-shadow-primary);
 }
 
@@ -252,7 +257,7 @@ body.dark-mode .theme-toggle .moon-icon {
   background: var(--compras-primary);
   border: none;
   border-radius: var(--compras-radius-sm);
-  color: #fff;
+  color: var(--compras-text-white);
   font-weight: 600;
   cursor: pointer;
   transition: var(--compras-transition-fast);
@@ -385,8 +390,8 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .type-badge.service {
-  background: rgba(168, 85, 247, 0.15);
-  color: #8b5cf6;
+  background: var(--compras-badge-service-bg);
+  color: var(--compras-badge-service-text);
 }
 
 .col-description {
@@ -461,12 +466,12 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .btn-approve {
   background: var(--compras-primary);
-  color: #fff;
+  color: var(--compras-text-white);
 }
 
 .btn-reject {
   background: var(--compras-danger);
-  color: #fff;
+  color: var(--compras-text-white);
 }
 
 /* Pagination */
@@ -476,21 +481,21 @@ body.dark-mode .theme-toggle .moon-icon {
   justify-content: center;
   gap: 16px;
   padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--compras-border);
 }
 
 .btn-page {
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 6px;
-  color: #fff;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: var(--compras-transition-fast);
 }
 
 .btn-page:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--compras-border);
 }
 
 .btn-page:disabled {
@@ -499,7 +504,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .page-info {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--compras-text-gray);
   font-size: 0.9rem;
 }
 
@@ -627,7 +632,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .batch-cdp {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--compras-text-gray);
   font-size: 0.85rem;
 }
 
@@ -636,7 +641,7 @@ body.dark-mode .theme-toggle .moon-icon {
   background: var(--compras-info);
   border: none;
   border-radius: var(--compras-radius-sm);
-  color: #fff;
+  color: var(--compras-text-white);
   font-weight: 600;
   cursor: pointer;
   transition: var(--compras-transition-fast);
@@ -948,11 +953,11 @@ body.dark-mode .theme-toggle .moon-icon {
   padding: 10px 24px;
   background: var(--compras-primary);
   border: none;
-  border-radius: 8px;
-  color: #fff;
+  border-radius: var(--compras-radius-md);
+  color: var(--compras-text-white);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: var(--compras-transition-fast);
 }
 
 .btn-submit:hover:not(:disabled) {
@@ -970,8 +975,8 @@ body.dark-mode .theme-toggle .moon-icon {
   bottom: 24px;
   right: 24px;
   padding: 14px 24px;
-  border-radius: 10px;
-  color: #fff;
+  border-radius: var(--compras-radius-lg);
+  color: var(--compras-text-white);
   font-weight: 500;
   z-index: 2000;
   animation: slideIn 0.3s ease;

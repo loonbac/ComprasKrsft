@@ -70,6 +70,10 @@
     --compras-badge-default-bg: #f1f5f9;
     --compras-badge-default-text: #64748b;
 
+    /* Badges - Servicio (Purple) */
+    --compras-badge-service-bg: rgba(168, 85, 247, 0.15);
+    --compras-badge-service-text: #8b5cf6;
+
     /* Botones de Acción */
     --compras-btn-approve-bg: #10b981;
     --compras-btn-approve-hover: #059669;
