@@ -14,9 +14,15 @@
 }
 
 .compras-container {
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: 20px;
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  padding: 20px 30px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Header - Now inside white container */
@@ -123,10 +129,13 @@ body.dark-mode .theme-toggle .moon-icon {
 
 /* Main Content - White container like ProyectosKrsft */
 .module-content {
+  flex: 1;
   background: var(--compras-bg-container);
-  border-radius: var(--compras-radius-lg);
-  padding: 24px;
-  box-shadow: var(--compras-shadow-md);
+  \n border-radius: var(--compras-radius-lg);
+  \n padding: 24px;
+  \n box-shadow: var(--compras-shadow-md);
+  \n overflow: auto;
+  \n
 }
 
 /* Tabs - Updated for white container */
@@ -433,14 +442,15 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .btn-sm {
-  padding: 6px 12px;
+  padding: 5px 10px;
   border: none;
   border-radius: var(--compras-radius-sm);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--compras-transition-fast);
 }
+
 
 .btn-sm:hover {
   opacity: 0.9;
@@ -649,7 +659,7 @@ body.dark-mode .theme-toggle .moon-icon {
   background: var(--compras-modal-bg);
   border-radius: var(--compras-radius-xl);
   width: 100%;
-  max-width: 500px;
+  max-width: 550px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--compras-shadow-lg);
