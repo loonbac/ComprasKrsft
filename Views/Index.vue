@@ -792,6 +792,11 @@ onMounted(() => {
 });
 </script>
 
+<style>
+/* Theme variables - must be unscoped for :root to work */
+@import './compras_theme.css';
+</style>
+
 <style scoped>
 @import './compras.css';
 </style>
