@@ -457,7 +457,37 @@ class CompraController extends Controller
             ])
             ->where('purchase_orders.status', 'approved')
             ->where('purchase_orders.payment_confirmed', true)
+            ->where(function($query) {
+                $query->where('purchase_orders.delivery_confirmed', false)
+                      ->orWhereNull('purchase_orders.delivery_confirmed');
+            })
             ->orderBy('purchase_orders.payment_confirmed_at', 'desc')
+            ->get()
+            ->map(function ($order) {
+                $order->materials = $order->materials ? json_decode($order->materials, true) : [];
+                return $order;
+            });
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders,
+            'total' => $orders->count()
+        ]);
+    }
+
+    /**
+     * Get delivered orders (delivery_confirmed = true)
+     */
+    public function deliveredOrders()
+    {
+        $orders = DB::table($this->ordersTable)
+            ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->select([
+                'purchase_orders.*',
+                'projects.name as project_name'
+            ])
+            ->where('purchase_orders.delivery_confirmed', true)
+            ->orderBy('purchase_orders.delivery_confirmed_at', 'desc')
             ->get()
             ->map(function ($order) {
                 $order->materials = $order->materials ? json_decode($order->materials, true) : [];
@@ -505,7 +535,6 @@ class CompraController extends Controller
             DB::table($this->ordersTable)
                 ->where('id', $id)
                 ->update([
-                    'status' => 'in_progress',
                     'payment_confirmed' => true,
                     'payment_confirmed_at' => now(),
                     'payment_confirmed_by' => auth()->id(),
@@ -548,87 +577,6 @@ class CompraController extends Controller
             ]
         ]);
     }
-
-    /**
-     * Get orders in progress (paid, awaiting delivery)
-     */
-    public function inProgressOrders()
-    {
-        $orders = DB::table($this->ordersTable)
-            ->leftJoin($this->projectsTable, "{$this->ordersTable}.project_id", '=', "{$this->projectsTable}.id")
-            ->select([
-                "{$this->ordersTable}.*",
-                "{$this->projectsTable}.name as project_name"
-            ])
-            ->where("{$this->ordersTable}.status", 'in_progress')
-            ->orderBy("{$this->ordersTable}.payment_confirmed_at", 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'orders' => $orders
-        ]);
-    }
-
-    /**
-     * Get delivered orders
-     */
-    public function deliveredOrders()
-    {
-        $orders = DB::table($this->ordersTable)
-            ->leftJoin($this->projectsTable, "{$this->ordersTable}.project_id", '=', "{$this->projectsTable}.id")
-            ->select([
-                "{$this->ordersTable}.*",
-                "{$this->projectsTable}.name as project_name"
-            ])
-            ->where("{$this->ordersTable}.status", 'delivered')
-            ->orderBy("{$this->ordersTable}.delivered_at", 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'orders' => $orders
-        ]);
-    }
-
-    /**
-     * Mark order as delivered
-     */
-    public function markDelivered(Request $request, $id)
-    {
-        $order = DB::table($this->ordersTable)->find($id);
-
-        if (!$order) {
-            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
-        }
-
-        if ($order->status !== 'in_progress') {
-            return response()->json(['success' => false, 'message' => 'La orden debe estar en progreso'], 400);
-        }
-
-        try {
-            DB::table($this->ordersTable)
-                ->where('id', $id)
-                ->update([
-                    'status' => 'delivered',
-                    'delivered_at' => now(),
-                    'delivered_by' => auth()->id(),
-                    'delivery_notes' => $request->input('notes'),
-                    'updated_at' => now()
-                ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Orden marcada como entregada'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
     /**
      * Listar proyectos para selector
      */
