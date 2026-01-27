@@ -45,10 +45,7 @@
           <button @click="activeTab = 'paid'; loadPaidBatches()" :class="{ active: activeTab === 'paid' }" class="main-tab">
             Pagadas
           </button>
-          <button @click="activeTab = 'delivered'; loadDeliveredOrders()" :class="{ active: activeTab === 'delivered' }" class="main-tab">
-            Entregados
-            <span class="tab-badge delivered-badge">{{ deliveredBatches.length }}</span>
-          </button>
+
         </div>
 
         <!-- TAB: Por Aprobar - Table View -->
@@ -246,46 +243,7 @@
           </div>
         </template>
 
-        <!-- TAB: Entregados -->
-        <template v-if="activeTab === 'delivered'">
-          <div v-if="deliveredBatches.length === 0" class="empty-state">
-            <h3>No hay entregas confirmadas</h3>
-            <p>Los materiales entregados en obra aparecerán aquí</p>
-          </div>
 
-          <div v-else class="batches-list">
-            <div v-for="batch in deliveredBatches" :key="batch.batch_id" class="batch-card delivered">
-              <div class="batch-header">
-                <div class="batch-info">
-                  <span class="batch-id">{{ batch.batch_id }}</span>
-                  <span class="batch-seller">{{ batch.seller_name }}</span>
-                  <span class="delivered-badge">✓ Entregado</span>
-                </div>
-                <div class="batch-meta">
-                  <span>{{ batch.orders.length }} items</span>
-                  <span class="batch-date">Entregado {{ formatDate(batch.delivery_confirmed_at) }}</span>
-                </div>
-              </div>
-              
-              <div class="batch-items">
-                <div v-for="order in batch.orders" :key="order.id" class="batch-item">
-                  <span class="item-project">{{ order.project_name }}</span>
-                  <span class="item-desc">{{ getOrderTitle(order) }}</span>
-                  <span class="item-amount">{{ order.currency }} {{ formatNumber(order.amount) }}</span>
-                </div>
-              </div>
-
-              <div class="batch-footer">
-                <div class="batch-totals">
-                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber(batch.total) }}</span>
-                </div>
-                <div v-if="batch.delivery_notes" class="batch-notes">
-                  Notas: {{ batch.delivery_notes }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
       </main>
 
       <!-- Bulk Approve Modal -->
@@ -492,7 +450,7 @@ const currentExchangeRate = ref(0);
 const orders = ref([]);
 const batches = ref([]);
 const paidBatches = ref([]);
-const deliveredBatches = ref([]);
+
 const projectList = ref([]);
 const selectedOrders = ref([]);
 const prices = ref({});
@@ -713,33 +671,7 @@ const loadPaidBatches = async () => {
   } catch (e) { console.error(e); }
 };
 
-const loadDeliveredOrders = async () => {
-  try {
-    const res = await fetch(`${apiBase.value}/delivered-orders`);
-    const data = await res.json();
-    if (data.success) {
-      // Group by batch_id
-      const batchMap = {};
-      data.orders.forEach(order => {
-        const batchId = order.batch_id || `SINGLE-${order.id}`;
-        if (!batchMap[batchId]) {
-          batchMap[batchId] = {
-            batch_id: batchId,
-            seller_name: order.seller_name,
-            currency: order.currency,
-            delivery_confirmed_at: order.delivery_confirmed_at,
-            delivery_notes: order.delivery_notes,
-            orders: [],
-            total: 0
-          };
-        }
-        batchMap[batchId].orders.push(order);
-        batchMap[batchId].total += parseFloat(order.total_with_igv || order.amount || 0);
-      });
-      deliveredBatches.value = Object.values(batchMap).sort((a, b) => new Date(b.delivery_confirmed_at) - new Date(a.delivery_confirmed_at));
-    }
-  } catch (e) { console.error(e); }
-};
+
 
 const fetchExchangeRate = async () => {
   loadingRate.value = true;
