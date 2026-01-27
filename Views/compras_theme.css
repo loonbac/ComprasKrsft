@@ -74,6 +74,22 @@
     --compras-badge-service-bg: rgba(168, 85, 247, 0.15);
     --compras-badge-service-text: #8b5cf6;
 
+    /* Badges - Aprobado (Green) */
+    --compras-badge-approved-bg: rgba(16, 185, 129, 0.15);
+    --compras-badge-approved-text: #10b981;
+
+    /* Badges - En Progreso (Blue) */
+    --compras-badge-inprogress-bg: rgba(59, 130, 246, 0.15);
+    --compras-badge-inprogress-text: #3b82f6;
+
+    /* Badges - Entregado (Teal) */
+    --compras-badge-delivered-bg: rgba(20, 184, 166, 0.15);
+    --compras-badge-delivered-text: #14b8a6;
+
+    /* Badges - Almacenado (Dark Green) */
+    --compras-badge-stored-bg: rgba(34, 197, 94, 0.15);
+    --compras-badge-stored-text: #22c55e;
+
     /* Botones de Acción */
     --compras-btn-approve-bg: #10b981;
     --compras-btn-approve-hover: #059669;
@@ -82,6 +98,10 @@
     --compras-btn-reject-hover: rgba(239, 68, 68, 0.2);
     --compras-btn-confirm-bg: #3b82f6;
     --compras-btn-confirm-hover: #2563eb;
+    --compras-btn-delivered-bg: #14b8a6;
+    --compras-btn-delivered-hover: #0d9488;
+    --compras-btn-stored-bg: #22c55e;
+    --compras-btn-stored-hover: #16a34a;
 
     /* Iconos de Stats (Colores planos) */
     --compras-stat-pending-bg: #f59e0b;

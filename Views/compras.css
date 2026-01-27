@@ -531,6 +531,136 @@ body.dark-mode .theme-toggle .moon-icon {
   color: var(--compras-text-white);
 }
 
+.btn-delivered {
+  background: var(--compras-btn-delivered-bg);
+  color: var(--compras-text-white);
+}
+
+.btn-delivered:hover {
+  background: var(--compras-btn-delivered-hover);
+}
+
+.btn-stored {
+  background: var(--compras-btn-stored-bg);
+  color: var(--compras-text-white);
+}
+
+.btn-stored:hover {
+  background: var(--compras-btn-stored-hover);
+}
+
+/* New State Badges */
+.approved-badge {
+  background: var(--compras-badge-approved-bg);
+  color: var(--compras-badge-approved-text);
+}
+
+.inprogress-badge {
+  background: var(--compras-badge-inprogress-bg);
+  color: var(--compras-badge-inprogress-text);
+}
+
+.delivered-badge {
+  background: var(--compras-badge-delivered-bg);
+  color: var(--compras-badge-delivered-text);
+}
+
+.stored-badge {
+  background: var(--compras-badge-stored-bg);
+  color: var(--compras-badge-stored-text);
+}
+
+/* Orders Grid */
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.order-card {
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius);
+  padding: 16px;
+  transition: var(--compras-transition-fast);
+}
+
+.order-card:hover {
+  box-shadow: 0 4px 12px var(--compras-shadow);
+}
+
+.order-card.inprogress {
+  border-left: 4px solid var(--compras-badge-inprogress-text);
+}
+
+.order-card.delivered {
+  border-left: 4px solid var(--compras-badge-delivered-text);
+}
+
+.order-card.stored {
+  border-left: 4px solid var(--compras-badge-stored-text);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.order-project {
+  font-weight: 600;
+  color: var(--compras-text-dark);
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.order-body {
+  margin-bottom: 12px;
+}
+
+.order-desc {
+  color: var(--compras-text-gray);
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.order-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--compras-text-gray);
+  margin-bottom: 8px;
+}
+
+.order-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--compras-text-dark);
+}
+
+.order-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--compras-border);
+}
+
+.order-completed {
+  padding-top: 12px;
+  border-top: 1px solid var(--compras-border);
+  text-align: center;
+  color: var(--compras-badge-stored-text);
+  font-weight: 600;
+}
+
 /* Pagination */
 .pagination {
   display: flex;

@@ -505,6 +505,7 @@ class CompraController extends Controller
             DB::table($this->ordersTable)
                 ->where('id', $id)
                 ->update([
+                    'status' => 'in_progress',
                     'payment_confirmed' => true,
                     'payment_confirmed_at' => now(),
                     'payment_confirmed_by' => auth()->id(),
@@ -547,6 +548,145 @@ class CompraController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Get orders in progress (paid, awaiting delivery)
+     */
+    public function inProgressOrders()
+    {
+        $orders = DB::table($this->ordersTable)
+            ->leftJoin($this->projectsTable, "{$this->ordersTable}.project_id", '=', "{$this->projectsTable}.id")
+            ->select([
+                "{$this->ordersTable}.*",
+                "{$this->projectsTable}.name as project_name"
+            ])
+            ->where("{$this->ordersTable}.status", 'in_progress')
+            ->orderBy("{$this->ordersTable}.payment_confirmed_at", 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders
+        ]);
+    }
+
+    /**
+     * Get delivered orders
+     */
+    public function deliveredOrders()
+    {
+        $orders = DB::table($this->ordersTable)
+            ->leftJoin($this->projectsTable, "{$this->ordersTable}.project_id", '=', "{$this->projectsTable}.id")
+            ->select([
+                "{$this->ordersTable}.*",
+                "{$this->projectsTable}.name as project_name"
+            ])
+            ->where("{$this->ordersTable}.status", 'delivered')
+            ->orderBy("{$this->ordersTable}.delivered_at", 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders
+        ]);
+    }
+
+    /**
+     * Get stored orders
+     */
+    public function storedOrders()
+    {
+        $orders = DB::table($this->ordersTable)
+            ->leftJoin($this->projectsTable, "{$this->ordersTable}.project_id", '=', "{$this->projectsTable}.id")
+            ->select([
+                "{$this->ordersTable}.*",
+                "{$this->projectsTable}.name as project_name"
+            ])
+            ->where("{$this->ordersTable}.status", 'stored')
+            ->orderBy("{$this->ordersTable}.stored_at", 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders
+        ]);
+    }
+
+    /**
+     * Mark order as delivered
+     */
+    public function markDelivered(Request $request, $id)
+    {
+        $order = DB::table($this->ordersTable)->find($id);
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
+        }
+
+        if ($order->status !== 'in_progress') {
+            return response()->json(['success' => false, 'message' => 'La orden debe estar en progreso'], 400);
+        }
+
+        try {
+            DB::table($this->ordersTable)
+                ->where('id', $id)
+                ->update([
+                    'status' => 'delivered',
+                    'delivered_at' => now(),
+                    'delivered_by' => auth()->id(),
+                    'delivery_notes' => $request->input('notes'),
+                    'updated_at' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Orden marcada como entregada'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark order as stored
+     */
+    public function markStored(Request $request, $id)
+    {
+        $order = DB::table($this->ordersTable)->find($id);
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
+        }
+
+        if ($order->status !== 'delivered') {
+            return response()->json(['success' => false, 'message' => 'La orden debe estar entregada'], 400);
+        }
+
+        try {
+            DB::table($this->ordersTable)
+                ->where('id', $id)
+                ->update([
+                    'status' => 'stored',
+                    'stored_at' => now(),
+                    'stored_by' => auth()->id(),
+                    'updated_at' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Orden marcada como almacenada'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Listar proyectos para selector
      */
