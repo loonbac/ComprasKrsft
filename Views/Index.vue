@@ -215,7 +215,8 @@
                 <div class="batch-info">
                   <span class="batch-id">{{ batch.batch_id }}</span>
                   <span class="batch-seller">{{ batch.seller_name }}</span>
-                  <span class="paid-badge">✓ Pagado</span>
+                  <span v-if="batchAllDelivered(batch)" class="delivered-badge">✓ Entregado</span>
+                  <span v-else class="paid-badge">✓ Pagado</span>
                 </div>
                 <div class="batch-meta">
                   <span>{{ batch.orders.length }} items</span>
@@ -228,6 +229,7 @@
                   <span class="item-project">{{ order.project_name }}</span>
                   <span class="item-desc">{{ getOrderTitle(order) }}</span>
                   <span class="item-amount">{{ order.currency }} {{ formatNumber(order.amount) }}</span>
+                  <span v-if="order.delivery_confirmed" class="item-delivered-badge">Entregado</span>
                 </div>
               </div>
 
@@ -575,6 +577,11 @@ const getOrderTitle = (order) => {
     return typeof mat === 'object' ? mat.name : mat;
   }
   return order.description;
+};
+
+// Check if all orders in a batch are delivered
+const batchAllDelivered = (batch) => {
+  return batch.orders?.every(o => o.delivery_confirmed) || false;
 };
 
 const getOrderQty = (order) => {

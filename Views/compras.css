@@ -1105,3 +1105,26 @@ body.dark-mode .theme-toggle .moon-icon {
     margin: 10px;
   }
 }
+
+/* Delivered Badges */
+.delivered-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.item-delivered-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  margin-left: 8px;
+}
