@@ -6,7 +6,7 @@
     "icon": "icon.svg",
     "color": "#10b981",
     "gradient": "linear-gradient(135deg, #10b981, #059669)",
-    "author": "loonbac21, insent1209",
+    "author": "loonbac21, insent1209, yokonad",
     "enabled": true,
     "dependencies": [
         "ProyectosKrsft"
