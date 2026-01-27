@@ -457,10 +457,6 @@ class CompraController extends Controller
             ])
             ->where('purchase_orders.status', 'approved')
             ->where('purchase_orders.payment_confirmed', true)
-            ->where(function($query) {
-                $query->where('purchase_orders.delivery_confirmed', false)
-                      ->orWhereNull('purchase_orders.delivery_confirmed');
-            })
             ->orderBy('purchase_orders.payment_confirmed_at', 'desc')
             ->get()
             ->map(function ($order) {
