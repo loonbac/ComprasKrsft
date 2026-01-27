@@ -592,27 +592,6 @@ class CompraController extends Controller
     }
 
     /**
-     * Get stored orders
-     */
-    public function storedOrders()
-    {
-        $orders = DB::table($this->ordersTable)
-            ->leftJoin($this->projectsTable, "{$this->ordersTable}.project_id", '=', "{$this->projectsTable}.id")
-            ->select([
-                "{$this->ordersTable}.*",
-                "{$this->projectsTable}.name as project_name"
-            ])
-            ->where("{$this->ordersTable}.status", 'stored')
-            ->orderBy("{$this->ordersTable}.stored_at", 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'orders' => $orders
-        ]);
-    }
-
-    /**
      * Mark order as delivered
      */
     public function markDelivered(Request $request, $id)
@@ -641,43 +620,6 @@ class CompraController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Orden marcada como entregada'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Mark order as stored
-     */
-    public function markStored(Request $request, $id)
-    {
-        $order = DB::table($this->ordersTable)->find($id);
-
-        if (!$order) {
-            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
-        }
-
-        if ($order->status !== 'delivered') {
-            return response()->json(['success' => false, 'message' => 'La orden debe estar entregada'], 400);
-        }
-
-        try {
-            DB::table($this->ordersTable)
-                ->where('id', $id)
-                ->update([
-                    'status' => 'stored',
-                    'stored_at' => now(),
-                    'stored_by' => auth()->id(),
-                    'updated_at' => now()
-                ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Orden marcada como almacenada'
             ]);
         } catch (\Exception $e) {
             return response()->json([

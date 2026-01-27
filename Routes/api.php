@@ -29,7 +29,5 @@ Route::post('/{id}/confirm-payment', "{$ctrl}@confirmPayment")->where('id', '[0-
 // New delivery states
 Route::get('/in-progress', "{$ctrl}@inProgressOrders");
 Route::get('/delivered', "{$ctrl}@deliveredOrders");
-Route::get('/stored', "{$ctrl}@storedOrders");
 Route::post('/{id}/mark-delivered', "{$ctrl}@markDelivered")->where('id', '[0-9]+');
-Route::post('/{id}/mark-stored', "{$ctrl}@markStored")->where('id', '[0-9]+');
 

@@ -50,10 +50,6 @@
             Entregados
             <span class="tab-badge delivered-badge">{{ deliveredOrders.length }}</span>
           </button>
-          <button @click="activeTab = 'stored'; loadStored()" :class="{ active: activeTab === 'stored' }" class="main-tab">
-            Almacenados
-            <span class="tab-badge stored-badge">{{ storedOrders.length }}</span>
-          </button>
         </div>
 
         <!-- TAB: Por Aprobar - Table View -->
@@ -294,7 +290,7 @@
             <div v-for="order in deliveredOrders" :key="order.id" class="order-card delivered">
               <div class="order-header">
                 <span class="order-project">{{ order.project_name }}</span>
-                <span class="status-badge delivered-badge">Entregado</span>
+                <span class="status-badge delivered-badge">✓ Entregado</span>
               </div>
               <div class="order-body">
                 <p class="order-desc">{{ order.description }}</p>
@@ -306,40 +302,8 @@
                   {{ order.currency }} {{ formatNumber(order.total_with_igv || order.amount) }}
                 </div>
               </div>
-              <div class="order-actions">
-                <button @click="markStored(order.id)" class="btn-sm btn-stored">
-                  📦 Marcar Almacenado
-                </button>
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <!-- TAB: Almacenados -->
-        <template v-if="activeTab === 'stored'">
-          <div v-if="storedOrders.length === 0" class="empty-state">
-            <h3>No hay órdenes almacenadas</h3>
-            <p>Las órdenes almacenadas aparecerán aquí</p>
-          </div>
-
-          <div v-else class="orders-grid">
-            <div v-for="order in storedOrders" :key="order.id" class="order-card stored">
-              <div class="order-header">
-                <span class="order-project">{{ order.project_name }}</span>
-                <span class="status-badge stored-badge">Almacenado</span>
-              </div>
-              <div class="order-body">
-                <p class="order-desc">{{ order.description }}</p>
-                <div class="order-meta">
-                  <span>Proveedor: {{ order.seller_name }}</span>
-                  <span>Almacenado: {{ formatDate(order.stored_at) }}</span>
-                </div>
-                <div class="order-amount">
-                  {{ order.currency }} {{ formatNumber(order.total_with_igv || order.amount) }}
-                </div>
-              </div>
               <div class="order-completed">
-                <span>✓ Proceso completado</span>
+                <span>✓ Material recibido correctamente</span>
               </div>
             </div>
           </div>
@@ -552,7 +516,6 @@ const batches = ref([]);
 const paidBatches = ref([]);
 const inProgressOrders = ref([]);
 const deliveredOrders = ref([]);
-const storedOrders = ref([]);
 const projectList = ref([]);
 const selectedOrders = ref([]);
 const prices = ref({});
@@ -793,16 +756,6 @@ const loadDelivered = async () => {
   } catch (e) { console.error(e); }
 };
 
-const loadStored = async () => {
-  try {
-    const res = await fetch(`${apiBase.value}/stored`);
-    const data = await res.json();
-    if (data.success) {
-      storedOrders.value = data.orders || [];
-    }
-  } catch (e) { console.error(e); }
-};
-
 const markDelivered = async (orderId) => {
   if (!confirm('¿Marcar esta orden como entregada?')) return;
   try {
@@ -814,25 +767,6 @@ const markDelivered = async (orderId) => {
     if (data.success) {
       showToast('Orden marcada como entregada', 'success');
       await loadInProgress();
-    } else {
-      showToast(data.message || 'Error', 'error');
-    }
-  } catch (e) {
-    showToast('Error', 'error');
-  }
-};
-
-const markStored = async (orderId) => {
-  if (!confirm('¿Marcar esta orden como almacenada?')) return;
-  try {
-    const res = await fetch(`${apiBase.value}/${orderId}/mark-stored`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() }
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast('Orden marcada como almacenada', 'success');
-      await loadDelivered();
     } else {
       showToast(data.message || 'Error', 'error');
     }
