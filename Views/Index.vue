@@ -457,7 +457,7 @@ const toast = ref({ show: false, message: '', type: 'success' });
 const filterProject = ref('');
 const filterType = ref('');
 const currentPage = ref(1);
-const perPage = 10;
+const perPage = 20;
 
 // Modals
 const showBulkModal = ref(false);
