@@ -36,6 +36,7 @@ class CompraController extends Controller
                 'purchase_orders.*',
                 'projects.name as project_name'
             ])
+            ->orderBy('purchase_orders.item_number', 'asc')
             ->orderBy('purchase_orders.created_at', 'desc');
         
         if ($status && $status !== 'all') {
