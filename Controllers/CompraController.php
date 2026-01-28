@@ -44,6 +44,12 @@ class CompraController extends Controller
         
         $orders = $query->get()->map(function ($order) {
             $order->materials = $order->materials ? json_decode($order->materials, true) : [];
+            // Sort materials by item_number ascending
+            if (is_array($order->materials)) {
+                usort($order->materials, function($a, $b) {
+                    return ($a['item_number'] ?? 0) <=> ($b['item_number'] ?? 0);
+                });
+            }
             return $order;
         });
 
