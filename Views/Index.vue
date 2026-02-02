@@ -757,13 +757,6 @@ const pendingListAllSelected = computed(() => {
   return ids.length > 0 && ids.every(id => selectedPendingIds.value.includes(id));
 });
 
-const filteredOrders = computed(() => {
-  let result = orders.value;
-  if (filterProject.value) result = result.filter(o => o.project_id == filterProject.value);
-  if (filterType.value) result = result.filter(o => o.type === filterType.value);
-  return result;
-});
-
 const totalPages = computed(() => Math.ceil(filteredOrders.value.length / perPage) || 1);
 
 const paginatedOrders = computed(() => {
