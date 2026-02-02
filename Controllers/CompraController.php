@@ -89,6 +89,67 @@ class CompraController extends Controller
     }
 
     /**
+     * Órdenes aprobadas internamente para pago (to_pay)
+     */
+    public function toPayOrders()
+    {
+        $orders = DB::table($this->ordersTable)
+            ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->select([
+                'purchase_orders.*',
+                'projects.name as project_name'
+            ])
+            ->where('purchase_orders.status', 'to_pay')
+            ->orderBy('purchase_orders.created_at', 'asc')
+            ->get()
+            ->map(function ($order) {
+                $order->materials = $order->materials ? json_decode($order->materials, true) : [];
+                return $order;
+            });
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders,
+            'total' => $orders->count()
+        ]);
+    }
+
+    /**
+     * Aprobar internamente una orden pendiente y enviarla a Por Pagar
+     */
+    public function markToPay(Request $request, $id)
+    {
+        $order = DB::table($this->ordersTable)->find($id);
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
+        }
+
+        if (!in_array($order->status, ['pending', 'to_pay'])) {
+            return response()->json(['success' => false, 'message' => 'Esta orden ya fue procesada'], 400);
+        }
+
+        try {
+            DB::table($this->ordersTable)
+                ->where('id', $id)
+                ->update([
+                    'status' => 'to_pay',
+                    'updated_at' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Orden enviada a Por Pagar'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get unique sellers from approved orders for autocomplete
      */
     public function getSellers()
@@ -316,6 +377,109 @@ class CompraController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => count($orderIds) . ' órdenes aprobadas exitosamente',
+                'batch_id' => $batchId
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Pagar múltiples órdenes (Por Pagar)
+     * Aplica precios y marca como pagadas
+     */
+    public function payBulk(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'required|integer',
+            'prices' => 'required|array',
+            'prices.*' => 'required|numeric|min:0.01',
+            'currency' => 'required|in:PEN,USD',
+            'seller_name' => 'required|string',
+        ]);
+
+        try {
+            $orderIds = $request->input('order_ids');
+            $prices = $request->input('prices');
+            $currency = $request->input('currency');
+            $igvEnabled = $request->boolean('igv_enabled', false);
+            $igvRate = floatval($request->input('igv_rate', 18.00));
+
+            // Verify all orders are to_pay
+            $toPayCount = DB::table($this->ordersTable)
+                ->whereIn('id', $orderIds)
+                ->where('status', 'to_pay')
+                ->count();
+
+            if ($toPayCount !== count($orderIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Algunas órdenes no están disponibles para pago'
+                ], 400);
+            }
+
+            // Get exchange rate if USD
+            $exchangeRate = null;
+            if ($currency === 'USD') {
+                $exchangeRate = $this->getExchangeRate();
+                if (!$exchangeRate) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No se pudo obtener el tipo de cambio'
+                    ], 400);
+                }
+            }
+
+            // Generate batch ID
+            $batchId = 'PAY-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+
+            $sharedData = [
+                'status' => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'batch_id' => $batchId,
+                'currency' => $currency,
+                'exchange_rate' => $exchangeRate,
+                'igv_enabled' => $igvEnabled,
+                'igv_rate' => $igvRate,
+                'seller_name' => $request->input('seller_name'),
+                'seller_document' => $request->input('seller_document'),
+                'issue_date' => $request->input('issue_date'),
+                'payment_type' => $request->input('payment_type'),
+                'payment_date' => $request->input('payment_type') === 'cash' ? $request->input('payment_date') : null,
+                'due_date' => $request->input('payment_type') === 'loan' ? $request->input('due_date') : null,
+                'notes' => $request->input('notes'),
+                'payment_confirmed' => true,
+                'payment_confirmed_at' => now(),
+                'payment_confirmed_by' => auth()->id(),
+                'updated_at' => now()
+            ];
+
+            foreach ($orderIds as $orderId) {
+                $amount = floatval($prices[$orderId] ?? 0);
+                if ($amount <= 0) continue;
+
+                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
+                $igvAmount = $igvEnabled ? $amountPen * ($igvRate / 100) : 0;
+                $totalWithIgv = $amountPen + $igvAmount;
+
+                DB::table($this->ordersTable)
+                    ->where('id', $orderId)
+                    ->update(array_merge($sharedData, [
+                        'amount' => $amount,
+                        'amount_pen' => $amountPen,
+                        'igv_amount' => $igvAmount,
+                        'total_with_igv' => $totalWithIgv
+                    ]));
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => count($orderIds) . ' órdenes pagadas exitosamente',
                 'batch_id' => $batchId
             ]);
         } catch (\Exception $e) {

@@ -34,13 +34,13 @@
       <main class="module-content">
         <!-- Main Tabs -->
         <div class="main-tabs">
-          <button @click="activeTab = 'pending'" :class="{ active: activeTab === 'pending' }" class="main-tab">
-            Por Aprobar
-            <span class="tab-badge pending-badge">{{ orders.length }}</span>
-          </button>
-          <button @click="activeTab = 'unpaid'; loadApprovedUnpaid()" :class="{ active: activeTab === 'unpaid' }" class="main-tab">
+          <button @click="activeTab = 'to_pay'; loadToPayOrders()" :class="{ active: activeTab === 'to_pay' }" class="main-tab">
             Por Pagar
-            <span class="tab-badge unpaid-badge">{{ batches.length }}</span>
+            <span class="tab-badge unpaid-badge">{{ orders.length }}</span>
+          </button>
+          <button @click="activeTab = 'pending'; loadPendingOrders()" :class="{ active: activeTab === 'pending' }" class="main-tab">
+            Por Aprobar
+            <span class="tab-badge pending-badge">{{ pendingOrders.length }}</span>
           </button>
           <button @click="activeTab = 'paid'; loadPaidBatches()" :class="{ active: activeTab === 'paid' }" class="main-tab">
             Pagadas
@@ -48,8 +48,86 @@
 
         </div>
 
-        <!-- TAB: Por Aprobar - Table View -->
+        <!-- TAB: Por Aprobar - Proyectos agrupados -->
         <template v-if="activeTab === 'pending'">
+          <div v-if="loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <span>Cargando órdenes...</span>
+          </div>
+
+          <div v-else-if="pendingOrders.length === 0" class="empty-state">
+            <h3>No hay órdenes pendientes</h3>
+            <p>Las órdenes de compra aparecerán aquí cuando se creen desde Proyectos</p>
+          </div>
+
+          <div v-else class="pending-approval">
+            <div class="project-list">
+              <div
+                v-for="proj in pendingProjects"
+                :key="proj.id"
+                class="project-card"
+                :class="{ active: selectedPendingProjectId === proj.id }"
+                @click="selectPendingProject(proj.id)"
+              >
+                <div class="project-title">{{ proj.name }}</div>
+                <div class="project-meta">{{ proj.count }} items</div>
+              </div>
+            </div>
+
+            <div class="project-orders" v-if="selectedPendingProject">
+              <h3>Órdenes de {{ selectedPendingProject.name }}</h3>
+              <div class="table-container">
+                <table class="orders-table">
+                  <thead>
+                    <tr>
+                      <th class="col-item">ITEM</th>
+                      <th class="col-type">TIPO</th>
+                      <th class="col-description">DESCRIPCIÓN</th>
+                      <th class="col-qty">CANT</th>
+                      <th class="col-und">UND</th>
+                      <th class="col-diam">DIÁMETRO</th>
+                      <th class="col-serie">SERIE</th>
+                      <th class="col-mat">MATERIAL</th>
+                      <th class="col-date">FECHA</th>
+                      <th class="col-actions">ACCIONES</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="order in selectedPendingOrders" :key="order.id">
+                      <td class="col-item">{{ order.item_number || '-' }}</td>
+                      <td class="col-type">
+                        <span class="type-badge" :class="order.type">
+                          {{ order.type === 'service' ? 'Servicio' : 'Material' }}
+                        </span>
+                      </td>
+                      <td class="col-description">{{ getOrderTitle(order) }}</td>
+                      <td class="col-qty">{{ getOrderQty(order) }}</td>
+                      <td class="col-und">{{ order.unit || 'UND' }}</td>
+                      <td class="col-diam">{{ order.diameter || '-' }}</td>
+                      <td class="col-serie">{{ order.series || '-' }}</td>
+                      <td class="col-mat">{{ order.material_type || '-' }}</td>
+                      <td class="col-date">{{ formatDate(order.created_at) }}</td>
+                      <td class="col-actions">
+                        <div class="action-buttons">
+                          <button @click="markToPay(order.id)" class="btn-sm btn-approve">Aprobar</button>
+                          <button @click="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div v-else class="empty-state">
+              <h3>Seleccione un proyecto</h3>
+              <p>Elija un proyecto para ver sus órdenes pendientes</p>
+            </div>
+          </div>
+        </template>
+
+        <!-- TAB: Por Pagar - Table View -->
+        <template v-if="activeTab === 'to_pay'">
           <!-- Filters -->
           <div class="filters-bar">
             <div class="filter-group">
@@ -70,7 +148,7 @@
             <div class="selection-info" v-if="selectedOrders.length > 0">
               <span>{{ selectedOrders.length }} seleccionados</span>
               <button @click="openBulkApproveModal" class="btn-approve-selected">
-                Aprobar Seleccionados
+                Pagar Seleccionados
               </button>
             </div>
           </div>
@@ -83,8 +161,8 @@
 
           <!-- Empty State -->
           <div v-else-if="filteredOrders.length === 0" class="empty-state">
-            <h3>No hay órdenes pendientes</h3>
-            <p>Las órdenes de compra aparecerán aquí cuando se creen desde Proyectos</p>
+            <h3>No hay órdenes por pagar</h3>
+            <p>Las órdenes aprobadas aparecerán aquí para registrar el pago</p>
           </div>
 
           <!-- Orders Table -->
@@ -133,7 +211,7 @@
                   <td class="col-date">{{ formatDate(order.created_at) }}</td>
                   <td class="col-actions">
                     <div class="action-buttons">
-                      <button @click="openSingleApproveModal(order)" class="btn-sm btn-approve">Aprobar</button>
+                      <button @click="openSingleApproveModal(order)" class="btn-sm btn-approve">Pagar</button>
                       <button @click="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
                     </div>
                   </td>
@@ -146,46 +224,6 @@
               <button @click="currentPage--" :disabled="currentPage <= 1" class="btn-page">← Anterior</button>
               <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
               <button @click="currentPage++" :disabled="currentPage >= totalPages" class="btn-page">Siguiente →</button>
-            </div>
-          </div>
-        </template>
-
-        <!-- TAB: Por Pagar - Batch Cards -->
-        <template v-if="activeTab === 'unpaid'">
-          <div v-if="batches.length === 0" class="empty-state">
-            <h3>No hay compras pendientes de pago</h3>
-            <p>Las compras aprobadas aparecerán aquí agrupadas por lote</p>
-          </div>
-
-          <div v-else class="batches-list">
-            <div v-for="batch in batches" :key="batch.batch_id" class="batch-card">
-              <div class="batch-header">
-                <div class="batch-info">
-                  <span class="batch-id">{{ batch.batch_id }}</span>
-                  <span class="batch-seller">{{ batch.seller_name }}</span>
-                </div>
-                <div class="batch-meta">
-                  <span>{{ batch.orders.length }} {{ batch.orders.length === 1 ? 'item' : 'items' }}</span>
-                  <span class="batch-date">{{ formatDate(batch.approved_at) }}</span>
-                </div>
-              </div>
-              
-              <div class="batch-items">
-                <div v-for="order in batch.orders" :key="order.id" class="batch-item">
-                  <span class="item-project">{{ order.project_name }}</span>
-                  <span class="item-desc">{{ getOrderTitle(order) }}</span>
-                  <span class="item-amount">{{ order.currency }} {{ formatNumber(order.amount) }}</span>
-                </div>
-              </div>
-
-              <div class="batch-footer">
-                <div class="batch-totals">
-                  <span v-if="batch.igv_enabled" class="total-row">Subtotal: {{ batch.currency }} {{ formatNumber(batch.subtotal) }}</span>
-                  <span v-if="batch.igv_enabled" class="total-row">IGV ({{ batch.igv_rate }}%): {{ batch.currency }} {{ formatNumber(batch.igv_amount) }}</span>
-                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber(batch.total) }}</span>
-                </div>
-                <button @click="openPaymentModal(batch)" class="btn-confirm-payment">Confirmar Pago</button>
-              </div>
             </div>
           </div>
         </template>
@@ -253,7 +291,7 @@
         <div v-if="showBulkModal" class="modal-overlay" @click.self="closeBulkModal">
           <div class="modal-content modal-lg">
             <div class="modal-header">
-              <h2>Aprobar {{ selectedOrdersData.length }} Órdenes</h2>
+              <h2>Pagar {{ selectedOrdersData.length }} Órdenes</h2>
               <button @click="closeBulkModal" class="btn-close">×</button>
             </div>
             
@@ -365,7 +403,7 @@
             <div class="modal-footer">
               <button @click="closeBulkModal" class="btn-cancel">Cancelar</button>
               <button @click="submitBulkApprove" :disabled="!canSubmitBulk || approving" class="btn-submit">
-                {{ approving ? 'Aprobando...' : `Aprobar ${selectedOrdersData.length} Órdenes` }}
+                {{ approving ? 'Pagando...' : `Pagar ${selectedOrdersData.length} Órdenes` }}
               </button>
             </div>
           </div>
@@ -450,6 +488,7 @@ const approving = ref(false);
 const loadingRate = ref(false);
 const currentExchangeRate = ref(0);
 const orders = ref([]);
+const pendingOrders = ref([]);
 const batches = ref([]);
 const paidBatches = ref([]);
 
@@ -458,6 +497,7 @@ const selectedOrders = ref([]);
 const prices = ref({});
 const activeTab = ref('pending');
 const toast = ref({ show: false, message: '', type: 'success' });
+const selectedPendingProjectId = ref(null);
 
 // Filters & Pagination
 const filterProject = ref('');
@@ -500,10 +540,31 @@ const apiBase = computed(() => `/api/${getModuleName()}`);
 
 // Computed
 const filteredOrders = computed(() => {
-  let result = orders.value.filter(o => o.status === 'pending');
+  let result = orders.value;
   if (filterProject.value) result = result.filter(o => o.project_id == filterProject.value);
   if (filterType.value) result = result.filter(o => o.type === filterType.value);
   return result;
+});
+
+const pendingProjects = computed(() => {
+  const map = {};
+  pendingOrders.value.forEach(o => {
+    if (!map[o.project_id]) {
+      map[o.project_id] = { id: o.project_id, name: o.project_name, count: 0 };
+    }
+    map[o.project_id].count += 1;
+  });
+  return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+});
+
+const selectedPendingProject = computed(() => {
+  if (!selectedPendingProjectId.value) return null;
+  return pendingProjects.value.find(p => p.id === selectedPendingProjectId.value) || null;
+});
+
+const selectedPendingOrders = computed(() => {
+  if (!selectedPendingProjectId.value) return [];
+  return pendingOrders.value.filter(o => o.project_id === selectedPendingProjectId.value);
 });
 
 const totalPages = computed(() => Math.ceil(filteredOrders.value.length / perPage) || 1);
@@ -593,15 +654,53 @@ const getOrderQty = (order) => {
   return '-';
 };
 
+const selectPendingProject = (projectId) => {
+  selectedPendingProjectId.value = projectId;
+};
+
+const markToPay = async (id) => {
+  try {
+    const res = await fetch(`${apiBase.value}/${id}/mark-to-pay`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(data.message || 'Orden enviada a Por Pagar', 'success');
+      await loadPendingOrders();
+      await loadToPayOrders();
+    } else {
+      showToast(data.message || 'Error', 'error');
+    }
+  } catch (e) {
+    showToast('Error', 'error');
+  }
+};
+
 // Data Loading
-const loadOrders = async () => {
+const loadPendingOrders = async () => {
   loading.value = true;
   try {
-    const res = await fetch(`${apiBase.value}/list?status=pending`);
+    const res = await fetch(`${apiBase.value}/pending`);
+    const data = await res.json();
+    if (data.success) {
+      pendingOrders.value = data.orders || [];
+      if (!selectedPendingProjectId.value && pendingOrders.value.length > 0) {
+        selectedPendingProjectId.value = pendingOrders.value[0].project_id;
+      }
+    }
+  } catch (e) { console.error(e); }
+  loading.value = false;
+};
+
+const loadToPayOrders = async () => {
+  loading.value = true;
+  try {
+    const res = await fetch(`${apiBase.value}/to-pay`);
     const data = await res.json();
     if (data.success) {
       orders.value = data.orders || [];
-      // Extract unique projects
+      // Extract unique projects for filters
       const projects = {};
       orders.value.forEach(o => { projects[o.project_id] = { id: o.project_id, name: o.project_name }; });
       projectList.value = Object.values(projects).sort((a, b) => a.name.localeCompare(b.name));
@@ -770,7 +869,7 @@ const submitBulkApprove = async () => {
       notes: bulkForm.value.notes
     };
 
-    const res = await fetch(`${apiBase.value}/approve-bulk`, {
+    const res = await fetch(`${apiBase.value}/pay-bulk`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
       body: JSON.stringify(payload)
@@ -782,7 +881,8 @@ const submitBulkApprove = async () => {
       closeBulkModal();
       selectedOrders.value = [];
       prices.value = {};
-      await loadOrders();
+      await loadToPayOrders();
+      await loadPaidBatches();
     } else {
       showToast(data.message || 'Error', 'error');
     }
@@ -803,7 +903,8 @@ const rejectOrder = async (id) => {
     const data = await res.json();
     if (data.success) {
       showToast('Orden rechazada', 'success');
-      await loadOrders();
+      await loadPendingOrders();
+      await loadToPayOrders();
     } else {
       showToast(data.message || 'Error', 'error');
     }
@@ -863,7 +964,8 @@ const confirmPayment = async () => {
 };
 
 onMounted(() => {
-  loadOrders();
+  loadPendingOrders();
+  loadToPayOrders();
 });
 </script>
 

@@ -1,8 +1,8 @@
 {
     "name": "ComprasKrsft",
     "display_name": "GESTIÓN DE COMPRAS",
-    "version": "3.4.3",
-    "description": "Sistema de gestión de órdenes de compra y aprobación de gastos. Permite aprobar materiales y servicios vinculados a proyectos.",
+    "version": "4.0.0",
+    "description": "Sistema de gestión de órdenes de compra y pagos. Nuevo flujo: Por Aprobar (proyectos) → Por Pagar → Pagadas.",
     "icon": "icon.svg",
     "color": "#10b981",
     "gradient": "linear-gradient(135deg, #10b981, #059669)",
