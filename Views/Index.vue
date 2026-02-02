@@ -76,6 +76,12 @@
 
             <div class="project-orders" v-if="selectedPendingProject">
               <h3>Órdenes de {{ selectedPendingProject.name }}</h3>
+              <div class="selection-info" v-if="selectedPendingIds.length > 1">
+                <span>{{ selectedPendingIds.length }} seleccionados</span>
+                <button @click="approveSelectedPending" :disabled="approvingPending" class="btn-approve-selected">
+                  {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
+                </button>
+              </div>
               <div class="table-container">
                 <table class="orders-table">
                   <thead>
@@ -93,7 +99,12 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="order in selectedPendingOrders" :key="order.id">
+                    <tr
+                      v-for="order in selectedPendingOrders"
+                      :key="order.id"
+                      @click="togglePendingSelect(order.id)"
+                      :class="{ selected: isPendingSelected(order.id) }"
+                    >
                       <td class="col-item">{{ order.item_number || '-' }}</td>
                       <td class="col-type">
                         <span class="type-badge" :class="order.type">
@@ -109,8 +120,8 @@
                       <td class="col-date">{{ formatDate(order.created_at) }}</td>
                       <td class="col-actions">
                         <div class="action-buttons">
-                          <button @click="markToPay(order.id)" class="btn-sm btn-approve">Aprobar</button>
-                          <button @click="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
+                          <button @click.stop="markToPay(order.id)" class="btn-sm btn-approve">Aprobar</button>
+                          <button @click.stop="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
                         </div>
                       </td>
                     </tr>
@@ -498,6 +509,8 @@ const prices = ref({});
 const activeTab = ref('pending');
 const toast = ref({ show: false, message: '', type: 'success' });
 const selectedPendingProjectId = ref(null);
+const selectedPendingIds = ref([]);
+const approvingPending = ref(false);
 
 // Filters & Pagination
 const filterProject = ref('');
@@ -656,9 +669,22 @@ const getOrderQty = (order) => {
 
 const selectPendingProject = (projectId) => {
   selectedPendingProjectId.value = projectId;
+  selectedPendingIds.value = [];
 };
 
-const markToPay = async (id) => {
+const isPendingSelected = (orderId) => selectedPendingIds.value.includes(orderId);
+
+const togglePendingSelect = (orderId) => {
+  const idx = selectedPendingIds.value.indexOf(orderId);
+  if (idx >= 0) {
+    selectedPendingIds.value.splice(idx, 1);
+  } else {
+    selectedPendingIds.value.push(orderId);
+  }
+};
+
+const markToPay = async (id, options = {}) => {
+  const { silent = false } = options;
   try {
     const res = await fetch(`${apiBase.value}/${id}/mark-to-pay`, {
       method: 'PUT',
@@ -666,15 +692,32 @@ const markToPay = async (id) => {
     });
     const data = await res.json();
     if (data.success) {
-      showToast(data.message || 'Orden enviada a Por Pagar', 'success');
-      await loadPendingOrders();
-      await loadToPayOrders();
+      if (!silent) {
+        showToast(data.message || 'Orden enviada a Por Pagar', 'success');
+        await loadPendingOrders();
+        await loadToPayOrders();
+      }
+      selectedPendingIds.value = selectedPendingIds.value.filter((pid) => pid !== id);
     } else {
-      showToast(data.message || 'Error', 'error');
+      if (!silent) showToast(data.message || 'Error', 'error');
     }
   } catch (e) {
-    showToast('Error', 'error');
+    if (!silent) showToast('Error', 'error');
   }
+};
+
+const approveSelectedPending = async () => {
+  if (selectedPendingIds.value.length === 0) return;
+  approvingPending.value = true;
+  const ids = [...selectedPendingIds.value];
+  for (const id of ids) {
+    await markToPay(id, { silent: true });
+  }
+  await loadPendingOrders();
+  await loadToPayOrders();
+  selectedPendingIds.value = [];
+  approvingPending.value = false;
+  showToast('Órdenes enviadas a Por Pagar', 'success');
 };
 
 // Data Loading
@@ -687,6 +730,13 @@ const loadPendingOrders = async () => {
       pendingOrders.value = data.orders || [];
       if (!selectedPendingProjectId.value && pendingOrders.value.length > 0) {
         selectedPendingProjectId.value = pendingOrders.value[0].project_id;
+      }
+      if (selectedPendingProjectId.value && pendingOrders.value.length > 0) {
+        const exists = pendingOrders.value.some(o => o.project_id === selectedPendingProjectId.value);
+        if (!exists) {
+          selectedPendingProjectId.value = pendingOrders.value[0].project_id;
+          selectedPendingIds.value = [];
+        }
       }
     }
   } catch (e) { console.error(e); }
