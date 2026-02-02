@@ -74,68 +74,100 @@
               </div>
             </div>
 
+            <!-- Lists View -->
             <div class="project-orders" v-if="selectedPendingProject">
-              <h3>Órdenes de {{ selectedPendingProject.name }}</h3>
-              <div class="selection-info">
-                <button @click="selectAllPendingProject" class="btn-approve-selected">
-                  {{ pendingProjectAllSelected ? 'Deseleccionar del proyecto' : 'Seleccionar todos del proyecto' }}
-                </button>
-                <span v-if="selectedPendingIds.length > 0" class="selection-count">{{ selectedPendingIds.length }} seleccionados</span>
-                <button v-if="selectedPendingIds.length > 0" @click="openApprovalModal" :disabled="approvingPending" class="btn-approve-selected">
-                  {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
-                </button>
+              <h3>Listas de {{ selectedPendingProject.name }}</h3>
+              
+              <!-- Lists Grid -->
+              <div v-if="pendingLists.length > 0" class="lists-grid">
+                <div
+                  v-for="list in pendingLists"
+                  :key="list.filename"
+                  class="list-card"
+                  :class="{ active: selectedPendingListId === list.filename }"
+                  @click="selectPendingList(list.filename)"
+                >
+                  <div class="list-name">{{ list.filename || 'Sin archivo' }}</div>
+                  <div class="list-count">{{ list.count }} items</div>
+                </div>
               </div>
-              <div class="table-container">
-                <table class="orders-table">
-                  <thead>
-                    <tr>
-                      <th class="col-item">ITEM</th>
-                      <th class="col-type">TIPO</th>
-                      <th class="col-description">DESCRIPCIÓN</th>
-                      <th class="col-qty">CANT</th>
-                      <th class="col-und">UND</th>
-                      <th class="col-diam">DIÁMETRO</th>
-                      <th class="col-serie">SERIE</th>
-                      <th class="col-mat">MATERIAL</th>
-                      <th class="col-date">FECHA</th>
-                      <th class="col-actions">ACCIONES</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="order in selectedPendingOrders"
-                      :key="order.id"
-                      @click="togglePendingSelect(order.id)"
-                      :class="{ selected: isPendingSelected(order.id) }"
-                    >
-                      <td class="col-item">{{ order.item_number || '-' }}</td>
-                      <td class="col-type">
-                        <span class="type-badge" :class="order.type">
-                          {{ order.type === 'service' ? 'Servicio' : 'Material' }}
-                        </span>
-                      </td>
-                      <td class="col-description">{{ getOrderTitle(order) }}</td>
-                      <td class="col-qty">{{ getOrderQty(order) }}</td>
-                      <td class="col-und">{{ order.unit || 'UND' }}</td>
-                      <td class="col-diam">{{ order.diameter || '-' }}</td>
-                      <td class="col-serie">{{ order.series || '-' }}</td>
-                      <td class="col-mat">{{ order.material_type || '-' }}</td>
-                      <td class="col-date">{{ formatDate(order.created_at) }}</td>
-                      <td class="col-actions">
-                        <div class="action-buttons">
-                          <button @click.stop="markToPay(order.id)" class="btn-sm btn-approve">Aprobar</button>
-                          <button @click.stop="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+
+              <!-- Items View -->
+              <div v-if="selectedPendingList" class="items-section">
+                <div class="selection-info">
+                  <button @click="selectAllPendingList" class="btn-approve-selected">
+                    {{ pendingListAllSelected ? 'Deseleccionar de lista' : 'Seleccionar todos de lista' }}
+                  </button>
+                  <span v-if="selectedPendingIds.length > 0" class="selection-count">{{ selectedPendingIds.length }} seleccionados</span>
+                  <button v-if="selectedPendingIds.length > 0" @click="openApprovalModal" :disabled="approvingPending" class="btn-approve-selected">
+                    {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
+                  </button>
+                </div>
+                
+                <div class="table-container">
+                  <table class="orders-table">
+                    <thead>
+                      <tr>
+                        <th class="col-item">ITEM</th>
+                        <th class="col-type">TIPO</th>
+                        <th class="col-description">DESCRIPCIÓN</th>
+                        <th class="col-qty">CANT</th>
+                        <th class="col-und">UND</th>
+                        <th class="col-diam">DIÁMETRO</th>
+                        <th class="col-serie">SERIE</th>
+                        <th class="col-mat">MATERIAL</th>
+                        <th class="col-date">FECHA</th>
+                        <th class="col-actions">ACCIONES</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="order in paginatedPendingOrders"
+                        :key="order.id"
+                        @click="togglePendingSelect(order.id)"
+                        :class="{ selected: isPendingSelected(order.id) }"
+                      >
+                        <td class="col-item">{{ order.item_number || '-' }}</td>
+                        <td class="col-type">
+                          <span class="type-badge" :class="order.type">
+                            {{ order.type === 'service' ? 'Servicio' : 'Material' }}
+                          </span>
+                        </td>
+                        <td class="col-description">{{ getOrderTitle(order) }}</td>
+                        <td class="col-qty">{{ getOrderQty(order) }}</td>
+                        <td class="col-und">{{ order.unit || 'UND' }}</td>
+                        <td class="col-diam">{{ order.diameter || '-' }}</td>
+                        <td class="col-serie">{{ order.series || '-' }}</td>
+                        <td class="col-mat">{{ order.material_type || '-' }}</td>
+                        <td class="col-date">{{ formatDate(order.created_at) }}</td>
+                        <td class="col-actions">
+                          <div class="action-buttons">
+                            <button @click.stop="markToPay(order.id)" class="btn-sm btn-approve">Aprobar</button>
+                            <button @click.stop="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination -->
+                <div v-if="totalPagesPending > 1" class="pagination">
+                  <button @click="currentPagePending--" :disabled="currentPagePending <= 1" class="btn-page">← Anterior</button>
+                  <span class="page-info">Página {{ currentPagePending }} de {{ totalPagesPending }}</span>
+                  <button @click="currentPagePending++" :disabled="currentPagePending >= totalPagesPending" class="btn-page">Siguiente →</button>
+                </div>
+              </div>
+
+              <div v-else-if="pendingLists.length > 0" class="empty-state">
+                <h3>Seleccione una lista</h3>
+                <p>Elija una lista para ver sus items</p>
               </div>
             </div>
 
             <div v-else class="empty-state">
               <h3>Seleccione un proyecto</h3>
-              <p>Elija un proyecto para ver sus órdenes pendientes</p>
+              <p>Elija un proyecto para ver sus listas de materiales</p>
             </div>
           </div>
         </template>
@@ -605,11 +637,14 @@ const prices = ref({});
 const activeTab = ref('pending');
 const toast = ref({ show: false, message: '', type: 'success' });
 const selectedPendingProjectId = ref(null);
+const selectedPendingListId = ref(null);
 const selectedPendingIds = ref([]);
 const approvingPending = ref(false);
 const showApprovalModal = ref(false);
 const approvalPrices = ref({});
 const selectedApprovalIds = ref([]);
+const currentPagePending = ref(1);
+const perPagePending = 20;
 
 // Filters & Pagination
 const filterProject = ref('');
@@ -681,16 +716,45 @@ const selectedPendingProject = computed(() => {
   return pendingProjects.value.find(p => p.id === selectedPendingProjectId.value) || null;
 });
 
-const selectedPendingOrders = computed(() => {
+const pendingLists = computed(() => {
   if (!selectedPendingProjectId.value) return [];
-  return pendingOrders.value.filter(o => o.project_id === selectedPendingProjectId.value);
+  const lists = {};
+  pendingOrders.value
+    .filter(o => o.project_id === selectedPendingProjectId.value)
+    .forEach(o => {
+      const filename = o.source_filename || 'Manual';
+      if (!lists[filename]) {
+        lists[filename] = { filename, count: 0 };
+      }
+      lists[filename].count += 1;
+    });
+  return Object.values(lists).sort((a, b) => a.filename.localeCompare(b.filename));
 });
 
-const totalPages = computed(() => Math.ceil(filteredOrders.value.length / perPage) || 1);
+const selectedPendingList = computed(() => {
+  if (!selectedPendingListId.value) return null;
+  return pendingLists.value.find(l => l.filename === selectedPendingListId.value) || null;
+});
 
-const paginatedOrders = computed(() => {
-  const start = (currentPage.value - 1) * perPage;
-  return filteredOrders.value.slice(start, start + perPage);
+const selectedPendingOrders = computed(() => {
+  if (!selectedPendingProjectId.value || !selectedPendingListId.value) return [];
+  return pendingOrders.value.filter(o => 
+    o.project_id === selectedPendingProjectId.value &&
+    (o.source_filename || 'Manual') === selectedPendingListId.value
+  );
+});
+
+const totalPagesPending = computed(() => Math.ceil(selectedPendingOrders.value.length / perPagePending) || 1);
+
+const paginatedPendingOrders = computed(() => {
+  const start = (currentPagePending.value - 1) * perPagePending;
+  return selectedPendingOrders.value.slice(start, start + perPagePending);
+});
+
+const pendingListAllSelected = computed(() => {
+  if (!selectedPendingListId.value) return false;
+  const ids = selectedPendingOrders.value.map(o => o.id);
+  return ids.length > 0 && ids.every(id => selectedPendingIds.value.includes(id));
 });
 
 const allSelected = computed(() => {
@@ -790,29 +854,19 @@ const getOrderQty = (order) => {
 
 const selectPendingProject = (projectId) => {
   selectedPendingProjectId.value = projectId;
+  selectedPendingListId.value = null;
+  currentPagePending.value = 1;
 };
 
-const isPendingSelected = (orderId) => selectedPendingIds.value.includes(orderId);
-
-const togglePendingSelect = (orderId) => {
-  const idx = selectedPendingIds.value.indexOf(orderId);
-  if (idx >= 0) {
-    selectedPendingIds.value.splice(idx, 1);
-  } else {
-    selectedPendingIds.value.push(orderId);
-  }
+const selectPendingList = (filename) => {
+  selectedPendingListId.value = filename;
+  currentPagePending.value = 1;
 };
 
-const pendingProjectAllSelected = computed(() => {
-  if (!selectedPendingProjectId.value) return false;
+const selectAllPendingList = () => {
+  if (!selectedPendingListId.value) return;
   const ids = selectedPendingOrders.value.map(o => o.id);
-  return ids.length > 0 && ids.every(id => selectedPendingIds.value.includes(id));
-});
-
-const selectAllPendingProject = () => {
-  if (!selectedPendingProjectId.value) return;
-  const ids = selectedPendingOrders.value.map(o => o.id);
-  if (pendingProjectAllSelected.value) {
+  if (pendingListAllSelected.value) {
     selectedPendingIds.value = selectedPendingIds.value.filter(id => !ids.includes(id));
   } else {
     const set = new Set(selectedPendingIds.value);
@@ -820,6 +874,14 @@ const selectAllPendingProject = () => {
     selectedPendingIds.value = Array.from(set);
   }
 };
+
+const pendingProjectAllSelected = computed(() => {
+  if (!selectedPendingProjectId.value) return false;
+  const ids = pendingOrders.value
+    .filter(o => o.project_id === selectedPendingProjectId.value)
+    .map(o => o.id);
+  return ids.length > 0 && ids.every(id => selectedPendingIds.value.includes(id));
+});
 
 const openApprovalModal = () => {
   selectedApprovalIds.value = [...selectedPendingIds.value];
@@ -891,6 +953,17 @@ const approveSelectedPending = async () => {
   openApprovalModal();
 };
 
+const isPendingSelected = (orderId) => selectedPendingIds.value.includes(orderId);
+
+const togglePendingSelect = (orderId) => {
+  const idx = selectedPendingIds.value.indexOf(orderId);
+  if (idx >= 0) {
+    selectedPendingIds.value.splice(idx, 1);
+  } else {
+    selectedPendingIds.value.push(orderId);
+  }
+};
+
 // Data Loading
 const loadPendingOrders = async () => {
   loading.value = true;
@@ -906,10 +979,14 @@ const loadPendingOrders = async () => {
         const exists = pendingOrders.value.some(o => o.project_id === selectedPendingProjectId.value);
         if (!exists) {
           selectedPendingProjectId.value = pendingOrders.value[0].project_id;
+          selectedPendingListId.value = null;
         }
       }
       const pendingIdSet = new Set(pendingOrders.value.map(o => o.id));
       selectedPendingIds.value = selectedPendingIds.value.filter(id => pendingIdSet.has(id));
+      if (selectedPendingProjectId.value && !selectedPendingListId.value && pendingLists.value.length > 0) {
+        selectedPendingListId.value = pendingLists.value[0].filename;
+      }
     }
   } catch (e) { console.error(e); }
   loading.value = false;
