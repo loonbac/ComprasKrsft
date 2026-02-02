@@ -21,8 +21,10 @@ Route::get('/{id}', "{$ctrl}@show")->where('id', '[0-9]+');
 Route::put('/{id}/approve', "{$ctrl}@approve")->where('id', '[0-9]+');
 Route::put('/{id}/reject', "{$ctrl}@reject")->where('id', '[0-9]+');
 Route::put('/{id}/mark-to-pay', "{$ctrl}@markToPay")->where('id', '[0-9]+');
+Route::post('/mark-to-pay-bulk', "{$ctrl}@markToPayBulk");
 Route::post('/approve-bulk', "{$ctrl}@approveBulk");
 Route::post('/pay-bulk', "{$ctrl}@payBulk");
+Route::post('/pay-batch', "{$ctrl}@payBatch");
 
 // Payment confirmation
 Route::get('/approved-unpaid', "{$ctrl}@approvedUnpaid");

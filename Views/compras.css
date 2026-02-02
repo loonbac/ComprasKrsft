@@ -203,11 +203,6 @@ body.dark-mode .theme-toggle .moon-icon {
   color: var(--compras-badge-info-text);
 }
 
-.delivered-badge {
-  background: var(--compras-badge-success-bg, #d1fae5);
-  color: var(--compras-badge-success-text, #065f46);
-}
-
 /* Filters Bar - Updated for white container */
 .filters-bar {
   display: flex;
@@ -586,12 +581,12 @@ body.dark-mode .theme-toggle .moon-icon {
   box-shadow: var(--compras-shadow-sm);
 }
 
-.batch-card.paid {
-  border-left-color: var(--compras-primary);
+.batch-card.to-pay {
+  border-left-color: var(--compras-info);
 }
 
-.batch-card.delivered {
-  border-left: 4px solid var(--compras-primary);
+.batch-card.paid {
+  border-left-color: var(--compras-primary);
 }
 
 .batch-header {
@@ -621,6 +616,11 @@ body.dark-mode .theme-toggle .moon-icon {
 .batch-seller {
   color: var(--compras-text-dark);
   font-weight: 600;
+}
+
+.batch-approver {
+  color: var(--compras-text-gray);
+  font-size: 0.85rem;
 }
 
 .paid-badge {
@@ -1103,81 +1103,5 @@ body.dark-mode .theme-toggle .moon-icon {
 
   .modal-content {
     margin: 10px;
-  }
-}
-
-/* Delivered Badges */
-.delivered-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-}
-
-.item-delivered-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-  margin-left: 8px;
-}
-
-/* Pending approval layout */
-.pending-approval {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 16px;
-}
-
-.project-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.project-card {
-  background: var(--compras-card-bg);
-  border: 1px solid var(--compras-border);
-  border-radius: var(--compras-radius-md);
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: var(--compras-transition-fast);
-}
-
-.project-card:hover {
-  transform: translateY(-1px);
-  border-color: var(--compras-primary);
-}
-
-.project-card.active {
-  border-color: var(--compras-primary);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
-}
-
-.project-title {
-  font-weight: 700;
-  color: var(--compras-text-primary);
-}
-
-.project-meta {
-  font-size: 12px;
-  color: var(--compras-text-secondary);
-  margin-top: 4px;
-}
-
-.project-orders h3 {
-  margin-bottom: 12px;
-}
-
-@media (max-width: 1024px) {
-  .pending-approval {
-    grid-template-columns: 1fr;
   }
 }

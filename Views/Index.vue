@@ -172,36 +172,8 @@
           </div>
         </template>
 
-        <!-- TAB: Por Pagar - Table View -->
+        <!-- TAB: Por Pagar - Listas por aprobación -->
         <template v-if="activeTab === 'to_pay'">
-          <!-- Filters & Actions -->
-          <div class="filters-bar">
-            <div class="filter-group">
-              <label>Proyecto:</label>
-              <select v-model="filterProject" class="filter-select">
-                <option value="">Todos</option>
-                <option v-for="p in projectList" :key="p.id" :value="p.id">{{ p.name }}</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label>Tipo:</label>
-              <select v-model="filterType" class="filter-select">
-                <option value="">Todos</option>
-                <option value="material">Material</option>
-                <option value="service">Servicio</option>
-              </select>
-            </div>
-            <button @click="selectAllToPay" class="btn-approve-selected">
-              {{ allToPaySelected ? 'Deseleccionar todos' : 'Seleccionar todos' }}
-            </button>
-            <div class="selection-info" v-if="selectedOrders.length > 0">
-              <span>{{ selectedOrders.length }} seleccionados</span>
-              <button @click="openBulkApproveModal" class="btn-approve-selected">
-                Pagar Seleccionados
-              </button>
-            </div>
-          </div>
-
           <!-- Loading -->
           <div v-if="loading" class="loading-container">
             <div class="loading-spinner"></div>
@@ -209,65 +181,40 @@
           </div>
 
           <!-- Empty State -->
-          <div v-else-if="filteredOrders.length === 0" class="empty-state">
+          <div v-else-if="toPayBatches.length === 0" class="empty-state">
             <h3>No hay órdenes por pagar</h3>
             <p>Las órdenes aprobadas aparecerán aquí para registrar el pago</p>
           </div>
 
-          <!-- Orders Table -->
-          <div v-else class="table-container">
-            <table class="orders-table">
-              <thead>
-                <tr>
-                  <th class="col-item">ITEM</th>
-                  <th class="col-project">PROYECTO</th>
-                  <th class="col-type">TIPO</th>
-                  <th class="col-description">DESCRIPCIÓN</th>
-                  <th class="col-qty">CANT</th>
-                  <th class="col-und">UND</th>
-                  <th class="col-diam">DIÁMETRO</th>
-                  <th class="col-serie">SERIE</th>
-                  <th class="col-mat">MATERIAL</th>
-                  <th class="col-date">FECHA</th>
-                  <th class="col-actions">ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr 
-                  v-for="order in paginatedOrders" 
-                  :key="order.id"
-                  @click="toggleToPaySelect(order.id)"
-                  :class="{ selected: selectedOrders.includes(order.id) }"
-                >
-                  <td class="col-item">{{ order.item_number || '-' }}</td>
-                  <td class="col-project">{{ order.project_name }}</td>
-                  <td class="col-type">
-                    <span class="type-badge" :class="order.type">
-                      {{ order.type === 'service' ? 'Servicio' : 'Material' }}
-                    </span>
-                  </td>
-                  <td class="col-description">{{ getOrderTitle(order) }}</td>
-                  <td class="col-qty">{{ getOrderQty(order) }}</td>
-                  <td class="col-und">{{ order.unit || 'UND' }}</td>
-                  <td class="col-diam">{{ order.diameter || '-' }}</td>
-                  <td class="col-serie">{{ order.series || '-' }}</td>
-                  <td class="col-mat">{{ order.material_type || '-' }}</td>
-                  <td class="col-date">{{ formatDate(order.created_at) }}</td>
-                  <td class="col-actions">
-                    <div class="action-buttons">
-                      <button @click.stop="openSingleApproveModal(order)" class="btn-sm btn-approve">Pagar</button>
-                      <button @click.stop="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- Batches List -->
+          <div v-else class="batches-list">
+            <div v-for="batch in toPayBatches" :key="batch.batch_id" class="batch-card to-pay">
+              <div class="batch-header">
+                <div class="batch-info">
+                  <span class="batch-id">{{ batch.batch_id }}</span>
+                  <span class="batch-seller">{{ batch.seller_name }}</span>
+                  <span class="batch-approver">Aprobado por: {{ batch.approved_by_name || 'N/D' }}</span>
+                </div>
+                <div class="batch-meta">
+                  <span>{{ batch.orders.length }} items</span>
+                  <span class="batch-date">Aprobado {{ formatDate(batch.approved_at) }}</span>
+                </div>
+              </div>
 
-            <!-- Pagination -->
-            <div v-if="totalPages > 1" class="pagination">
-              <button @click="currentPage--" :disabled="currentPage <= 1" class="btn-page">← Anterior</button>
-              <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="currentPage++" :disabled="currentPage >= totalPages" class="btn-page">Siguiente →</button>
+              <div class="batch-items">
+                <div v-for="order in batch.orders" :key="order.id" class="batch-item">
+                  <span class="item-project">{{ order.project_name }}</span>
+                  <span class="item-desc">{{ getOrderTitle(order) }}</span>
+                  <span class="item-amount">{{ batch.currency }} {{ formatNumber(order.amount || 0) }}</span>
+                </div>
+              </div>
+
+              <div class="batch-footer">
+                <div class="batch-totals">
+                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber(batch.total) }}</span>
+                </div>
+                <button @click="openPaymentModal(batch)" class="btn-confirm-payment">Pagar</button>
+              </div>
             </div>
           </div>
         </template>
@@ -698,6 +645,28 @@ const filteredOrders = computed(() => {
   return result;
 });
 
+const toPayBatches = computed(() => {
+  const map = {};
+  orders.value.forEach(order => {
+    const batchId = order.batch_id || `SINGLE-${order.id}`;
+    if (!map[batchId]) {
+      map[batchId] = {
+        batch_id: batchId,
+        seller_name: order.seller_name || 'Sin proveedor',
+        currency: order.currency || 'PEN',
+        approved_by_name: order.approved_by_name || '',
+        approved_at: order.approved_at || order.updated_at || order.created_at,
+        orders: [],
+        total: 0
+      };
+    }
+    map[batchId].orders.push(order);
+    map[batchId].total += parseFloat(order.amount || 0);
+  });
+
+  return Object.values(map).sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
+});
+
 const pendingProjects = computed(() => {
   const map = {};
   pendingOrders.value.forEach(o => {
@@ -922,18 +891,37 @@ const onApprovalCurrencyChange = () => {
 const submitApprovalPending = async () => {
   if (!canSubmitApproval.value) return;
   approvingPending.value = true;
-  
-  const ids = [...selectedApprovalIds.value];
-  for (const id of ids) {
-    await markToPay(id, { silent: true });
+  try {
+    const payload = {
+      order_ids: selectedApprovalIds.value,
+      prices: approvalPrices.value,
+      currency: approvalForm.value.currency,
+      seller_name: approvalForm.value.seller_name,
+      seller_document: approvalForm.value.seller_document,
+      issue_date: approvalForm.value.issue_date
+    };
+
+    const res = await fetch(`${apiBase.value}/mark-to-pay-bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast(data.message || 'Órdenes enviadas a Por Pagar', 'success');
+      closeApprovalModal();
+      selectedPendingIds.value = [];
+      approvalPrices.value = {};
+      await loadPendingOrders();
+      await loadToPayOrders();
+    } else {
+      showToast(data.message || 'Error', 'error');
+    }
+  } catch (e) {
+    showToast('Error', 'error');
   }
-  
-  await loadPendingOrders();
-  await loadToPayOrders();
-  selectedPendingIds.value = [];
   approvingPending.value = false;
-  closeApprovalModal();
-  showToast('Órdenes enviadas a Por Pagar', 'success');
 };
 
 const markToPay = async (id, options = {}) => {
@@ -1278,26 +1266,30 @@ const confirmPayment = async () => {
 
   confirmingPayment.value = true;
   try {
-    // Confirm payment for all orders in the batch
-    for (const order of paymentBatch.value.orders) {
-      const formData = new FormData();
-      formData.append('cdp_type', paymentForm.value.cdp_type);
-      formData.append('cdp_serie', paymentForm.value.cdp_serie);
-      formData.append('cdp_number', paymentForm.value.cdp_number);
-      if (paymentForm.value.payment_proof) {
-        formData.append('payment_proof', paymentForm.value.payment_proof);
-      }
-
-      await fetch(`${apiBase.value}/${order.id}/confirm-payment`, {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': getCsrfToken() },
-        body: formData
-      });
+    const formData = new FormData();
+    formData.append('batch_id', paymentBatch.value.batch_id);
+    formData.append('cdp_type', paymentForm.value.cdp_type);
+    formData.append('cdp_serie', paymentForm.value.cdp_serie);
+    formData.append('cdp_number', paymentForm.value.cdp_number);
+    if (paymentForm.value.payment_proof) {
+      formData.append('payment_proof', paymentForm.value.payment_proof);
     }
 
-    showToast('Pago confirmado', 'success');
-    closePaymentModal();
-    await loadApprovedUnpaid();
+    const res = await fetch(`${apiBase.value}/pay-batch`, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': getCsrfToken() },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('Pago confirmado', 'success');
+      closePaymentModal();
+      await loadToPayOrders();
+      await loadPaidBatches();
+    } else {
+      showToast(data.message || 'Error', 'error');
+    }
   } catch (e) {
     showToast('Error', 'error');
   }

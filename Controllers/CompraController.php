@@ -68,9 +68,11 @@ class CompraController extends Controller
     {
         $orders = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
             ->select([
                 'purchase_orders.*',
-                'projects.name as project_name'
+                'projects.name as project_name',
+                'approver.name as approved_by_name'
             ])
             ->where('purchase_orders.status', 'pending')
             ->where('purchase_orders.type', 'material')
@@ -140,6 +142,93 @@ class CompraController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Orden enviada a Por Pagar'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Aprobar múltiples órdenes y enviarlas a Por Pagar como una sola lista
+     */
+    public function markToPayBulk(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'required|integer',
+            'prices' => 'required|array',
+            'prices.*' => 'required|numeric|min:0.01',
+            'currency' => 'required|in:PEN,USD',
+            'seller_name' => 'required|string',
+        ]);
+
+        try {
+            $orderIds = $request->input('order_ids');
+            $prices = $request->input('prices');
+            $currency = $request->input('currency');
+
+            // Verify all orders are pending
+            $pendingCount = DB::table($this->ordersTable)
+                ->whereIn('id', $orderIds)
+                ->where('status', 'pending')
+                ->count();
+
+            if ($pendingCount !== count($orderIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Algunas órdenes ya fueron procesadas'
+                ], 400);
+            }
+
+            // Get exchange rate if USD
+            $exchangeRate = null;
+            if ($currency === 'USD') {
+                $exchangeRate = $this->getExchangeRate();
+                if (!$exchangeRate) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No se pudo obtener el tipo de cambio'
+                    ], 400);
+                }
+            }
+
+            $batchId = 'AP-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+
+            $sharedData = [
+                'status' => 'to_pay',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'batch_id' => $batchId,
+                'currency' => $currency,
+                'exchange_rate' => $exchangeRate,
+                'seller_name' => $request->input('seller_name'),
+                'seller_document' => $request->input('seller_document'),
+                'issue_date' => $request->input('issue_date'),
+                'updated_at' => now()
+            ];
+
+            foreach ($orderIds as $orderId) {
+                $amount = floatval($prices[$orderId] ?? 0);
+                if ($amount <= 0) continue;
+
+                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
+
+                DB::table($this->ordersTable)
+                    ->where('id', $orderId)
+                    ->update(array_merge($sharedData, [
+                        'amount' => $amount,
+                        'amount_pen' => $amountPen,
+                        'total_with_igv' => $amountPen
+                    ]));
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => count($orderIds) . ' órdenes enviadas a Por Pagar',
+                'batch_id' => $batchId
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -481,6 +570,62 @@ class CompraController extends Controller
                 'success' => true,
                 'message' => count($orderIds) . ' órdenes pagadas exitosamente',
                 'batch_id' => $batchId
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Pagar un lote aprobado en Por Pagar (batch_id)
+     */
+    public function payBatch(Request $request)
+    {
+        $request->validate([
+            'batch_id' => 'required|string',
+            'cdp_type' => 'required|string|max:10',
+            'cdp_serie' => 'required|string|max:20',
+            'cdp_number' => 'required|string|max:20',
+        ]);
+
+        try {
+            $batchId = $request->input('batch_id');
+            $proofPath = null;
+
+            if ($request->hasFile('payment_proof')) {
+                $file = $request->file('payment_proof');
+                $filename = 'proof_' . $batchId . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
+            }
+
+            $updated = DB::table($this->ordersTable)
+                ->where('batch_id', $batchId)
+                ->where('status', 'to_pay')
+                ->update([
+                    'status' => 'approved',
+                    'payment_confirmed' => true,
+                    'payment_confirmed_at' => now(),
+                    'payment_confirmed_by' => auth()->id(),
+                    'cdp_type' => $request->input('cdp_type'),
+                    'cdp_serie' => $request->input('cdp_serie'),
+                    'cdp_number' => $request->input('cdp_number'),
+                    'payment_proof' => $proofPath,
+                    'updated_at' => now()
+                ]);
+
+            if ($updated === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontraron órdenes para pagar'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pago confirmado'
             ]);
         } catch (\Exception $e) {
             return response()->json([
