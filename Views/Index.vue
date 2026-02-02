@@ -76,9 +76,12 @@
 
             <div class="project-orders" v-if="selectedPendingProject">
               <h3>Órdenes de {{ selectedPendingProject.name }}</h3>
-              <div class="selection-info" v-if="selectedPendingIds.length > 1">
+              <div class="selection-info" v-if="selectedPendingIds.length > 0">
                 <span>{{ selectedPendingIds.length }} seleccionados</span>
-                <button @click="approveSelectedPending" :disabled="approvingPending" class="btn-approve-selected">
+                <button @click="selectAllPendingProject" class="btn-approve-selected">
+                  {{ pendingProjectAllSelected ? 'Deseleccionar del proyecto' : 'Seleccionar todos del proyecto' }}
+                </button>
+                <button v-if="selectedPendingIds.length > 1" @click="approveSelectedPending" :disabled="approvingPending" class="btn-approve-selected">
                   {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
                 </button>
               </div>
@@ -669,7 +672,6 @@ const getOrderQty = (order) => {
 
 const selectPendingProject = (projectId) => {
   selectedPendingProjectId.value = projectId;
-  selectedPendingIds.value = [];
 };
 
 const isPendingSelected = (orderId) => selectedPendingIds.value.includes(orderId);
@@ -680,6 +682,24 @@ const togglePendingSelect = (orderId) => {
     selectedPendingIds.value.splice(idx, 1);
   } else {
     selectedPendingIds.value.push(orderId);
+  }
+};
+
+const pendingProjectAllSelected = computed(() => {
+  if (!selectedPendingProjectId.value) return false;
+  const ids = selectedPendingOrders.value.map(o => o.id);
+  return ids.length > 0 && ids.every(id => selectedPendingIds.value.includes(id));
+});
+
+const selectAllPendingProject = () => {
+  if (!selectedPendingProjectId.value) return;
+  const ids = selectedPendingOrders.value.map(o => o.id);
+  if (pendingProjectAllSelected.value) {
+    selectedPendingIds.value = selectedPendingIds.value.filter(id => !ids.includes(id));
+  } else {
+    const set = new Set(selectedPendingIds.value);
+    ids.forEach(id => set.add(id));
+    selectedPendingIds.value = Array.from(set);
   }
 };
 
@@ -735,9 +755,10 @@ const loadPendingOrders = async () => {
         const exists = pendingOrders.value.some(o => o.project_id === selectedPendingProjectId.value);
         if (!exists) {
           selectedPendingProjectId.value = pendingOrders.value[0].project_id;
-          selectedPendingIds.value = [];
         }
       }
+      const pendingIdSet = new Set(pendingOrders.value.map(o => o.id));
+      selectedPendingIds.value = selectedPendingIds.value.filter(id => pendingIdSet.has(id));
     }
   } catch (e) { console.error(e); }
   loading.value = false;
