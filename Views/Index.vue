@@ -174,7 +174,7 @@
 
         <!-- TAB: Por Pagar - Table View -->
         <template v-if="activeTab === 'to_pay'">
-          <!-- Filters -->
+          <!-- Filters & Actions -->
           <div class="filters-bar">
             <div class="filter-group">
               <label>Proyecto:</label>
@@ -191,6 +191,9 @@
                 <option value="service">Servicio</option>
               </select>
             </div>
+            <button @click="selectAllToPay" class="btn-approve-selected">
+              {{ allToPaySelected ? 'Deseleccionar todos' : 'Seleccionar todos' }}
+            </button>
             <div class="selection-info" v-if="selectedOrders.length > 0">
               <span>{{ selectedOrders.length }} seleccionados</span>
               <button @click="openBulkApproveModal" class="btn-approve-selected">
@@ -216,9 +219,6 @@
             <table class="orders-table">
               <thead>
                 <tr>
-                  <th class="col-check">
-                    <input type="checkbox" @change="toggleSelectAll" :checked="allSelected" />
-                  </th>
                   <th class="col-item">ITEM</th>
                   <th class="col-project">PROYECTO</th>
                   <th class="col-type">TIPO</th>
@@ -236,11 +236,9 @@
                 <tr 
                   v-for="order in paginatedOrders" 
                   :key="order.id"
+                  @click="toggleToPaySelect(order.id)"
                   :class="{ selected: selectedOrders.includes(order.id) }"
                 >
-                  <td class="col-check">
-                    <input type="checkbox" :checked="selectedOrders.includes(order.id)" @change="toggleSelect(order.id)" />
-                  </td>
                   <td class="col-item">{{ order.item_number || '-' }}</td>
                   <td class="col-project">{{ order.project_name }}</td>
                   <td class="col-type">
@@ -257,8 +255,8 @@
                   <td class="col-date">{{ formatDate(order.created_at) }}</td>
                   <td class="col-actions">
                     <div class="action-buttons">
-                      <button @click="openSingleApproveModal(order)" class="btn-sm btn-approve">Pagar</button>
-                      <button @click="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
+                      <button @click.stop="openSingleApproveModal(order)" class="btn-sm btn-approve">Pagar</button>
+                      <button @click.stop="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
                     </div>
                   </td>
                 </tr>
@@ -266,7 +264,7 @@
             </table>
 
             <!-- Pagination -->
-            <div class="pagination">
+            <div v-if="totalPages > 1" class="pagination">
               <button @click="currentPage--" :disabled="currentPage <= 1" class="btn-page">← Anterior</button>
               <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
               <button @click="currentPage++" :disabled="currentPage >= totalPages" class="btn-page">Siguiente →</button>
@@ -768,6 +766,12 @@ const allSelected = computed(() => {
   return paginatedOrders.value.length > 0 && paginatedOrders.value.every(o => selectedOrders.value.includes(o.id));
 });
 
+const allToPaySelected = computed(() => {
+  if (filteredOrders.value.length === 0) return false;
+  const ids = filteredOrders.value.map(o => o.id);
+  return ids.every(id => selectedOrders.value.includes(id));
+});
+
 const selectedApprovalOrdersData = computed(() => {
   return pendingOrders.value.filter(o => selectedPendingIds.value.includes(o.id));
 });
@@ -1096,6 +1100,32 @@ const fetchExchangeRate = async () => {
 };
 
 // Selection
+const toggleToPaySelect = (id) => {
+  const idx = selectedOrders.value.indexOf(id);
+  if (idx >= 0) {
+    selectedOrders.value.splice(idx, 1);
+    delete prices.value[id];
+  } else {
+    selectedOrders.value.push(id);
+    prices.value[id] = 0;
+  }
+};
+
+const selectAllToPay = () => {
+  const ids = filteredOrders.value.map(o => o.id);
+  if (allToPaySelected.value) {
+    selectedOrders.value = selectedOrders.value.filter(id => !ids.includes(id));
+    ids.forEach(id => delete prices.value[id]);
+  } else {
+    const set = new Set(selectedOrders.value);
+    ids.forEach(id => {
+      set.add(id);
+      if (!prices.value[id]) prices.value[id] = 0;
+    });
+    selectedOrders.value = Array.from(set);
+  }
+};
+
 const toggleSelect = (id) => {
   const idx = selectedOrders.value.indexOf(id);
   if (idx >= 0) {
