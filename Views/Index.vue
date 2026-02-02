@@ -142,7 +142,7 @@
                         <td class="col-date">{{ formatDate(order.created_at) }}</td>
                         <td class="col-actions">
                           <div class="action-buttons">
-                            <button @click.stop="markToPay(order.id)" class="btn-sm btn-approve">Aprobar</button>
+                            <button @click.stop="approveSinglePending(order.id)" class="btn-sm btn-approve">Aprobar</button>
                             <button @click.stop="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
                           </div>
                         </td>
@@ -961,6 +961,11 @@ const markToPay = async (id, options = {}) => {
 
 const approveSelectedPending = async () => {
   if (selectedPendingIds.value.length === 0) return;
+  openApprovalModal();
+};
+
+const approveSinglePending = (orderId) => {
+  selectedPendingIds.value = [orderId];
   openApprovalModal();
 };
 
