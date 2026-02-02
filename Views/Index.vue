@@ -76,12 +76,12 @@
 
             <div class="project-orders" v-if="selectedPendingProject">
               <h3>Órdenes de {{ selectedPendingProject.name }}</h3>
-              <div class="selection-info" v-if="selectedPendingIds.length > 0">
-                <span>{{ selectedPendingIds.length }} seleccionados</span>
+              <div class="selection-info">
                 <button @click="selectAllPendingProject" class="btn-approve-selected">
                   {{ pendingProjectAllSelected ? 'Deseleccionar del proyecto' : 'Seleccionar todos del proyecto' }}
                 </button>
-                <button v-if="selectedPendingIds.length > 1" @click="approveSelectedPending" :disabled="approvingPending" class="btn-approve-selected">
+                <span v-if="selectedPendingIds.length > 0" class="selection-count">{{ selectedPendingIds.length }} seleccionados</span>
+                <button v-if="selectedPendingIds.length > 0" @click="openApprovalModal" :disabled="approvingPending" class="btn-approve-selected">
                   {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
                 </button>
               </div>
@@ -300,6 +300,99 @@
 
       </main>
 
+      <!-- Approval Pricing Modal (Por Aprobar) -->
+      <Teleport to="body">
+        <div v-if="showApprovalModal" class="modal-overlay" @click.self="closeApprovalModal">
+          <div class="modal-content modal-lg">
+            <div class="modal-header">
+              <h2>Enviar {{ selectedApprovalOrdersData.length }} Órdenes a Por Pagar</h2>
+              <button @click="closeApprovalModal" class="btn-close">×</button>
+            </div>
+            
+            <div class="modal-body">
+              <!-- Seller & Billing Info -->
+              <div class="form-section">
+                <h4>Datos de Facturación</h4>
+                <div class="form-row">
+                  <div class="form-group flex-2">
+                    <label>Proveedor *</label>
+                    <input v-model="approvalForm.seller_name" type="text" class="input-field" placeholder="Nombre o Razón Social" />
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>RUC/DNI</label>
+                    <input v-model="approvalForm.seller_document" type="text" class="input-field" placeholder="20123456789" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label>Moneda</label>
+                    <select v-model="approvalForm.currency" class="input-field" @change="onApprovalCurrencyChange">
+                      <option value="PEN">PEN - Soles</option>
+                      <option value="USD">USD - Dólares</option>
+                    </select>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>Fecha Emisión</label>
+                    <input v-model="approvalForm.issue_date" type="date" class="input-field" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Exchange Rate Info -->
+              <div v-if="approvalForm.currency === 'USD'" class="exchange-info">
+                <span v-if="loadingRate">Obteniendo tipo de cambio...</span>
+                <span v-else-if="currentExchangeRate > 0">T.C: 1 USD = S/ {{ currentExchangeRate.toFixed(4) }}</span>
+                <span v-else class="error">No se pudo obtener tipo de cambio</span>
+              </div>
+
+              <!-- Materials Pricing -->
+              <div class="form-section">
+                <h4>Precios por Material</h4>
+                <div class="pricing-list">
+                  <div v-for="order in selectedApprovalOrdersData" :key="order.id" class="pricing-row">
+                    <div class="pricing-info">
+                      <span class="pricing-project">{{ order.project_name }}</span>
+                      <span class="pricing-material">{{ getOrderTitle(order) }}</span>
+                      <span class="pricing-qty">{{ getOrderQty(order) }}</span>
+                    </div>
+                    <div class="pricing-input">
+                      <span class="currency-prefix">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }}</span>
+                      <input 
+                        v-model.number="approvalPrices[order.id]" 
+                        type="number" 
+                        step="0.01" 
+                        min="0.01"
+                        class="input-field price-input" 
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Totals -->
+              <div class="totals-section">
+                <div class="total-row">
+                  <span>Subtotal:</span>
+                  <span>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalSubtotal) }}</span>
+                </div>
+                <div class="total-row total-final">
+                  <span>TOTAL:</span>
+                  <span>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalSubtotal) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button @click="closeApprovalModal" class="btn-cancel">Cancelar</button>
+              <button @click="submitApprovalPending" :disabled="!canSubmitApproval || approvingPending" class="btn-submit">
+                {{ approvingPending ? 'Aprobando...' : `Enviar ${selectedApprovalOrdersData.length} a Por Pagar` }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
       <!-- Bulk Approve Modal -->
       <Teleport to="body">
         <div v-if="showBulkModal" class="modal-overlay" @click.self="closeBulkModal">
@@ -514,6 +607,9 @@ const toast = ref({ show: false, message: '', type: 'success' });
 const selectedPendingProjectId = ref(null);
 const selectedPendingIds = ref([]);
 const approvingPending = ref(false);
+const showApprovalModal = ref(false);
+const approvalPrices = ref({});
+const selectedApprovalIds = ref([]);
 
 // Filters & Pagination
 const filterProject = ref('');
@@ -526,6 +622,13 @@ const showBulkModal = ref(false);
 const showPaymentModal = ref(false);
 const paymentBatch = ref(null);
 const confirmingPayment = ref(false);
+
+const approvalForm = ref({
+  seller_name: '',
+  seller_document: '',
+  currency: 'PEN',
+  issue_date: new Date().toISOString().split('T')[0]
+});
 
 const bulkForm = ref({
   seller_name: '',
@@ -594,6 +697,10 @@ const allSelected = computed(() => {
   return paginatedOrders.value.length > 0 && paginatedOrders.value.every(o => selectedOrders.value.includes(o.id));
 });
 
+const selectedApprovalOrdersData = computed(() => {
+  return pendingOrders.value.filter(o => selectedPendingIds.value.includes(o.id));
+});
+
 const selectedOrdersData = computed(() => {
   return orders.value.filter(o => selectedOrders.value.includes(o.id));
 });
@@ -612,6 +719,17 @@ const bulkTotalPen = computed(() => {
   return bulkForm.value.currency === 'USD' && currentExchangeRate.value > 0 
     ? bulkTotal.value * currentExchangeRate.value 
     : bulkTotal.value;
+});
+
+const approvalSubtotal = computed(() => {
+  return selectedPendingIds.value.reduce((sum, id) => sum + (parseFloat(approvalPrices.value[id]) || 0), 0);
+});
+
+const canSubmitApproval = computed(() => {
+  if (!approvalForm.value.seller_name) return false;
+  if (approvalSubtotal.value <= 0) return false;
+  if (approvalForm.value.currency === 'USD' && currentExchangeRate.value <= 0) return false;
+  return true;
 });
 
 const canSubmitBulk = computed(() => {
@@ -703,6 +821,48 @@ const selectAllPendingProject = () => {
   }
 };
 
+const openApprovalModal = () => {
+  selectedApprovalIds.value = [...selectedPendingIds.value];
+  approvalPrices.value = {};
+  selectedApprovalIds.value.forEach(id => {
+    approvalPrices.value[id] = 0;
+  });
+  approvalForm.value = {
+    seller_name: '',
+    seller_document: '',
+    currency: 'PEN',
+    issue_date: new Date().toISOString().split('T')[0]
+  };
+  showApprovalModal.value = true;
+};
+
+const closeApprovalModal = () => {
+  showApprovalModal.value = false;
+};
+
+const onApprovalCurrencyChange = () => {
+  if (approvalForm.value.currency === 'USD') {
+    fetchExchangeRate();
+  }
+};
+
+const submitApprovalPending = async () => {
+  if (!canSubmitApproval.value) return;
+  approvingPending.value = true;
+  
+  const ids = [...selectedApprovalIds.value];
+  for (const id of ids) {
+    await markToPay(id, { silent: true });
+  }
+  
+  await loadPendingOrders();
+  await loadToPayOrders();
+  selectedPendingIds.value = [];
+  approvingPending.value = false;
+  closeApprovalModal();
+  showToast('Órdenes enviadas a Por Pagar', 'success');
+};
+
 const markToPay = async (id, options = {}) => {
   const { silent = false } = options;
   try {
@@ -728,16 +888,7 @@ const markToPay = async (id, options = {}) => {
 
 const approveSelectedPending = async () => {
   if (selectedPendingIds.value.length === 0) return;
-  approvingPending.value = true;
-  const ids = [...selectedPendingIds.value];
-  for (const id of ids) {
-    await markToPay(id, { silent: true });
-  }
-  await loadPendingOrders();
-  await loadToPayOrders();
-  selectedPendingIds.value = [];
-  approvingPending.value = false;
-  showToast('Órdenes enviadas a Por Pagar', 'success');
+  openApprovalModal();
 };
 
 // Data Loading
