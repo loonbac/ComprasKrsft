@@ -1,7 +1,7 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - TEMA DE COLORES
    Variables CSS específicas del módulo
-   Versión 4.7.5 - Badges con colores sólidos tipo pill - Feb 3 2026
+   Versión 4.7.6 - Fix CSS syntax error - Feb 3 2026
    ============================================ */
 
 :root {
@@ -172,3 +172,4 @@ body.dark-mode {
     --compras-alert-warning-bg: rgba(202, 138, 4, 0.2);
     --compras-alert-warning-text: #fcd34d;
     --compras-alert-warning-border: #eab308;
+}

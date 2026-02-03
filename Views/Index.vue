@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.7.5 - Updated Feb 3 2026 - Pill badges with solid colors -->
-  <div class="compras-layout" data-v="475">
+  <!-- v4.7.6 - Updated Feb 3 2026 - CSS syntax fix -->
+  <div class="compras-layout" data-v="476">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
