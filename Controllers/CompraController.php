@@ -684,15 +684,22 @@ class CompraController extends Controller
                 return response()->json(['success' => false, 'message' => 'Suba comprobante'], 400);
             }
 
+            // Get the next item number for this project
+            $maxItemNumber = DB::table('purchase_orders')
+                ->where('project_id', $projectId)
+                ->max('item_number');
+            $nextItemNumber = ($maxItemNumber ?? 0) + 1;
+
             // Create purchase orders for each item
             $totalSubtotal = 0;
-            foreach ($items as $item) {
+            foreach ($items as $index => $item) {
                 $subtotal = $item['subtotal'] ?? 0;
                 $totalSubtotal += $subtotal;
 
                 $order = [
                     'project_id' => $projectId,
                     'batch_id' => $batchId,
+                    'item_number' => $nextItemNumber + $index,
                     'seller_name' => $sellerName,
                     'seller_document' => $sellerDocument,
                     'type' => 'material',
