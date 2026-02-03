@@ -1,7 +1,7 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - TEMA DE COLORES
    Variables CSS específicas del módulo
-   Versión 4.2.0 - Aligned with Trabajadores Style
+   Versión 4.7.1 - Alertas de vencimiento agregadas
    ============================================ */
 
 :root {
@@ -96,6 +96,20 @@
     --compras-toast-success: #10b981;
     --compras-toast-error: #ef4444;
 
+    /* Alert - Due Date Warning */
+    --compras-alert-overdue-bg: rgba(124, 45, 18, 0.15);
+    --compras-alert-overdue-text: #7c2d12;
+    --compras-alert-overdue-border: #92400e;
+    --compras-alert-today-bg: rgba(234, 88, 12, 0.15);
+    --compras-alert-today-text: #92400e;
+    --compras-alert-today-border: #ea580c;
+    --compras-alert-urgent-bg: rgba(220, 38, 38, 0.12);
+    --compras-alert-urgent-text: #991b1b;
+    --compras-alert-urgent-border: #dc2626;
+    --compras-alert-warning-bg: rgba(202, 138, 4, 0.15);
+    --compras-alert-warning-text: #854d0e;
+    --compras-alert-warning-border: #ca8a04;
+
     /* Transiciones */
     --compras-transition: all 0.3s ease;
     --compras-transition-fast: all 0.2s ease;
@@ -144,4 +158,17 @@ body.dark-mode {
 
     /* Toggle Border - Modo Oscuro */
     --compras-toggle-border: #0AA4A4;
-}
+
+    /* Alert - Due Date Warning - Dark Mode */
+    --compras-alert-overdue-bg: rgba(124, 45, 18, 0.25);
+    --compras-alert-overdue-text: #fdba74;
+    --compras-alert-overdue-border: #f97316;
+    --compras-alert-today-bg: rgba(234, 88, 12, 0.2);
+    --compras-alert-today-text: #fbbd1c;
+    --compras-alert-today-border: #f97316;
+    --compras-alert-urgent-bg: rgba(220, 38, 38, 0.2);
+    --compras-alert-urgent-text: #fca5a5;
+    --compras-alert-urgent-border: #ef4444;
+    --compras-alert-warning-bg: rgba(202, 138, 4, 0.2);
+    --compras-alert-warning-text: #fcd34d;
+    --compras-alert-warning-border: #eab308;
