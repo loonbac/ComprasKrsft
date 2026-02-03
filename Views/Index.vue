@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.8.0 - Updated Feb 3 2026 - Por Pagar details -->
-  <div class="compras-layout" data-v="480">
+  <!-- v4.8.1 - Updated Feb 3 2026 - Por Aprobar credit prefill and order -->
+  <div class="compras-layout" data-v="481">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
@@ -1075,7 +1075,7 @@ const openApprovalModal = () => {
   selectedApprovalIds.value.forEach(id => {
     approvalPrices.value[id] = 0;
   });
-  approvalForm.value = {
+  const defaultForm = {
     seller_name: '',
     seller_document: '',
     payment_type: 'cash',
@@ -1083,6 +1083,36 @@ const openApprovalModal = () => {
     issue_date: getLocalDateString(),
     due_date: ''
   };
+
+  if (selectedApprovalIds.value.length === 1) {
+    const order = pendingOrders.value.find(o => o.id === selectedApprovalIds.value[0]);
+    if (order) {
+      approvalForm.value = {
+        seller_name: order.seller_name || defaultForm.seller_name,
+        seller_document: order.seller_document || defaultForm.seller_document,
+        payment_type: order.payment_type || defaultForm.payment_type,
+        currency: order.currency || defaultForm.currency,
+        issue_date: order.issue_date || defaultForm.issue_date,
+        due_date: order.due_date || order.payment_due_date || order.credit_due_date || defaultForm.due_date
+      };
+    } else {
+      approvalForm.value = { ...defaultForm };
+    }
+  } else {
+    const orders = selectedApprovalIds.value
+      .map(id => pendingOrders.value.find(o => o.id === id))
+      .filter(Boolean);
+    const paymentTypes = new Set(orders.map(o => o.payment_type).filter(Boolean));
+    const currencies = new Set(orders.map(o => o.currency).filter(Boolean));
+
+    approvalForm.value = { ...defaultForm };
+    if (paymentTypes.size === 1) {
+      approvalForm.value.payment_type = orders[0].payment_type;
+    }
+    if (currencies.size === 1) {
+      approvalForm.value.currency = orders[0].currency;
+    }
+  }
   showApprovalModal.value = true;
 };
 
@@ -1205,10 +1235,22 @@ const getProjectLists = (projectId) => {
 };
 
 const getListOrders = (projectId, filename) => {
-  return pendingOrders.value.filter(o => 
-    o.project_id === projectId &&
-    (o.source_filename || 'Manual') === filename
-  );
+  return pendingOrders.value
+    .filter(o => 
+      o.project_id === projectId &&
+      (o.source_filename || 'Manual') === filename
+    )
+    .sort((a, b) => {
+      const aNum = parseInt(a.item_number, 10);
+      const bNum = parseInt(b.item_number, 10);
+      if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+        return aNum - bNum;
+      }
+      const aItem = (a.item_number || '').toString();
+      const bItem = (b.item_number || '').toString();
+      if (aItem !== bItem) return aItem.localeCompare(bItem);
+      return (a.id || 0) - (b.id || 0);
+    });
 };
 
 const isListAllSelected = (projectId, filename) => {
