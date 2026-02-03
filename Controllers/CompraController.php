@@ -5,7 +5,6 @@ namespace Modulos_ERP\ComprasKrsft\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -915,22 +914,19 @@ class CompraController extends Controller
     private function sendItemsToInventory($projectId, $items, $batchId, $projectName)
     {
         try {
-            $columns = Schema::getColumnListing('inventario_productos');
-
             foreach ($items as $item) {
-                $sku = 'QP-' . substr(md5($batchId . ($item['description'] ?? '')), 0, 8);
+                $sku = 'INV-' . substr(md5($batchId . ($item['description'] ?? '') . microtime()), 0, 8);
 
-                if (in_array('sku', $columns, true)) {
-                    $exists = DB::table('inventario_productos')
-                        ->where('sku', $sku)
-                        ->exists();
+                // Verificar que no exista
+                $exists = DB::table('inventario_productos')
+                    ->where('sku', $sku)
+                    ->exists();
 
-                    if ($exists) {
-                        continue;
-                    }
+                if ($exists) {
+                    continue;
                 }
 
-                $data = [
+                DB::table('inventario_productos')->insert([
                     'nombre' => $item['description'] ?? 'Material sin descripción',
                     'sku' => $sku,
                     'descripcion' => $item['description'] ?? '',
@@ -953,19 +949,16 @@ class CompraController extends Controller
                     'amount_pen' => $item['amount_pen'] ?? ($item['subtotal'] ?? 0),
                     'created_at' => now(),
                     'updated_at' => now()
-                ];
+                ]);
 
-                $filtered = array_intersect_key($data, array_flip($columns));
-
-                if (empty($filtered)) {
-                    continue;
-                }
-
-                DB::table('inventario_productos')->insert($filtered);
+                \Log::info('Item agregado a inventario', [
+                    'sku' => $sku,
+                    'batch_id' => $batchId,
+                    'project_id' => $projectId
+                ]);
             }
         } catch (\Exception $e) {
             \Log::error('Error sending items to inventory: ' . $e->getMessage());
-            // No lanzar excepción, solo registrar el error
         }
     }
 
