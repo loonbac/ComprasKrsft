@@ -1989,13 +1989,16 @@ body.dark-mode .quick-pay-section-title {
 .quick-pay-form-section {
   margin-top: 8px;
   margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
 .quick-pay-inline-group {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .quick-pay-inline-group label {
