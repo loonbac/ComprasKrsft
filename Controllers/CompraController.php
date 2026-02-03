@@ -739,8 +739,7 @@ class CompraController extends Controller
     {
         try {
             $projects = DB::table($this->projectsTable)
-                ->select('id', 'name', 'currency')
-                ->where('active', true)
+                ->select('id', 'name', 'currency', 'available_amount', 'status')
                 ->orderBy('name', 'asc')
                 ->get();
 
