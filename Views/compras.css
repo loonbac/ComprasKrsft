@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.8.6 - Fix calendar icon dark mode - Feb 3 2026 */
+/* ComprasKrsft v4.9.6 - Quick Pay styling updates - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -1924,14 +1924,14 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 /* Quick Pay Styles */
 .quick-pay-section {
   padding: 15px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--compras-quickpay-bg);
   border-radius: 8px;
   margin-bottom: 20px;
 }
 
 .btn-quick-pay {
-  background: white;
-  color: #667eea;
+  background: var(--compras-quickpay-btn-bg);
+  color: var(--compras-quickpay-btn-text);
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
@@ -1945,7 +1945,8 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 
 .btn-quick-pay:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  background: var(--compras-quickpay-btn-hover);
+  box-shadow: var(--compras-quickpay-shadow);
 }
 
 .btn-quick-pay svg {
@@ -1974,12 +1975,17 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 
 .project-card.clickable {
   cursor: pointer;
+  border-left: 4px solid var(--project-color, var(--compras-primary));
 }
 
 .project-card.clickable:hover {
-  border-color: var(--compras-primary);
+  border-color: var(--project-color, var(--compras-primary));
   background: var(--compras-bg-hover);
   transform: translateY(-4px);
+}
+
+.project-card.clickable .project-name {
+  color: var(--project-color, var(--compras-text-dark));
 }
 
 .project-name {

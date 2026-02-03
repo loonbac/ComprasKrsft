@@ -1,7 +1,7 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - TEMA DE COLORES
    Variables CSS específicas del módulo
-   Versión 4.7.9 - Fix reactivity - Feb 3 2026
+    Versión 4.9.6 - Quick Pay color variables - Feb 3 2026
    ============================================ */
 
 :root {
@@ -30,6 +30,13 @@
     /* Botón Exportar - Azul sólido */
     --compras-btn-export-bg: #2563eb;
     --compras-btn-export-hover: #1d4ed8;
+
+    /* Pago Rápido */
+    --compras-quickpay-bg: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+    --compras-quickpay-btn-bg: #8b5cf6;
+    --compras-quickpay-btn-hover: #7c3aed;
+    --compras-quickpay-btn-text: #ffffff;
+    --compras-quickpay-shadow: 0 8px 16px rgba(124, 58, 237, 0.35);
     
     /* Selección de fila */
     --compras-row-selected-bg: rgba(16, 185, 129, 0.15);
@@ -165,6 +172,13 @@ body.dark-mode {
 
     /* Toggle Border - Modo Oscuro */
     --compras-toggle-border: #0AA4A4;
+
+    /* Pago Rápido - Modo Oscuro */
+    --compras-quickpay-bg: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+    --compras-quickpay-btn-bg: #7c3aed;
+    --compras-quickpay-btn-hover: #6d28d9;
+    --compras-quickpay-btn-text: #ffffff;
+    --compras-quickpay-shadow: 0 8px 16px rgba(124, 58, 237, 0.45);
 
     /* Alert - Due Date Warning - Dark Mode */
     --compras-alert-overdue-bg: rgba(124, 45, 18, 0.25);
