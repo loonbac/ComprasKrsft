@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.7.2 - Aligned with ProyectosKrsft Style - Updated Feb 2 2026 */
+/* ComprasKrsft v4.7.4 - Date filter added to Pagadas section - Updated Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -308,9 +308,62 @@ body.dark-mode .theme-toggle .moon-icon {
 /* Export bar in Pagadas */
 .export-bar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin: 8px 0 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+}
+
+.date-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-filter-group label {
+  color: var(--compras-text-gray);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.input-date {
+  padding: 8px 10px;
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
+  font-size: 0.85rem;
+}
+
+.input-date:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.1);
+}
+
+.btn-reset-filter {
+  padding: 8px 12px;
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-gray);
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-reset-filter:hover {
+  background: var(--compras-border);
+  color: var(--compras-text-dark);
 }
 
 .btn-export {

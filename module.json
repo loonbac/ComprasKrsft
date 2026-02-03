@@ -1,7 +1,7 @@
 {
     "name": "ComprasKrsft",
     "display_name": "GESTIÓN DE COMPRAS",
-    "version": "4.7.3",
+    "version": "4.7.4",
     "description": "Sistema de gestión de órdenes de compra y pagos. Nuevo flujo: Por Aprobar (proyectos) → Por Pagar → Pagadas.",
     "icon": "icon.svg",
     "color": "#10b981",

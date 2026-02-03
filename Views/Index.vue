@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.7.3 - Updated Feb 2 2026 20:30 - Force Cache Refresh -->
-  <div class="compras-layout" data-v="473">
+  <!-- v4.7.4 - Updated Feb 3 2026 - Date filter for Pagadas -->
+  <div class="compras-layout" data-v="474">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
@@ -221,8 +221,18 @@
 
         <!-- TAB: Pagadas -->
         <template v-if="activeTab === 'paid'">
-          <!-- Export Button -->
+          <!-- Filter and Export Bar -->
           <div v-if="paidBatches.length > 0" class="export-bar">
+            <!-- Date Filter -->
+            <div class="date-filter-group">
+              <label>Desde:</label>
+              <input v-model="paidFilterStartDate" type="date" class="input-date" />
+              <label>Hasta:</label>
+              <input v-model="paidFilterEndDate" type="date" class="input-date" />
+              <button @click="resetPaidFilter" class="btn-reset-filter">Limpiar</button>
+            </div>
+            
+            <!-- Export Button -->
             <button @click="openExportModal" class="btn-export">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -239,7 +249,7 @@
           </div>
 
           <div v-else class="batches-list">
-            <div v-for="batch in paidBatches" :key="batch.batch_id" class="batch-card paid">
+            <div v-for="batch in filteredPaidBatches" :key="batch.batch_id" class="batch-card paid">
               <div class="batch-header">
                 <div class="batch-info">
                   <span class="batch-id">{{ batch.batch_id }}</span>
@@ -714,6 +724,10 @@ const showExportModal = ref(false);
 const paymentBatch = ref(null);
 const confirmingPayment = ref(false);
 
+// Paid Filter
+const paidFilterStartDate = ref('');
+const paidFilterEndDate = ref('');
+
 const exportFilter = ref({
   startDate: '',
   endDate: '',
@@ -901,6 +915,31 @@ const canSubmitBulk = computed(() => {
   if (bulkSubtotal.value <= 0) return false;
   if (bulkForm.value.currency === 'USD' && currentExchangeRate.value <= 0) return false;
   return true;
+});
+
+const filteredPaidBatches = computed(() => {
+  if (!paidFilterStartDate.value && !paidFilterEndDate.value) {
+    return paidBatches.value;
+  }
+  
+  return paidBatches.value.filter(batch => {
+    const paymentDate = new Date(batch.payment_confirmed_at);
+    paymentDate.setHours(0, 0, 0, 0);
+    
+    if (paidFilterStartDate.value) {
+      const startDate = new Date(paidFilterStartDate.value);
+      startDate.setHours(0, 0, 0, 0);
+      if (paymentDate < startDate) return false;
+    }
+    
+    if (paidFilterEndDate.value) {
+      const endDate = new Date(paidFilterEndDate.value);
+      endDate.setHours(23, 59, 59, 999);
+      if (paymentDate > endDate) return false;
+    }
+    
+    return true;
+  });
 });
 
 // Methods
@@ -1266,6 +1305,11 @@ const openExportModal = () => {
 
 const closeExportModal = () => {
   showExportModal.value = false;
+};
+
+const resetPaidFilter = () => {
+  paidFilterStartDate.value = '';
+  paidFilterEndDate.value = '';
 };
 
 const setExportPreset = (preset) => {
