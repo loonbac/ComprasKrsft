@@ -1,4 +1,5 @@
 <template>
+  <!-- v4.7.2 - Updated Feb 2 2026 - Force Cache Refresh -->
   <div class="compras-layout">
     <div class="compras-bg"></div>
     
