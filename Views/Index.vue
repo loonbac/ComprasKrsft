@@ -679,6 +679,15 @@ const filterType = ref('');
 const currentPage = ref(1);
 const perPage = 20;
 
+// Helper function to get local date (not UTC)
+const getLocalDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // Modals
 const showBulkModal = ref(false);
 const showPaymentModal = ref(false);
@@ -726,15 +735,6 @@ const getModuleName = () => {
   return match ? match[1] : 'compraskrsft';
 };
 const apiBase = computed(() => `/api/${getModuleName()}`);
-
-// Helper function to get local date (not UTC)
-const getLocalDateString = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 // Computed
 const filteredOrders = computed(() => {
