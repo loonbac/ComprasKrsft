@@ -669,6 +669,14 @@ class CompraController extends Controller
                 return response()->json(['success' => false, 'message' => 'Datos incompletos'], 400);
             }
 
+            // Get project name
+            $project = DB::table($this->projectsTable)
+                ->where('id', $projectId)
+                ->select('id', 'name')
+                ->first();
+            
+            $projectName = $project ? $project->name : 'Proyecto #' . $projectId;
+
             // Create a unique batch ID
             $batchId = 'QP-' . date('YmdHis') . '-' . substr(md5(microtime()), 0, 8);
             $proofPath = null;
@@ -740,9 +748,59 @@ class CompraController extends Controller
                 DB::table($this->ordersTable)->insert($order);
             }
 
+            // Enviar items al inventario como apartados
+            $this->sendItemsToInventory($projectId, $items, $batchId, $projectName);
+
             return response()->json(['success' => true, 'message' => 'Pago rápido completado']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Send purchased items to inventory as reserved items
+     */
+    private function sendItemsToInventory($projectId, $items, $batchId, $projectName)
+    {
+        try {
+            // Llamar al endpoint del inventario
+            $inventoryItems = [];
+            foreach ($items as $item) {
+                $inventoryItems[] = [
+                    'description' => $item['description'] ?? '',
+                    'qty' => $item['qty'] ?? 1,
+                    'unit' => $item['unit'] ?? 'UND',
+                    'subtotal' => $item['subtotal'] ?? 0,
+                    'currency' => 'PEN',
+                    'diameter' => $item['diameter'] ?? null,
+                    'series' => $item['series'] ?? null,
+                    'material_type' => $item['material_type'] ?? null,
+                    'amount_pen' => $item['subtotal'] ?? 0
+                ];
+            }
+
+            // HTTP request a inventario
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post(env('APP_URL', 'http://localhost:8000') . '/api/inventario_krsft/add-from-purchase', [
+                'json' => [
+                    'items' => $inventoryItems,
+                    'project_id' => $projectId,
+                    'project_name' => $projectName,
+                    'batch_id' => $batchId
+                ],
+                'headers' => [
+                    'Authorization' => 'Bearer ' . session('api_token'),
+                    'Accept' => 'application/json'
+                ]
+            ]);
+
+            $result = json_decode((string) $response->getBody(), true);
+            if (!$result['success'] ?? false) {
+                \Log::warning('Inventario integration failed: ' . json_encode($result));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error sending items to inventory: ' . $e->getMessage());
+            // No lanzar excepción, solo registrar el error
         }
     }
 
