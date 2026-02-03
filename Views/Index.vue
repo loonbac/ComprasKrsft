@@ -616,19 +616,21 @@
         <div v-if="showQuickPayModal" class="modal-overlay" @click.self="closeQuickPayModal">
           <div class="modal-content modal-lg">
             <div class="modal-header">
-              <h2>Pago Rápido</h2>
+              <h2 class="quick-pay-title"><span class="quick-pay-title-pill">Pago Rápido</span></h2>
             </div>
             
             <div class="modal-body">
               <!-- Step 1: Select Project -->
               <div v-if="quickPayStep === 1" class="quick-pay-step">
-                <h4 style="margin-bottom: 20px;">Selecciona un Proyecto</h4>
+                <h4 class="quick-pay-subtitle">Selecciona un Proyecto</h4>
                 <div v-if="quickPayProjects.length === 0" class="empty-state">
                   <p>No hay proyectos disponibles</p>
                 </div>
                 <div v-else class="projects-grid">
                   <div v-for="project in quickPayProjects" :key="project.id" @click="selectProjectForQuickPay(project)" class="project-card clickable" :style="{ '--project-color': getProjectColor(project.id) }">
-                    <div class="project-name">{{ project.name }}</div>
+                    <div class="project-name">
+                      <span class="project-pill">{{ project.name }}</span>
+                    </div>
                     <div class="project-currency">{{ project.currency }}</div>
                   </div>
                 </div>
@@ -636,7 +638,12 @@
 
               <!-- Step 2: Add Items -->
               <div v-if="quickPayStep === 2 && quickPaySelectedProject" class="quick-pay-step">
-                <h4>Proyecto: {{ quickPaySelectedProject.name }}</h4>
+                <h4>
+                  Proyecto:
+                  <span class="quick-pay-project-pill" :style="{ background: getProjectColor(quickPaySelectedProject.id) }">
+                    {{ quickPaySelectedProject.name }}
+                  </span>
+                </h4>
                 <div style="margin-top: 10px; margin-bottom: 20px;" class="form-section">
                   <h5 style="margin-bottom: 10px;">Agregar Material</h5>
                   <div class="form-row">
@@ -667,7 +674,7 @@
                       <input v-model="quickPayMaterialForm.material_type" type="text" class="input-field" placeholder="ACERO INOX" />
                     </div>
                   </div>
-                  <button @click="addQuickPayItem" type="button" class="btn-add-material">+ Agregar Item</button>
+                  <button @click="addQuickPayItem" type="button" class="btn-add-material btn-quick-pay-add">+ Agregar Item</button>
                 </div>
 
                 <!-- Items List -->
@@ -775,7 +782,7 @@
 
             <div class="modal-footer">
               <button @click="closeQuickPayModal" type="button" class="btn-cancel">Cancelar</button>
-              <button v-if="quickPayStep > 1" @click="quickPayStep--" type="button" class="btn-secondary">← Atrás</button>
+              <button v-if="quickPayStep > 1" @click="quickPayStep--" type="button" class="btn-secondary btn-quick-back">← Atrás</button>
               <button v-if="quickPayStep < 3" @click="proceedToQuickPayReview" type="button" class="btn-submit">Siguiente →</button>
               <button v-if="quickPayStep === 3" @click="completeQuickPay" :disabled="quickPayLoading" type="button" class="btn-submit">
                 {{ quickPayLoading ? 'Procesando...' : 'Confirmar Pago Rápido' }}

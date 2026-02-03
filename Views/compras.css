@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.9.6 - Quick Pay styling updates - Feb 3 2026 */
+/* ComprasKrsft v4.9.7 - Quick Pay modal refinements - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -1929,6 +1929,33 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   margin-bottom: 20px;
 }
 
+.quick-pay-title {
+  margin: 0;
+}
+
+.quick-pay-title-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--compras-quickpay-btn-bg);
+  color: var(--compras-quickpay-btn-text);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.2px;
+}
+
+.quick-pay-subtitle {
+  margin-bottom: 20px;
+  color: var(--compras-text-dark);
+  font-weight: 600;
+}
+
+body.dark-mode .quick-pay-subtitle {
+  color: var(--compras-text-gray);
+}
+
 .btn-quick-pay {
   background: var(--compras-quickpay-btn-bg);
   color: var(--compras-quickpay-btn-text);
@@ -1986,6 +2013,56 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 
 .project-card.clickable .project-name {
   color: var(--project-color, var(--compras-text-dark));
+}
+
+.project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--project-color, var(--compras-primary));
+  color: var(--compras-text-white);
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.quick-pay-project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  color: var(--compras-text-white);
+  font-weight: 700;
+  margin-left: 8px;
+  font-size: 0.92rem;
+}
+
+.btn-quick-pay-add {
+  background: var(--compras-quickpay-btn-bg);
+  color: var(--compras-quickpay-btn-text);
+  border: none;
+  padding: 10px 16px;
+  border-radius: var(--compras-radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-quick-pay-add:hover {
+  background: var(--compras-quickpay-btn-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--compras-quickpay-shadow);
+}
+
+.btn-quick-back {
+  background: var(--compras-bg-light);
+  color: var(--compras-text-dark);
+  border: 1px solid var(--compras-border);
+}
+
+.btn-quick-back:hover {
+  background: var(--compras-border);
 }
 
 .project-name {
