@@ -941,7 +941,8 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 }
 
 .modal-body {
-  padding: 16px 20px;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .modal-footer {
@@ -1091,7 +1092,9 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   transition: var(--compras-transition-fast);
   box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
   word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .input-field:focus {
@@ -1107,7 +1110,9 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   color: var(--compras-text-dark);
   box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
   word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .checkbox-label {
@@ -2095,10 +2100,10 @@ body.dark-mode .quick-pay-section-title {
 .quick-pay-inline-group .input-field,
 .quick-pay-inline-group .input-file {
   flex: 1;
-  min-width: 0;
-  max-width: 100%;
-  width: 100%;
-  box-sizing: border-box;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .quick-pay-step label {
