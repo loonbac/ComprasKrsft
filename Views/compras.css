@@ -2047,6 +2047,7 @@ body.dark-mode .quick-pay-section-title {
 
 .quick-pay-inline-group {
   display: flex;
+  flex-direction: row !important;
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
