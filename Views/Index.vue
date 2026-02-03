@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.8.1 - Updated Feb 3 2026 - Por Aprobar credit prefill and order -->
-  <div class="compras-layout" data-v="481">
+  <!-- v4.8.2 - Updated Feb 3 2026 - Fix Por Pagar credit data -->
+  <div class="compras-layout" data-v="482">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
@@ -794,12 +794,37 @@ const toPayBatches = computed(() => {
       map[batchId] = {
         batch_id: batchId,
         seller_name: order.seller_name || 'Sin proveedor',
+        seller_document: order.seller_document || '',
         currency: order.currency || 'PEN',
+        payment_type: order.payment_type || (order.due_date || order.payment_due_date || order.credit_due_date ? 'loan' : 'cash'),
+        issue_date: order.issue_date || null,
+        due_date: order.due_date || order.payment_due_date || order.credit_due_date || null,
         approved_by_name: order.approved_by_name || '',
         approved_at: order.approved_at || order.updated_at || order.created_at,
         orders: [],
         total: 0
       };
+    }
+    const orderDueDate = order.due_date || order.payment_due_date || order.credit_due_date || null;
+    if (!map[batchId].seller_document && order.seller_document) {
+      map[batchId].seller_document = order.seller_document;
+    }
+    if (!map[batchId].issue_date && order.issue_date) {
+      map[batchId].issue_date = order.issue_date;
+    }
+    if (order.payment_type === 'loan' || orderDueDate) {
+      map[batchId].payment_type = 'loan';
+    }
+    if (orderDueDate) {
+      if (!map[batchId].due_date) {
+        map[batchId].due_date = orderDueDate;
+      } else {
+        const currentDue = new Date(map[batchId].due_date);
+        const nextDue = new Date(orderDueDate);
+        if (nextDue < currentDue) {
+          map[batchId].due_date = orderDueDate;
+        }
+      }
     }
     map[batchId].orders.push(order);
     map[batchId].total += parseFloat(order.amount || 0);
