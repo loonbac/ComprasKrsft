@@ -160,9 +160,9 @@
           <!-- Pago Rápido Button -->
           <div class="quick-pay-section">
             <button @click="openQuickPayModal" class="btn-quick-pay">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v20"/>
-                <path d="M17 6.5c0-1.93-2.24-3.5-5-3.5s-5 1.57-5 3.5 2.24 3.5 5 3.5 5 1.57 5 3.5-2.24 3.5-5 3.5-5-1.57-5-3.5"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="2" x2="12" y2="22"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
               </svg>
               Pago Rápido
             </button>
@@ -617,7 +617,13 @@
           <div class="modal-content modal-lg">
             <div class="modal-header">
               <div class="quick-pay-header-content">
-                <h2 class="quick-pay-title-simple">PAGO RÁPIDO</h2>
+                <h2 class="quick-pay-title-simple">
+                  <svg class="quick-pay-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="2" x2="12" y2="22"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                  PAGO RÁPIDO
+                </h2>
                 <p class="quick-pay-description">Registra una compra al instante sin pasar por aprobaciones del jefe de proyectos ni esperar autorización de pago</p>
               </div>
             </div>

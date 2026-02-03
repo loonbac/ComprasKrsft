@@ -354,7 +354,7 @@ body.dark-mode .input-date {
 }
 
 body.dark-mode .input-date::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: invert(1) brightness(1.2);
   cursor: pointer;
 }
 
@@ -1961,6 +1961,15 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   letter-spacing: 0.5px;
   color: var(--compras-text-dark);
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-pay-title-icon {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
 }
 
 body.dark-mode .quick-pay-title-simple {
@@ -2029,7 +2038,7 @@ body.dark-mode .quick-pay-label {
 }
 
 .quick-pay-section-title.with-top {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 body.dark-mode .quick-pay-section-title {
@@ -2111,8 +2120,8 @@ body.dark-mode .quick-pay-step label {
 }
 
 .quick-pay-items-table {
-  margin-bottom: 12px;
-  max-height: 240px;
+  margin-bottom: 8px;
+  max-height: 400px;
   overflow: auto;
   padding-right: 4px;
 }
