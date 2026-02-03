@@ -1085,6 +1085,7 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   transition: var(--compras-transition-fast);
   box-sizing: border-box;
   width: 100%;
+  word-break: break-word;
 }
 
 .input-field:focus {
@@ -1098,6 +1099,9 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   border: 1px dashed var(--compras-border);
   border-radius: var(--compras-radius-sm);
   color: var(--compras-text-dark);
+  box-sizing: border-box;
+  width: 100%;
+  word-break: break-word;
 }
 
 .checkbox-label {
@@ -2052,6 +2056,7 @@ body.dark-mode .quick-pay-section-title {
   width: 100%;
   max-width: 100%;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .quick-pay-form-section .form-row {
@@ -2104,7 +2109,7 @@ body.dark-mode .quick-pay-step label {
 
 .quick-pay-review-grid {
   display: grid;
-  grid-template-columns: 35% 65%;
+  grid-template-columns: 43% 57%;
   gap: 14px;
   overflow: hidden;
 }
