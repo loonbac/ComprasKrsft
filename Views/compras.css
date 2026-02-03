@@ -2037,6 +2037,9 @@ body.dark-mode .quick-pay-section-title {
 .quick-pay-form-section {
   margin-top: 8px;
   margin-bottom: 14px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .quick-pay-form-section .form-row {
@@ -2052,6 +2055,8 @@ body.dark-mode .quick-pay-section-title {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .quick-pay-inline-group label {
@@ -2067,6 +2072,8 @@ body.dark-mode .quick-pay-section-title {
 .quick-pay-inline-group .input-file {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
+  width: auto;
 }
 
 .quick-pay-step label {
