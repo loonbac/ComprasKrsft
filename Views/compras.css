@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.7.9 - Fix reactivity issue in collapsed batches - Feb 3 2026 */
+/* ComprasKrsft v4.8.0 - Por Pagar details (proveedor, RUC, tipo de pago) - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -676,6 +676,11 @@ body.dark-mode .input-date {
   font-weight: 600;
 }
 
+.batch-ruc {
+  color: var(--compras-text-gray);
+  font-size: 0.85rem;
+}
+
 .batch-approver {
   color: var(--compras-text-gray);
   font-size: 0.85rem;
@@ -695,6 +700,15 @@ body.dark-mode .input-date {
   gap: 16px;
   color: var(--compras-text-gray);
   font-size: 0.85rem;
+}
+
+.batch-payment-type {
+  color: var(--compras-text-dark);
+  background: var(--compras-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .batch-items {

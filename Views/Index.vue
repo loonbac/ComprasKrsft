@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.7.9 - Updated Feb 3 2026 - Fix reactivity issue -->
-  <div class="compras-layout" data-v="479">
+  <!-- v4.8.0 - Updated Feb 3 2026 - Por Pagar details -->
+  <div class="compras-layout" data-v="480">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
@@ -188,11 +188,13 @@
               <div class="batch-header">
                 <div class="batch-info">
                   <span class="batch-id">{{ batch.batch_id }}</span>
-                  <span class="batch-seller">{{ batch.seller_name }}</span>
+                  <span class="batch-seller">Proveedor: {{ batch.seller_name }}</span>
+                  <span class="batch-ruc">RUC: {{ batch.seller_document || 'N/D' }}</span>
                   <span class="batch-approver">Aprobado por: {{ batch.approved_by_name || 'N/D' }}</span>
                 </div>
                 <div class="batch-meta">
                   <span>{{ batch.orders.length }} items</span>
+                  <span class="batch-payment-type">{{ getPaymentTypeLabel(batch) }}</span>
                   <span class="batch-date">Aprobado {{ formatDate(batch.approved_at) }}</span>
                   <span v-if="batch.issue_date" class="batch-date">Emisión {{ formatDate(batch.issue_date) }}</span>
                   <span v-if="batch.due_date" class="batch-due-date">Vence {{ formatDate(batch.due_date) }}</span>
@@ -1017,6 +1019,14 @@ const getAlertLabel = (batch) => {
   if (daysRemaining < 0) return `Vencido hace ${Math.abs(daysRemaining)} días`;
   if (daysRemaining === 0) return 'Vence HOY';
   return `Vence en ${daysRemaining} día${daysRemaining !== 1 ? 's' : ''}`;
+};
+
+const getPaymentTypeLabel = (batch) => {
+  if (batch.payment_type === 'loan') {
+    const dueLabel = getAlertLabel(batch);
+    return dueLabel ? `Crédito · ${dueLabel}` : 'Crédito';
+  }
+  return 'Contado';
 };
 
 const getOrderQty = (order) => {
