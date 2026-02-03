@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.7.8 - Updated Feb 3 2026 - Collapsible paid batches -->
-  <div class="compras-layout" data-v="478">
+  <!-- v4.7.9 - Updated Feb 3 2026 - Fix reactivity issue -->
+  <div class="compras-layout" data-v="479">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
@@ -250,7 +250,7 @@
             <div v-for="batch in filteredPaidBatches" :key="batch.batch_id" class="batch-card paid collapsed-batch">
               <!-- Collapsed Header -->
               <div @click="togglePaidBatchExpanded(batch.batch_id)" class="batch-header collapsed-header">
-                <div class="expand-icon" :class="{ expanded: expandedPaidBatches.value.has(batch.batch_id) }">
+                <div class="expand-icon" :class="{ expanded: expandedPaidBatches[batch.batch_id] }">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
@@ -264,7 +264,7 @@
               </div>
 
               <!-- Expanded Content -->
-              <div v-if="expandedPaidBatches.value.has(batch.batch_id)" class="batch-expanded-content">
+              <div v-if="expandedPaidBatches[batch.batch_id]" class="batch-expanded-content">
                 <div class="batch-meta-expanded">
                   <span class="meta-item">Pagado {{ formatDate(batch.payment_confirmed_at) }}</span>
                   <span v-if="batch.approved_by_name" class="meta-item">Aprobado por: {{ batch.approved_by_name }}</span>
@@ -731,7 +731,7 @@ const confirmingPayment = ref(false);
 // Paid Filter
 const paidFilterStartDate = ref('');
 const paidFilterEndDate = ref('');
-const expandedPaidBatches = ref(new Set());
+const expandedPaidBatches = ref({});
 
 const exportFilter = ref({
   startDate: '',
@@ -1318,10 +1318,10 @@ const resetPaidFilter = () => {
 };
 
 const togglePaidBatchExpanded = (batchId) => {
-  if (expandedPaidBatches.value.has(batchId)) {
-    expandedPaidBatches.value.delete(batchId);
+  if (expandedPaidBatches.value[batchId]) {
+    delete expandedPaidBatches.value[batchId];
   } else {
-    expandedPaidBatches.value.add(batchId);
+    expandedPaidBatches.value[batchId] = true;
   }
 };
 
