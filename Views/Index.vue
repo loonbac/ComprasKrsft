@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.7.4 - Updated Feb 3 2026 - Date filter for Pagadas -->
-  <div class="compras-layout" data-v="474">
+  <!-- v4.7.5 - Updated Feb 3 2026 - Pill badges with solid colors -->
+  <div class="compras-layout" data-v="475">
     <div class="compras-bg"></div>
     
     <div class="compras-container">

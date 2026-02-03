@@ -1,7 +1,7 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - TEMA DE COLORES
    Variables CSS específicas del módulo
-   Versión 4.7.1 - Alertas de vencimiento agregadas
+   Versión 4.7.5 - Badges con colores sólidos tipo pill - Feb 3 2026
    ============================================ */
 
 :root {
@@ -51,28 +51,28 @@
     --compras-shadow-primary: 0 4px 12px rgba(10, 164, 164, 0.4);
 
     /* Badges - Activo/Aprobado */
-    --compras-badge-success-bg: rgba(16, 185, 129, 0.15);
-    --compras-badge-success-text: #10b981;
+    --compras-badge-success-bg: #10b981;
+    --compras-badge-success-text: #ffffff;
 
     /* Badges - Rechazado */
-    --compras-badge-danger-bg: rgba(239, 68, 68, 0.15);
-    --compras-badge-danger-text: #ef4444;
+    --compras-badge-danger-bg: #ef4444;
+    --compras-badge-danger-text: #ffffff;
 
     /* Badges - Pendiente */
-    --compras-badge-warning-bg: rgba(245, 158, 11, 0.15);
-    --compras-badge-warning-text: #f59e0b;
+    --compras-badge-warning-bg: #f59e0b;
+    --compras-badge-warning-text: #ffffff;
 
     /* Badges - Por Pagar */
-    --compras-badge-info-bg: rgba(59, 130, 246, 0.15);
-    --compras-badge-info-text: #3b82f6;
+    --compras-badge-info-bg: #3b82f6;
+    --compras-badge-info-text: #ffffff;
 
     /* Badges - Default */
     --compras-badge-default-bg: #f1f5f9;
     --compras-badge-default-text: #64748b;
 
     /* Badges - Servicio (Purple) */
-    --compras-badge-service-bg: rgba(168, 85, 247, 0.15);
-    --compras-badge-service-text: #8b5cf6;
+    --compras-badge-service-bg: #8b5cf6;
+    --compras-badge-service-text: #ffffff;
 
     /* Botones de Acción */
     --compras-btn-approve-bg: #10b981;
