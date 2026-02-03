@@ -696,14 +696,14 @@ const approvalForm = ref({
   seller_name: '',
   seller_document: '',
   currency: 'PEN',
-  issue_date: new Date().toISOString().split('T')[0]
+  issue_date: getLocalDateString()
 });
 
 const bulkForm = ref({
   seller_name: '',
   seller_document: '',
   currency: 'PEN',
-  issue_date: new Date().toISOString().split('T')[0],
+  issue_date: getLocalDateString(),
   payment_type: 'cash',
   date_value: '',
   igv_enabled: false,
@@ -726,6 +726,15 @@ const getModuleName = () => {
   return match ? match[1] : 'compraskrsft';
 };
 const apiBase = computed(() => `/api/${getModuleName()}`);
+
+// Helper function to get local date (not UTC)
+const getLocalDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 // Computed
 const filteredOrders = computed(() => {
@@ -963,7 +972,7 @@ const openApprovalModal = () => {
     seller_name: '',
     seller_document: '',
     currency: 'PEN',
-    issue_date: new Date().toISOString().split('T')[0]
+    issue_date: getLocalDateString()
   };
   showApprovalModal.value = true;
 };
@@ -1290,7 +1299,7 @@ const openBulkApproveModal = () => {
     seller_name: '',
     seller_document: '',
     currency: 'PEN',
-    issue_date: new Date().toISOString().split('T')[0],
+    issue_date: getLocalDateString(),
     payment_type: 'cash',
     date_value: '',
     igv_enabled: false,
