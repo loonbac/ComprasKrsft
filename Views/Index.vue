@@ -541,6 +541,10 @@
                     <label>Comprobante (opcional)</label>
                     <input type="file" @change="onPaymentProofChange" accept="image/*,.pdf" class="input-file" />
                   </div>
+                  <div class="form-group">
+                    <label>Link de comprobante (opcional)</label>
+                    <input v-model="paymentForm.payment_proof_link" type="url" placeholder="https://..." class="input-field" />
+                  </div>
                 </div>
 
                 <div class="modal-footer">
@@ -626,7 +630,8 @@ const paymentForm = ref({
   cdp_type: '',
   cdp_serie: '',
   cdp_number: '',
-  payment_proof: null
+  payment_proof: null,
+  payment_proof_link: ''
 });
 
 // API Base
@@ -1245,7 +1250,7 @@ const rejectOrder = async (id) => {
 // Payment
 const openPaymentModal = (batch) => {
   paymentBatch.value = batch;
-  paymentForm.value = { cdp_type: '', cdp_serie: '', cdp_number: '', payment_proof: null };
+  paymentForm.value = { cdp_type: '', cdp_serie: '', cdp_number: '', payment_proof: null, payment_proof_link: '' };
   showPaymentModal.value = true;
 };
 
@@ -1263,6 +1268,10 @@ const confirmPayment = async () => {
     showToast('Complete todos los campos', 'error');
     return;
   }
+  if (!paymentForm.value.payment_proof && !paymentForm.value.payment_proof_link) {
+    showToast('Suba un archivo o ingrese un link de la factura', 'error');
+    return;
+  }
 
   confirmingPayment.value = true;
   try {
@@ -1271,6 +1280,9 @@ const confirmPayment = async () => {
     formData.append('cdp_type', paymentForm.value.cdp_type);
     formData.append('cdp_serie', paymentForm.value.cdp_serie);
     formData.append('cdp_number', paymentForm.value.cdp_number);
+    if (paymentForm.value.payment_proof_link) {
+      formData.append('payment_proof_link', paymentForm.value.payment_proof_link);
+    }
     if (paymentForm.value.payment_proof) {
       formData.append('payment_proof', paymentForm.value.payment_proof);
     }

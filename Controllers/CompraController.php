@@ -589,16 +589,25 @@ class CompraController extends Controller
             'cdp_type' => 'required|string|max:10',
             'cdp_serie' => 'required|string|max:20',
             'cdp_number' => 'required|string|max:20',
+            'payment_proof_link' => 'nullable|string|max:2048',
         ]);
 
         try {
             $batchId = $request->input('batch_id');
             $proofPath = null;
+            $proofLink = $request->input('payment_proof_link');
 
             if ($request->hasFile('payment_proof')) {
                 $file = $request->file('payment_proof');
                 $filename = 'proof_' . $batchId . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
+            }
+
+            if (!$proofPath && !$proofLink) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe subir un archivo o ingresar un link de la factura'
+                ], 400);
             }
 
             $updated = DB::table($this->ordersTable)
@@ -613,6 +622,7 @@ class CompraController extends Controller
                     'cdp_serie' => $request->input('cdp_serie'),
                     'cdp_number' => $request->input('cdp_number'),
                     'payment_proof' => $proofPath,
+                    'payment_proof_link' => $proofLink,
                     'updated_at' => now()
                 ]);
 
@@ -832,16 +842,25 @@ class CompraController extends Controller
             'cdp_type' => 'required|string|max:10',
             'cdp_serie' => 'required|string|max:20',
             'cdp_number' => 'required|string|max:20',
+            'payment_proof_link' => 'nullable|string|max:2048',
         ]);
 
         try {
             $proofPath = null;
+            $proofLink = $request->input('payment_proof_link');
             
             // Handle file upload
             if ($request->hasFile('payment_proof')) {
                 $file = $request->file('payment_proof');
                 $filename = 'proof_' . $id . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
+            }
+
+            if (!$proofPath && !$proofLink) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe subir un archivo o ingresar un link de la factura'
+                ], 400);
             }
 
             DB::table($this->ordersTable)
@@ -854,6 +873,7 @@ class CompraController extends Controller
                     'cdp_serie' => $request->input('cdp_serie'),
                     'cdp_number' => $request->input('cdp_number'),
                     'payment_proof' => $proofPath,
+                    'payment_proof_link' => $proofLink,
                     'updated_at' => now()
                 ]);
 
