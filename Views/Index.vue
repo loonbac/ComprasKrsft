@@ -220,6 +220,16 @@
 
         <!-- TAB: Pagadas -->
         <template v-if="activeTab === 'paid'">
+          <!-- Pago Rápido Button -->
+          <div class="quick-pay-section">
+            <button @click="openQuickPayModal" class="btn-quick-pay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+              </svg>
+              Pago Rápido
+            </button>
+          </div>
+
           <!-- Filter and Export Bar -->
           <div v-if="paidBatches.length > 0" class="export-bar">
             <!-- Date Filter -->
@@ -600,6 +610,181 @@
         </div>
       </Teleport>
 
+      <!-- Quick Pay Modal (Multi-step) -->
+      <Teleport to="body">
+        <div v-if="showQuickPayModal" class="modal-overlay" @click.self="closeQuickPayModal">
+          <div class="modal-content modal-lg">
+            <div class="modal-header">
+              <h2>Pago Rápido</h2>
+              <button @click="closeQuickPayModal" class="btn-close">×</button>
+            </div>
+            
+            <div class="modal-body">
+              <!-- Step 1: Select Project -->
+              <div v-if="quickPayStep === 1" class="quick-pay-step">
+                <h4 style="margin-bottom: 20px;">Selecciona un Proyecto</h4>
+                <div v-if="quickPayProjects.length === 0" class="empty-state">
+                  <p>No hay proyectos disponibles</p>
+                </div>
+                <div v-else class="projects-grid">
+                  <div v-for="project in quickPayProjects" :key="project.id" @click="selectProjectForQuickPay(project)" class="project-card clickable">
+                    <div class="project-name">{{ project.name }}</div>
+                    <div class="project-currency">{{ project.currency }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2: Add Items -->
+              <div v-if="quickPayStep === 2 && quickPaySelectedProject" class="quick-pay-step">
+                <h4>Proyecto: {{ quickPaySelectedProject.name }}</h4>
+                <div style="margin-top: 10px; margin-bottom: 20px;" class="form-section">
+                  <h5 style="margin-bottom: 10px;">Agregar Material</h5>
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label>Cantidad</label>
+                      <input v-model.number="quickPayMaterialForm.qty" type="number" min="1" class="input-field" placeholder="1" />
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>Unidad</label>
+                      <input v-model="quickPayMaterialForm.unit" type="text" class="input-field" placeholder="UND" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Descripción *</label>
+                    <input v-model="quickPayMaterialForm.description" type="text" class="input-field" placeholder="Ej: BRIDA ANILLO" />
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label>Diámetro</label>
+                      <input v-model="quickPayMaterialForm.diameter" type="text" class="input-field" placeholder="Φ1/2 INCH" />
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>Serie</label>
+                      <input v-model="quickPayMaterialForm.series" type="text" class="input-field" placeholder="CLASE 150" />
+                    </div>
+                    <div class="form-group flex-1">
+                      <label>Material</label>
+                      <input v-model="quickPayMaterialForm.material_type" type="text" class="input-field" placeholder="ACERO INOX" />
+                    </div>
+                  </div>
+                  <button @click="addQuickPayItem" type="button" class="btn-add-material">+ Agregar Item</button>
+                </div>
+
+                <!-- Items List -->
+                <div v-if="quickPayItems.length > 0" class="items-summary">
+                  <h5>Items Agregados</h5>
+                  <div class="items-table">
+                    <div v-for="(item, idx) in quickPayItems" :key="idx" class="item-row">
+                      <span class="item-info">{{ item.qty }} {{ item.unit }} - {{ item.description }}</span>
+                      <button @click="removeQuickPayItem(idx)" type="button" class="btn-remove">✕</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3: Review & Pay -->
+              <div v-if="quickPayStep === 3" class="quick-pay-step">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                  <!-- Left: Items & Pricing -->
+                  <div>
+                    <h5>Items a Pagar</h5>
+                    <div class="items-table" style="margin-bottom: 20px;">
+                      <div v-for="(item, idx) in quickPayItems" :key="idx" class="item-row">
+                        <div class="item-desc">{{ item.description }}<br/><small>{{ item.qty }} {{ item.unit }}</small></div>
+                        <div class="item-price">
+                          <input v-model.number="item.price" @input="updateQuickPayItemPrice(idx, $event.target.value)" type="number" min="0" step="0.01" class="input-price" placeholder="0.00" />
+                        </div>
+                        <div class="item-subtotal">S/ {{ formatNumber(item.subtotal) }}</div>
+                      </div>
+                      <div class="total-row">
+                        <strong>Total:</strong>
+                        <strong>S/ {{ formatNumber(quickPaySubtotal) }}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right: Supplier & Payment Info -->
+                  <div>
+                    <h5>Datos del Proveedor</h5>
+                    <div class="form-section">
+                      <div class="form-group">
+                        <label>Proveedor *</label>
+                        <input v-model="quickPayApprovalForm.seller_name" type="text" class="input-field" placeholder="Razón social" />
+                      </div>
+                      <div class="form-group">
+                        <label>RUC *</label>
+                        <input v-model="quickPayApprovalForm.seller_document" type="text" class="input-field" placeholder="20123456789" />
+                      </div>
+                      <div class="form-row">
+                        <div class="form-group flex-1">
+                          <label>Moneda</label>
+                          <select v-model="quickPayApprovalForm.currency" @change="onQuickPayApprovalCurrencyChange" class="input-field">
+                            <option value="PEN">Soles</option>
+                            <option value="USD">Dólares</option>
+                          </select>
+                        </div>
+                        <div class="form-group flex-1">
+                          <label>Tipo Pago</label>
+                          <select v-model="quickPayApprovalForm.payment_type" class="input-field">
+                            <option value="cash">Al Contado</option>
+                            <option value="loan">Crédito</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-row">
+                        <div class="form-group flex-1">
+                          <label>Fecha Emisión</label>
+                          <input v-model="quickPayApprovalForm.issue_date" type="date" class="input-field" />
+                        </div>
+                        <div v-if="quickPayApprovalForm.payment_type === 'loan'" class="form-group flex-1">
+                          <label>Fecha Vencimiento</label>
+                          <input v-model="quickPayApprovalForm.due_date" type="date" class="input-field" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <h5 style="margin-top: 20px;">Comprobante de Pago</h5>
+                    <div class="form-section">
+                      <div class="form-row">
+                        <div class="form-group flex-1">
+                          <label>Tipo *</label>
+                          <input v-model="quickPayPaymentForm.cdp_type" type="text" class="input-field" placeholder="01, 03" />
+                        </div>
+                        <div class="form-group flex-1">
+                          <label>Serie *</label>
+                          <input v-model="quickPayPaymentForm.cdp_serie" type="text" class="input-field" placeholder="F001" />
+                        </div>
+                        <div class="form-group flex-1">
+                          <label>Número *</label>
+                          <input v-model="quickPayPaymentForm.cdp_number" type="text" class="input-field" placeholder="00001234" />
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label>Comprobante (archivo)</label>
+                        <input type="file" @change="onQuickPayProofChange" accept="image/*,.pdf" class="input-file" />
+                      </div>
+                      <div class="form-group">
+                        <label>Comprobante (link)</label>
+                        <input v-model="quickPayPaymentForm.payment_proof_link" type="url" placeholder="https://..." class="input-field" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button @click="closeQuickPayModal" type="button" class="btn-cancel">Cancelar</button>
+              <button v-if="quickPayStep > 1" @click="quickPayStep--" type="button" class="btn-secondary">← Atrás</button>
+              <button v-if="quickPayStep < 3" @click="proceedToQuickPayReview" type="button" class="btn-submit">Siguiente →</button>
+              <button v-if="quickPayStep === 3" @click="completeQuickPay" :disabled="quickPayLoading" type="button" class="btn-submit">
+                {{ quickPayLoading ? 'Procesando...' : 'Confirmar Pago Rápido' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
       <!-- Export Modal (Date Range) -->
       <Teleport to="body">
         <div v-if="showExportModal" class="modal-overlay" @click.self="closeExportModal">
@@ -768,6 +953,37 @@ const paymentForm = ref({
   payment_proof: null,
   payment_proof_link: ''
 });
+
+// Quick Pay Flow State
+const showQuickPayModal = ref(false);
+const quickPayStep = ref(1); // 1: select project, 2: add items, 3: review & pay
+const quickPaySelectedProject = ref(null);
+const quickPayProjects = ref([]);
+const quickPayItems = ref([]);
+const quickPayApprovalForm = ref({
+  seller_name: '',
+  seller_document: '',
+  payment_type: 'cash',
+  currency: 'PEN',
+  issue_date: new Date().toISOString().split('T')[0],
+  due_date: ''
+});
+const quickPayPaymentForm = ref({
+  cdp_type: '',
+  cdp_serie: '',
+  cdp_number: '',
+  payment_proof: null,
+  payment_proof_link: ''
+});
+const quickPayMaterialForm = ref({
+  qty: 1,
+  unit: '',
+  description: '',
+  diameter: '',
+  series: '',
+  material_type: ''
+});
+const quickPayLoading = ref(false);
 
 // API Base
 const getModuleName = () => {
@@ -1676,6 +1892,182 @@ const closePaymentModal = () => {
 
 const onPaymentProofChange = (e) => {
   paymentForm.value.payment_proof = e.target.files[0] || null;
+};
+
+// Quick Pay Flow Functions
+const openQuickPayModal = async () => {
+  showQuickPayModal.value = true;
+  quickPayStep.value = 1;
+  quickPaySelectedProject.value = null;
+  quickPayItems.value = [];
+  quickPayMaterialForm.value = { qty: 1, unit: '', description: '', diameter: '', series: '', material_type: '' };
+  
+  // Load projects from API
+  try {
+    const res = await fetch(`${apiBase.value}/projects`);
+    const data = await res.json();
+    quickPayProjects.value = data.projects || [];
+  } catch (e) {
+    showToast('Error cargando proyectos', 'error');
+  }
+};
+
+const closeQuickPayModal = () => {
+  showQuickPayModal.value = false;
+  quickPayStep.value = 1;
+  quickPaySelectedProject.value = null;
+  quickPayItems.value = [];
+};
+
+const selectProjectForQuickPay = (project) => {
+  quickPaySelectedProject.value = project;
+  quickPayStep.value = 2;
+};
+
+const addQuickPayItem = () => {
+  if (!quickPayMaterialForm.value.description || !quickPayMaterialForm.value.qty) {
+    showToast('Completa descripción y cantidad', 'error');
+    return;
+  }
+  
+  quickPayItems.value.push({
+    qty: quickPayMaterialForm.value.qty,
+    unit: quickPayMaterialForm.value.unit || 'UND',
+    description: quickPayMaterialForm.value.description.trim(),
+    diameter: quickPayMaterialForm.value.diameter || '',
+    series: quickPayMaterialForm.value.series || '',
+    material_type: quickPayMaterialForm.value.material_type || '',
+    price: 0,
+    subtotal: 0
+  });
+  
+  // Reset form
+  quickPayMaterialForm.value = { qty: 1, unit: '', description: '', diameter: '', series: '', material_type: '' };
+  showToast('Item agregado', 'success');
+};
+
+const removeQuickPayItem = (index) => {
+  quickPayItems.value.splice(index, 1);
+};
+
+const proceedToQuickPayReview = () => {
+  if (quickPayItems.value.length === 0) {
+    showToast('Agrega al menos un item', 'error');
+    return;
+  }
+  quickPayStep.value = 3;
+};
+
+const updateQuickPayItemPrice = (index, price) => {
+  quickPayItems.value[index].price = parseFloat(price) || 0;
+  quickPayItems.value[index].subtotal = quickPayItems.value[index].qty * quickPayItems.value[index].price;
+};
+
+const quickPaySubtotal = computed(() => {
+  return quickPayItems.value.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+});
+
+const completeQuickPay = async () => {
+  if (!quickPayApprovalForm.value.seller_name || !quickPayApprovalForm.value.seller_document) {
+    showToast('Complete proveedor y RUC', 'error');
+    return;
+  }
+  if (!quickPayPaymentForm.value.cdp_type || !quickPayPaymentForm.value.cdp_serie || !quickPayPaymentForm.value.cdp_number) {
+    showToast('Complete tipo, serie y número de comprobante', 'error');
+    return;
+  }
+  if (!quickPayPaymentForm.value.payment_proof && !quickPayPaymentForm.value.payment_proof_link) {
+    showToast('Suba un archivo o ingrese link de factura', 'error');
+    return;
+  }
+
+  quickPayLoading.value = true;
+  try {
+    // Step 1: Create orders for each item in the project
+    for (const item of quickPayItems.value) {
+      const res = await fetch(`${apiBase.value}/${quickPaySelectedProject.value.id}/order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': getCsrfToken()
+        },
+        body: JSON.stringify({
+          type: 'material',
+          description: item.description,
+          materials: [{ name: item.description, qty: item.qty }],
+          unit: item.unit,
+          diameter: item.diameter || null,
+          series: item.series || null,
+          material_type: item.material_type || null,
+          price: item.price,
+          project_id: quickPaySelectedProject.value.id
+        })
+      });
+      
+      if (!res.ok) {
+        showToast('Error creando órdenes', 'error');
+        return;
+      }
+    }
+
+    // Step 2: Create purchase batch and mark as paid
+    const formData = new FormData();
+    formData.append('project_id', quickPaySelectedProject.value.id);
+    formData.append('seller_name', quickPayApprovalForm.value.seller_name);
+    formData.append('seller_document', quickPayApprovalForm.value.seller_document);
+    formData.append('payment_type', quickPayApprovalForm.value.payment_type);
+    formData.append('currency', quickPayApprovalForm.value.currency);
+    formData.append('issue_date', quickPayApprovalForm.value.issue_date);
+    if (quickPayApprovalForm.value.payment_type === 'loan') {
+      formData.append('due_date', quickPayApprovalForm.value.due_date);
+    }
+    formData.append('cdp_type', quickPayPaymentForm.value.cdp_type);
+    formData.append('cdp_serie', quickPayPaymentForm.value.cdp_serie);
+    formData.append('cdp_number', quickPayPaymentForm.value.cdp_number);
+    if (quickPayPaymentForm.value.payment_proof_link) {
+      formData.append('payment_proof_link', quickPayPaymentForm.value.payment_proof_link);
+    }
+    if (quickPayPaymentForm.value.payment_proof) {
+      formData.append('payment_proof', quickPayPaymentForm.value.payment_proof);
+    }
+    formData.append('quick_pay', 'true');
+    formData.append('items', JSON.stringify(quickPayItems.value.map(item => ({
+      description: item.description,
+      qty: item.qty,
+      unit: item.unit,
+      price: item.price,
+      subtotal: item.subtotal
+    }))));
+
+    const payRes = await fetch(`${apiBase.value}/quick-pay`, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': getCsrfToken() },
+      body: formData
+    });
+    const payData = await payRes.json();
+
+    if (payData.success) {
+      showToast('Pago rápido completado', 'success');
+      closeQuickPayModal();
+      await loadPaidBatches();
+      activeTab.value = 'paid';
+    } else {
+      showToast(payData.message || 'Error', 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+  quickPayLoading.value = false;
+};
+
+const onQuickPayProofChange = (e) => {
+  quickPayPaymentForm.value.payment_proof = e.target.files[0] || null;
+};
+
+const onQuickPayApprovalCurrencyChange = () => {
+  if (quickPayApprovalForm.value.currency === 'USD' && !quickPayApprovalForm.value.issue_date) {
+    quickPayApprovalForm.value.issue_date = new Date().toISOString().split('T')[0];
+  }
 };
 
 const confirmPayment = async () => {

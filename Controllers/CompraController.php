@@ -650,6 +650,107 @@ class CompraController extends Controller
     }
 
     /**
+     * Quick Pay - Create orders and mark as paid in one flow
+     */
+    public function quickPay(Request $request)
+    {
+        try {
+            $projectId = $request->input('project_id');
+            $sellerName = $request->input('seller_name');
+            $sellerDocument = $request->input('seller_document');
+            $paymentType = $request->input('payment_type');
+            $currency = $request->input('currency');
+            $issueDate = $request->input('issue_date');
+            $dueDate = $request->input('due_date');
+            $items = json_decode($request->input('items'), true);
+
+            // Validate
+            if (!$projectId || !$sellerName || !$sellerDocument || !$items || count($items) === 0) {
+                return response()->json(['success' => false, 'message' => 'Datos incompletos'], 400);
+            }
+
+            // Create a unique batch ID
+            $batchId = 'QP-' . date('YmdHis') . '-' . substr(md5(microtime()), 0, 8);
+            $proofPath = null;
+            $proofLink = $request->input('payment_proof_link');
+
+            if ($request->hasFile('payment_proof')) {
+                $file = $request->file('payment_proof');
+                $filename = 'proof_' . $batchId . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
+            }
+
+            if (!$proofPath && !$proofLink) {
+                return response()->json(['success' => false, 'message' => 'Suba comprobante'], 400);
+            }
+
+            // Create purchase orders for each item
+            $totalSubtotal = 0;
+            foreach ($items as $item) {
+                $totalSubtotal += $item['subtotal'] ?? 0;
+
+                $order = [
+                    'project_id' => $projectId,
+                    'batch_id' => $batchId,
+                    'seller_name' => $sellerName,
+                    'seller_document' => $sellerDocument,
+                    'type' => 'material',
+                    'description' => $item['description'] ?? '',
+                    'materials' => json_encode([['name' => $item['description'] ?? '', 'qty' => $item['qty'] ?? 1]]),
+                    'unit' => $item['unit'] ?? 'UND',
+                    'price' => $item['price'] ?? 0,
+                    'status' => 'approved',
+                    'payment_type' => $paymentType,
+                    'currency' => $currency,
+                    'issue_date' => $issueDate,
+                    'due_date' => $dueDate,
+                    'payment_confirmed' => true,
+                    'payment_confirmed_at' => now(),
+                    'payment_confirmed_by' => auth()->id(),
+                    'cdp_type' => $request->input('cdp_type'),
+                    'cdp_serie' => $request->input('cdp_serie'),
+                    'cdp_number' => $request->input('cdp_number'),
+                    'payment_proof' => $proofPath,
+                    'payment_proof_link' => $proofLink,
+                    'supervisor_approved' => true,
+                    'supervisor_approved_by' => auth()->id(),
+                    'supervisor_approved_at' => now(),
+                    'manager_approved' => true,
+                    'manager_approved_by' => auth()->id(),
+                    'manager_approved_at' => now(),
+                    'created_by' => auth()->id(),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+
+                DB::table($this->ordersTable)->insert($order);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Pago rápido completado']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get list of projects for Quick Pay selector
+     */
+    public function projects(Request $request)
+    {
+        try {
+            $projects = DB::table($this->projectsTable)
+                ->select('id', 'name', 'currency')
+                ->where('active', true)
+                ->orderBy('name', 'asc')
+                ->get();
+
+            return response()->json(['success' => true, 'projects' => $projects]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Obtener tipo de cambio USD -> PEN desde SUNAT (API decolecta)
      */
     protected function getExchangeRate($date = null)
