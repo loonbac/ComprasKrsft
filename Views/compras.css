@@ -2036,9 +2036,13 @@ body.dark-mode .quick-pay-section-title {
 .quick-pay-form-section {
   margin-top: 8px;
   margin-bottom: 14px;
+}
+
+.quick-pay-form-section .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 14px;
+  margin-bottom: 14px;
 }
 
 .quick-pay-inline-group {
