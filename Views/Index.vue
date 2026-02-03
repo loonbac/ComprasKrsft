@@ -1194,6 +1194,25 @@ const loadPendingOrders = async () => {
     const data = await res.json();
     if (data.success) {
       pendingOrders.value = data.orders || [];
+      
+      // Auto-expand all projects when data loads
+      if (pendingOrders.value.length > 0) {
+        const projects = new Set(pendingOrders.value.map(o => o.project_id));
+        projects.forEach(projectId => {
+          expandedProjects.value[projectId] = true;
+          // Also auto-expand lists for each project
+          const projectLists = new Set(
+            pendingOrders.value
+              .filter(o => o.project_id === projectId)
+              .map(o => o.source_filename || 'Manual')
+          );
+          projectLists.forEach(filename => {
+            const key = getListKey(projectId, filename);
+            expandedLists.value[key] = true;
+          });
+        });
+      }
+      
       if (!selectedPendingProjectId.value && pendingOrders.value.length > 0) {
         selectedPendingProjectId.value = pendingOrders.value[0].project_id;
       }
