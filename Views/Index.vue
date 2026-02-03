@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.7.2 - Updated Feb 2 2026 - Force Cache Refresh -->
-  <div class="compras-layout">
+  <!-- v4.7.3 - Updated Feb 2 2026 20:30 - Force Cache Refresh -->
+  <div class="compras-layout" data-v="473">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
