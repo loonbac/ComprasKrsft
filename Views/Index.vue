@@ -223,7 +223,7 @@
         <template v-if="activeTab === 'paid'">
           <!-- Export Button -->
           <div v-if="paidBatches.length > 0" class="export-bar">
-            <button @click="exportPaidExcel" class="btn-export">
+            <button @click="openExportModal" class="btn-export">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
@@ -572,6 +572,71 @@
         </div>
       </Teleport>
 
+      <!-- Export Modal (Date Range) -->
+      <Teleport to="body">
+        <div v-if="showExportModal" class="modal-overlay" @click.self="closeExportModal">
+          <div class="modal-content modal-md">
+            <div class="modal-header">
+              <h2>Exportar Registro de Compras</h2>
+              <button @click="closeExportModal" class="btn-close">×</button>
+            </div>
+            
+            <div class="modal-body">
+              <div class="export-options">
+                <div class="option-group">
+                  <label>Período Predefinido:</label>
+                  <div class="preset-buttons">
+                    <button 
+                      @click="setExportPreset('7days')" 
+                      :class="{ active: exportFilter.preset === '7days' }"
+                      class="preset-btn"
+                    >
+                      Últimos 7 días
+                    </button>
+                    <button 
+                      @click="setExportPreset('30days')" 
+                      :class="{ active: exportFilter.preset === '30days' }"
+                      class="preset-btn"
+                    >
+                      Últimos 30 días
+                    </button>
+                    <button 
+                      @click="setExportPreset('90days')" 
+                      :class="{ active: exportFilter.preset === '90days' }"
+                      class="preset-btn"
+                    >
+                      Últimos 90 días
+                    </button>
+                    <button 
+                      @click="setExportPreset('custom')" 
+                      :class="{ active: exportFilter.preset === 'custom' }"
+                      class="preset-btn"
+                    >
+                      Personalizado
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="exportFilter.preset === 'custom'" class="option-group custom-dates">
+                  <label>Desde:</label>
+                  <input v-model="exportFilter.startDate" type="date" class="input-date">
+                  
+                  <label>Hasta:</label>
+                  <input v-model="exportFilter.endDate" type="date" class="input-date">
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" @click="closeExportModal" class="btn-cancel">Cancelar</button>
+              <button @click="exportPaidExcelWithFilter" class="btn-submit">
+                Exportar Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
       <!-- Toast -->
       <Teleport to="body">
         <div v-if="toast.show" class="toast" :class="toast.type">{{ toast.message }}</div>
@@ -617,8 +682,15 @@ const perPage = 20;
 // Modals
 const showBulkModal = ref(false);
 const showPaymentModal = ref(false);
+const showExportModal = ref(false);
 const paymentBatch = ref(null);
 const confirmingPayment = ref(false);
+
+const exportFilter = ref({
+  startDate: '',
+  endDate: '',
+  preset: '30days'
+});
 
 const approvalForm = ref({
   seller_name: '',
@@ -1031,8 +1103,49 @@ const loadToPayOrders = async () => {
 };
 
 // Export paid orders to Excel
-const exportPaidExcel = () => {
-  window.location.href = `${apiBase.value}/export-paid`;
+const openExportModal = () => {
+  // Set default dates for 30 days
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+  exportFilter.value.endDate = today.toISOString().split('T')[0];
+  exportFilter.value.startDate = thirtyDaysAgo.toISOString().split('T')[0];
+  exportFilter.value.preset = '30days';
+  showExportModal.value = true;
+};
+
+const closeExportModal = () => {
+  showExportModal.value = false;
+};
+
+const setExportPreset = (preset) => {
+  exportFilter.value.preset = preset;
+  const today = new Date();
+  const startDate = new Date(today);
+  
+  switch(preset) {
+    case '7days':
+      startDate.setDate(today.getDate() - 7);
+      break;
+    case '30days':
+      startDate.setDate(today.getDate() - 30);
+      break;
+    case '90days':
+      startDate.setDate(today.getDate() - 90);
+      break;
+    case 'custom':
+      return;
+  }
+  
+  exportFilter.value.startDate = startDate.toISOString().split('T')[0];
+  exportFilter.value.endDate = today.toISOString().split('T')[0];
+};
+
+const exportPaidExcelWithFilter = () => {
+  const params = new URLSearchParams();
+  params.append('start_date', exportFilter.value.startDate);
+  params.append('end_date', exportFilter.value.endDate);
+  window.location.href = `${apiBase.value}/export-paid?${params.toString()}`;
+  closeExportModal();
 };
 
 const loadApprovedUnpaid = async () => {

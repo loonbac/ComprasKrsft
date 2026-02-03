@@ -1006,15 +1006,27 @@ class CompraController extends Controller
      */
     public function exportPaidExcel(Request $request)
     {
-        $orders = DB::table($this->ordersTable)
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        
+        $query = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name'
             ])
             ->where('purchase_orders.status', 'approved')
-            ->where('purchase_orders.payment_confirmed', true)
-            ->orderBy('purchase_orders.issue_date', 'asc')
+            ->where('purchase_orders.payment_confirmed', true);
+        
+        // Filter by date range if provided
+        if ($startDate) {
+            $query->whereDate('purchase_orders.payment_confirmed_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('purchase_orders.payment_confirmed_at', '<=', $endDate);
+        }
+        
+        $orders = $query->orderBy('purchase_orders.issue_date', 'asc')
             ->orderBy('purchase_orders.payment_confirmed_at', 'asc')
             ->get();
 
