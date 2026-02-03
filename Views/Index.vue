@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.8.4 - Updated Feb 3 2026 - Larger pills and tighter spacing -->
-  <div class="compras-layout" data-v="484">
+  <!-- v4.8.6 - Updated Feb 3 2026 - Fix calendar icon dark mode -->
+  <div class="compras-layout" data-v="486">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
@@ -182,16 +182,10 @@
                 <div class="batch-meta">
                   <span>{{ batch.orders.length }} items</span>
                   <span v-if="batch.payment_type === 'loan'" class="pill pill-credit">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 13h-2v-2h2v2zm0-4h-2V7h2v4z"/>
-                    </svg>
-                    Crédito
+                    CRÉDITO
                   </span>
                   <span v-else class="pill pill-cash">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M3 6h18v12H3V6zm2 2v8h14V8H5zm3 1h3v2H8V9zm0 4h5v2H8v-2z"/>
-                    </svg>
-                    Contado
+                    CONTADO
                   </span>
                   <span v-if="batch.payment_type === 'loan' && getPaymentAlertStatus(batch)" class="pill pill-due" :class="`pill-${getPaymentAlertStatus(batch)}`">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

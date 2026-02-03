@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.8.4 - Larger pills and tighter spacing - Feb 3 2026 */
+/* ComprasKrsft v4.8.6 - Fix calendar icon dark mode - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -353,6 +353,15 @@ body.dark-mode .input-date {
   border-color: #475569;
 }
 
+body.dark-mode .input-date::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.input-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
 .btn-reset-filter {
   padding: 8px 12px;
   background: var(--compras-bg-card);
@@ -697,6 +706,7 @@ body.dark-mode .input-date {
 
 .batch-meta {
   display: flex;
+  align-items: center;
   gap: 16px;
   color: var(--compras-text-gray);
   font-size: 0.85rem;
@@ -705,18 +715,18 @@ body.dark-mode .input-date {
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 15px;
+  gap: 4px;
+  padding: 2px 11px;
   border-radius: var(--compras-radius-full);
-  font-size: 1.125rem;
+  font-size: 0.85rem;
   font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
 }
 
 .pill svg {
-  width: 21px;
-  height: 21px;
+  width: 16px;
+  height: 16px;
 }
 
 .pill-cash {
