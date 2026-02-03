@@ -315,15 +315,28 @@
                 </div>
                 <div class="form-row">
                   <div class="form-group flex-1">
+                    <label>Tipo de Pago *</label>
+                    <select v-model="approvalForm.payment_type" class="input-field">
+                      <option value="cash">Pago Directo</option>
+                      <option value="loan">Pago a Crédito</option>
+                    </select>
+                  </div>
+                  <div class="form-group flex-1">
                     <label>Moneda</label>
                     <select v-model="approvalForm.currency" class="input-field" @change="onApprovalCurrencyChange">
                       <option value="PEN">PEN - Soles</option>
                       <option value="USD">USD - Dólares</option>
                     </select>
                   </div>
+                </div>
+                <div class="form-row">
                   <div class="form-group flex-1">
                     <label>Fecha Emisión</label>
                     <input v-model="approvalForm.issue_date" type="date" class="input-field" />
+                  </div>
+                  <div v-if="approvalForm.payment_type === 'loan'" class="form-group flex-1">
+                    <label>Fecha Vencimiento</label>
+                    <input v-model="approvalForm.due_date" type="date" class="input-field" />
                   </div>
                 </div>
               </div>
@@ -704,8 +717,10 @@ const exportFilter = ref({
 const approvalForm = ref({
   seller_name: '',
   seller_document: '',
+  payment_type: 'cash',
   currency: 'PEN',
-  issue_date: getLocalDateString()
+  issue_date: getLocalDateString(),
+  due_date: ''
 });
 
 const bulkForm = ref({
@@ -971,8 +986,10 @@ const openApprovalModal = () => {
   approvalForm.value = {
     seller_name: '',
     seller_document: '',
+    payment_type: 'cash',
     currency: 'PEN',
-    issue_date: getLocalDateString()
+    issue_date: getLocalDateString(),
+    due_date: ''
   };
   showApprovalModal.value = true;
 };
@@ -997,7 +1014,9 @@ const submitApprovalPending = async () => {
       currency: approvalForm.value.currency,
       seller_name: approvalForm.value.seller_name,
       seller_document: approvalForm.value.seller_document,
-      issue_date: approvalForm.value.issue_date
+      payment_type: approvalForm.value.payment_type,
+      issue_date: approvalForm.value.issue_date,
+      due_date: approvalForm.value.payment_type === 'loan' ? approvalForm.value.due_date : null
     };
 
     const res = await fetch(`${apiBase.value}/mark-to-pay-bulk`, {

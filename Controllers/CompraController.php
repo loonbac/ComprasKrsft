@@ -208,7 +208,9 @@ class CompraController extends Controller
                 'exchange_rate' => $exchangeRate,
                 'seller_name' => $request->input('seller_name'),
                 'seller_document' => $request->input('seller_document'),
+                'payment_type' => $request->input('payment_type', 'cash'),
                 'issue_date' => $request->input('issue_date'),
+                'due_date' => $request->input('due_date'),
                 'updated_at' => now()
             ];
 
