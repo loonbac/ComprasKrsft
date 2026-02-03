@@ -250,7 +250,8 @@
                 <div class="batch-meta">
                   <span>{{ batch.orders.length }} items</span>
                   <span class="batch-date">Pagado {{ formatDate(batch.payment_confirmed_at) }}</span>
-                  <span v-if="batch.payment_confirmed_by_name" class="batch-paid-by">Por {{ batch.payment_confirmed_by_name }}</span>
+                  <span v-if="batch.approved_by_name" class="batch-approver">Aprobado por: {{ batch.approved_by_name }}</span>
+                  <span v-if="batch.payment_confirmed_by_name" class="batch-paid-by">Pagado por: {{ batch.payment_confirmed_by_name }}</span>
                 </div>
               </div>
               
@@ -1089,6 +1090,7 @@ const loadPaidBatches = async () => {
             payment_proof: order.payment_proof,
             payment_proof_link: order.payment_proof_link,
             payment_confirmed_by_name: order.payment_confirmed_by_name,
+            approved_by_name: order.approved_by_name,
             orders: [],
             total: 0
           };

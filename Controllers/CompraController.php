@@ -779,9 +779,13 @@ class CompraController extends Controller
     {
         $orders = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->leftJoin('users as payer', 'purchase_orders.payment_confirmed_by', '=', 'payer.id')
+            ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
             ->select([
                 'purchase_orders.*',
-                'projects.name as project_name'
+                'projects.name as project_name',
+                'payer.name as payment_confirmed_by_name',
+                'approver.name as approved_by_name'
             ])
             ->where('purchase_orders.status', 'approved')
             ->where('purchase_orders.payment_confirmed', true)
