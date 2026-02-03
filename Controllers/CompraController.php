@@ -1018,22 +1018,6 @@ class CompraController extends Controller
             ]
         ]);
     }
-    /**
-     * Listar proyectos para selector
-     */
-    public function projects()
-    {
-        $projects = DB::table($this->projectsTable)
-            ->select(['id', 'name', 'available_amount', 'status'])
-            ->where('status', 'active')
-            ->orderBy('name')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'projects' => $projects
-        ]);
-    }
 
     /**
      * Exportar órdenes aprobadas a CSV (Excel compatible)
