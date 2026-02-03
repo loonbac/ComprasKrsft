@@ -363,6 +363,43 @@ class CompraController extends Controller
                     'updated_at' => now()
                 ]);
 
+            // Get the approved order with project name
+            $approvedOrder = DB::table($this->ordersTable)
+                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+                ->select('purchase_orders.*', 'projects.name as project_name')
+                ->where('purchase_orders.id', $id)
+                ->first();
+
+            // Send items to inventory when order is approved
+            if ($approvedOrder && $approvedOrder->type === 'material') {
+                $materials = $approvedOrder->materials ? json_decode($approvedOrder->materials, true) : [];
+                if (!empty($materials)) {
+                    // Create inventory items from materials
+                    $inventoryItems = [];
+                    foreach ($materials as $material) {
+                        $inventoryItems[] = [
+                            'description' => $material['description'] ?? $approvedOrder->description,
+                            'qty' => $material['qty'] ?? 1,
+                            'unit' => $material['unit'] ?? $approvedOrder->unit ?? 'UND',
+                            'subtotal' => $amount,
+                            'currency' => $currency,
+                            'diameter' => $material['diameter'] ?? null,
+                            'series' => $material['series'] ?? null,
+                            'material_type' => $material['material_type'] ?? null,
+                            'amount_pen' => $amountPen
+                        ];
+                    }
+                    
+                    // Send to inventory
+                    $this->sendItemsToInventory(
+                        $approvedOrder->project_id,
+                        $inventoryItems,
+                        'AP-' . date('Ymd') . '-' . $id,
+                        $approvedOrder->project_name
+                    );
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Orden aprobada exitosamente',

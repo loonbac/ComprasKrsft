@@ -1,7 +1,7 @@
 {
     "name": "ComprasKrsft",
     "display_name": "GESTIÓN DE COMPRAS",
-    "version": "4.9.10",
+    "version": "5.0.0",
     "description": "Sistema de gestión de órdenes de compra y pagos. Nuevo flujo: Por Aprobar → Por Pagar → Pagadas. Incluye Pago Rápido express.",
     "icon": "icon.svg",
     "color": "#10b981",

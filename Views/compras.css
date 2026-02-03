@@ -1929,6 +1929,37 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   margin-bottom: 20px;
 }
 
+.quick-pay-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-pay-title-simple {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--compras-text-dark);
+  text-transform: uppercase;
+}
+
+body.dark-mode .quick-pay-title-simple {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-description {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--compras-text-gray);
+  font-weight: 400;
+}
+
+body.dark-mode .quick-pay-description {
+  color: #a0aec0;
+}
+
 .quick-pay-title {
   margin: 0;
 }

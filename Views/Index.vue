@@ -616,7 +616,10 @@
         <div v-if="showQuickPayModal" class="modal-overlay" @click.self="closeQuickPayModal">
           <div class="modal-content modal-lg">
             <div class="modal-header">
-              <h2 class="quick-pay-title"><span class="quick-pay-title-pill">Pago Rápido</span></h2>
+              <div class="quick-pay-header-content">
+                <h2 class="quick-pay-title-simple">PAGO RÁPIDO</h2>
+                <p class="quick-pay-description">Registra una compra al instante sin pasar por aprobaciones del jefe de proyectos ni esperar autorización de pago</p>
+              </div>
             </div>
             
             <div class="modal-body">
@@ -648,6 +651,10 @@
                   <h5 class="quick-pay-section-title">Agregar Material</h5>
                   <div class="form-row">
                     <div class="form-group flex-1">
+                      <label>Descripción *</label>
+                      <input v-model="quickPayMaterialForm.description" type="text" class="input-field" placeholder="Ej: BRIDA ANILLO" />
+                    </div>
+                    <div class="form-group flex-1">
                       <label>Cantidad</label>
                       <input v-model.number="quickPayMaterialForm.qty" type="number" min="1" class="input-field" placeholder="1" />
                     </div>
@@ -655,10 +662,6 @@
                       <label>Unidad</label>
                       <input v-model="quickPayMaterialForm.unit" type="text" class="input-field" placeholder="UND" />
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label>Descripción *</label>
-                    <input v-model="quickPayMaterialForm.description" type="text" class="input-field" placeholder="Ej: BRIDA ANILLO" />
                   </div>
                   <div class="form-row">
                     <div class="form-group flex-1">
@@ -779,9 +782,9 @@
             </div>
 
             <div class="modal-footer">
-              <button @click="closeQuickPayModal" type="button" class="btn-cancel">Cancelar</button>
+              <button @click="closeQuickPayModal" type="button" class="btn-cancel-red">Cancelar</button>
               <button v-if="quickPayStep > 1" @click="quickPayStep--" type="button" class="btn-secondary btn-quick-back">Atrás</button>
-              <button v-if="quickPayStep < 3" @click="proceedToQuickPayReview" type="button" class="btn-submit">Siguiente →</button>
+              <button v-if="quickPayStep < 3" @click="proceedToQuickPayReview" type="button" class="btn-submit">Siguiente</button>
               <button v-if="quickPayStep === 3" @click="completeQuickPay" :disabled="quickPayLoading" type="button" class="btn-submit">
                 {{ quickPayLoading ? 'Procesando...' : 'Confirmar Pago Rápido' }}
               </button>
