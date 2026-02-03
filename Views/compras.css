@@ -354,8 +354,9 @@ body.dark-mode .input-date {
 }
 
 body.dark-mode .input-date::-webkit-calendar-picker-indicator {
-  filter: invert(1) brightness(1.2);
+  filter: invert(1) brightness(2);
   cursor: pointer;
+  opacity: 1;
 }
 
 .input-date::-webkit-calendar-picker-indicator {
@@ -2047,7 +2048,7 @@ body.dark-mode .quick-pay-section-title {
 
 .quick-pay-form-section {
   margin-top: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 4px;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
@@ -2103,7 +2104,7 @@ body.dark-mode .quick-pay-step label {
 
 .quick-pay-review-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 45% 55%;
   gap: 14px;
   overflow: hidden;
 }
@@ -2121,7 +2122,7 @@ body.dark-mode .quick-pay-step label {
 
 .quick-pay-items-table {
   margin-bottom: 8px;
-  max-height: 400px;
+  max-height: 450px;
   overflow: auto;
   padding-right: 4px;
 }
