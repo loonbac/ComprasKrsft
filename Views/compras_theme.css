@@ -1,7 +1,7 @@
 /* ============================================
    MÓDULO COMPRASKRSFT - TEMA DE COLORES
    Variables CSS específicas del módulo
-   Versión 4.7.6 - Fix CSS syntax error - Feb 3 2026
+   Versión 4.7.7 - UI improvements - Feb 3 2026
    ============================================ */
 
 :root {
@@ -26,6 +26,13 @@
     --compras-danger-dark: #dc2626;
     --compras-warning: #f59e0b;
     --compras-info: #3b82f6;
+    
+    /* Botón Exportar - Azul sólido */
+    --compras-btn-export-bg: #2563eb;
+    --compras-btn-export-hover: #1d4ed8;
+    
+    /* Selección de fila */
+    --compras-row-selected-bg: rgba(16, 185, 129, 0.15);
 
     /* Fondos - Modo Claro */
     --compras-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);

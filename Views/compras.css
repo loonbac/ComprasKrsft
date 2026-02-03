@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.7.4 - Date filter added to Pagadas section - Updated Feb 3 2026 */
+/* ComprasKrsft v4.7.7 - UI improvements: transparent selection, solid blue export button - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -337,7 +337,7 @@ body.dark-mode .theme-toggle .moon-icon {
 .input-date {
   padding: 8px 10px;
   background: var(--compras-bg-card);
-  border: 1px solid var(--compras-border);
+  border: 2px solid var(--compras-border);
   border-radius: var(--compras-radius-sm);
   color: var(--compras-text-dark);
   font-size: 0.85rem;
@@ -347,6 +347,10 @@ body.dark-mode .theme-toggle .moon-icon {
   outline: none;
   border-color: var(--compras-primary);
   box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.1);
+}
+
+body.dark-mode .input-date {
+  border-color: #475569;
 }
 
 .btn-reset-filter {
@@ -371,7 +375,7 @@ body.dark-mode .theme-toggle .moon-icon {
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: var(--compras-gradient);
+  background: var(--compras-btn-export-bg);
   color: #fff;
   border: none;
   border-radius: var(--compras-radius-md);
@@ -379,7 +383,7 @@ body.dark-mode .theme-toggle .moon-icon {
   letter-spacing: 0.2px;
   box-shadow: var(--compras-shadow-md);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease, background 0.2s ease;
 }
 
 .btn-export svg {
@@ -390,6 +394,7 @@ body.dark-mode .theme-toggle .moon-icon {
 .btn-export:hover {
   transform: translateY(-1px);
   box-shadow: var(--compras-shadow-lg);
+  background: var(--compras-btn-export-hover);
 }
 
 .btn-export:active {
@@ -440,7 +445,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .orders-table tbody tr.selected {
-  background: var(--compras-badge-success-bg);
+  background: var(--compras-row-selected-bg);
 }
 
 .col-check {
@@ -1481,7 +1486,7 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .materials-approval-table tbody tr.selected {
-  background: var(--compras-badge-success-bg);
+  background: var(--compras-row-selected-bg);
 }
 
 .materials-approval-table .col-checkbox {

@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.7.6 - Updated Feb 3 2026 - CSS syntax fix -->
-  <div class="compras-layout" data-v="476">
+  <!-- v4.7.7 - Updated Feb 3 2026 - UI improvements -->
+  <div class="compras-layout" data-v="477">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
@@ -65,8 +65,6 @@
             <!-- Bulk actions bar when selections exist -->
             <div v-if="selectedPendingIds.length > 0" class="bulk-actions-bar">
               <span class="selection-count">{{ selectedPendingIds.length }} seleccionados</span>
-              <button @click="selectAllPending" class="btn-select-all">Seleccionar todos</button>
-              <button @click="deselectAllPending" class="btn-deselect-all">Deseleccionar</button>
               <button @click="openApprovalModal" :disabled="approvingPending" class="btn-approve-bulk">
                 {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
               </button>
