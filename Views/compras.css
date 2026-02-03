@@ -352,11 +352,10 @@ body.dark-mode .theme-toggle .moon-icon {
 body.dark-mode .input-date {
   border-color: #475569;
   color-scheme: dark;
-  accent-color: #0aa4a4;
 }
 
 body.dark-mode .input-date::-webkit-calendar-picker-indicator {
-  filter: invert(1) hue-rotate(0deg) brightness(1.5) contrast(1.2);
+  filter: brightness(0) invert(1);
   cursor: pointer;
 }
 
@@ -2105,7 +2104,7 @@ body.dark-mode .quick-pay-step label {
 
 .quick-pay-review-grid {
   display: grid;
-  grid-template-columns: 45% 55%;
+  grid-template-columns: 35% 65%;
   gap: 14px;
   overflow: hidden;
 }
