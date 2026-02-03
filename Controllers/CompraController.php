@@ -141,6 +141,22 @@ class CompraController extends Controller
                     'updated_at' => now()
                 ]);
 
+            $approvedOrder = DB::table($this->ordersTable)
+                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+                ->select('purchase_orders.*', 'projects.name as project_name')
+                ->where('purchase_orders.id', $id)
+                ->first();
+
+            if ($approvedOrder && $approvedOrder->type === 'material') {
+                $this->sendOrderToInventory(
+                    $approvedOrder,
+                    floatval($approvedOrder->amount ?? 0),
+                    $approvedOrder->currency ?? 'PEN',
+                    floatval($approvedOrder->amount_pen ?? 0),
+                    $approvedOrder->batch_id ?: 'AP-' . date('Ymd') . '-' . $id
+                );
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Orden enviada a Por Pagar'
@@ -227,6 +243,32 @@ class CompraController extends Controller
                         'amount_pen' => $amountPen,
                         'total_with_igv' => $amountPen
                     ]));
+            }
+
+            $approvedOrders = DB::table($this->ordersTable)
+                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+                ->select('purchase_orders.*', 'projects.name as project_name')
+                ->whereIn('purchase_orders.id', $orderIds)
+                ->get();
+
+            foreach ($approvedOrders as $order) {
+                if ($order->type !== 'material') {
+                    continue;
+                }
+
+                $amount = floatval($prices[$order->id] ?? 0);
+                if ($amount <= 0) {
+                    continue;
+                }
+
+                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
+                $this->sendOrderToInventory(
+                    $order,
+                    $amount,
+                    $currency,
+                    $amountPen,
+                    $batchId
+                );
             }
 
             return response()->json([
@@ -504,6 +546,58 @@ class CompraController extends Controller
                     ]));
             }
 
+            $paidOrders = DB::table($this->ordersTable)
+                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+                ->select('purchase_orders.*', 'projects.name as project_name')
+                ->whereIn('purchase_orders.id', $orderIds)
+                ->get();
+
+            foreach ($paidOrders as $order) {
+                if ($order->type !== 'material') {
+                    continue;
+                }
+
+                $amount = floatval($prices[$order->id] ?? 0);
+                if ($amount <= 0) {
+                    continue;
+                }
+
+                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
+                $this->sendOrderToInventory(
+                    $order,
+                    $amount,
+                    $currency,
+                    $amountPen,
+                    $batchId
+                );
+            }
+
+            $approvedOrders = DB::table($this->ordersTable)
+                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+                ->select('purchase_orders.*', 'projects.name as project_name')
+                ->whereIn('purchase_orders.id', $orderIds)
+                ->get();
+
+            foreach ($approvedOrders as $order) {
+                if ($order->type !== 'material') {
+                    continue;
+                }
+
+                $amount = floatval($prices[$order->id] ?? 0);
+                if ($amount <= 0) {
+                    continue;
+                }
+
+                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
+                $this->sendOrderToInventory(
+                    $order,
+                    $amount,
+                    $currency,
+                    $amountPen,
+                    $batchId
+                );
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => count($orderIds) . ' órdenes aprobadas exitosamente',
@@ -674,6 +768,26 @@ class CompraController extends Controller
                 ], 404);
             }
 
+            $paidOrders = DB::table($this->ordersTable)
+                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+                ->select('purchase_orders.*', 'projects.name as project_name')
+                ->where('purchase_orders.batch_id', $batchId)
+                ->get();
+
+            foreach ($paidOrders as $order) {
+                if ($order->type !== 'material') {
+                    continue;
+                }
+
+                $this->sendOrderToInventory(
+                    $order,
+                    floatval($order->amount ?? 0),
+                    $order->currency ?? 'PEN',
+                    floatval($order->amount_pen ?? 0),
+                    $batchId
+                );
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Pago confirmado'
@@ -800,45 +914,87 @@ class CompraController extends Controller
     private function sendItemsToInventory($projectId, $items, $batchId, $projectName)
     {
         try {
-            // Llamar al endpoint del inventario
-            $inventoryItems = [];
             foreach ($items as $item) {
-                $inventoryItems[] = [
-                    'description' => $item['description'] ?? '',
-                    'qty' => $item['qty'] ?? 1,
-                    'unit' => $item['unit'] ?? 'UND',
-                    'subtotal' => $item['subtotal'] ?? 0,
-                    'currency' => 'PEN',
+                $sku = 'QP-' . substr(md5($batchId . ($item['description'] ?? '')), 0, 8);
+
+                $exists = DB::table('inventario_productos')
+                    ->where('sku', $sku)
+                    ->exists();
+
+                if ($exists) {
+                    continue;
+                }
+
+                DB::table('inventario_productos')->insert([
+                    'nombre' => $item['description'] ?? 'Material sin descripción',
+                    'sku' => $sku,
+                    'descripcion' => $item['description'] ?? '',
+                    'cantidad' => $item['qty'] ?? 1,
+                    'unidad' => $item['unit'] ?? 'UND',
+                    'precio' => $item['subtotal'] ?? 0,
+                    'moneda' => $item['currency'] ?? 'PEN',
+                    'categoria' => 'Materiales Comprados',
+                    'ubicacion' => null,
+                    'estado' => 'activo',
+                    'apartado' => true,
+                    'nombre_proyecto' => $projectName,
+                    'estado_ubicacion' => 'pendiente',
+                    'project_id' => $projectId,
+                    'batch_id' => $batchId,
                     'diameter' => $item['diameter'] ?? null,
                     'series' => $item['series'] ?? null,
                     'material_type' => $item['material_type'] ?? null,
-                    'amount_pen' => $item['subtotal'] ?? 0
-                ];
-            }
-
-            // HTTP request a inventario
-            $client = new \GuzzleHttp\Client();
-            $response = $client->post(env('APP_URL', 'http://localhost:8000') . '/api/inventario_krsft/add-from-purchase', [
-                'json' => [
-                    'items' => $inventoryItems,
-                    'project_id' => $projectId,
-                    'project_name' => $projectName,
-                    'batch_id' => $batchId
-                ],
-                'headers' => [
-                    'Authorization' => 'Bearer ' . session('api_token'),
-                    'Accept' => 'application/json'
-                ]
-            ]);
-
-            $result = json_decode((string) $response->getBody(), true);
-            if (!$result['success'] ?? false) {
-                \Log::warning('Inventario integration failed: ' . json_encode($result));
+                    'amount' => $item['subtotal'] ?? 0,
+                    'amount_pen' => $item['amount_pen'] ?? ($item['subtotal'] ?? 0),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
             }
         } catch (\Exception $e) {
             \Log::error('Error sending items to inventory: ' . $e->getMessage());
             // No lanzar excepción, solo registrar el error
         }
+    }
+
+    private function sendOrderToInventory($order, float $amount, string $currency, float $amountPen, string $batchId)
+    {
+        $materials = $order->materials ? json_decode($order->materials, true) : [];
+
+        $items = [];
+        if (is_array($materials) && count($materials) > 0) {
+            foreach ($materials as $material) {
+                $items[] = [
+                    'description' => $material['description'] ?? $order->description,
+                    'qty' => $material['qty'] ?? 1,
+                    'unit' => $material['unit'] ?? $order->unit ?? 'UND',
+                    'subtotal' => $amount,
+                    'currency' => $currency,
+                    'diameter' => $material['diameter'] ?? null,
+                    'series' => $material['series'] ?? null,
+                    'material_type' => $material['material_type'] ?? null,
+                    'amount_pen' => $amountPen
+                ];
+            }
+        } else {
+            $items[] = [
+                'description' => $order->description,
+                'qty' => 1,
+                'unit' => $order->unit ?? 'UND',
+                'subtotal' => $amount,
+                'currency' => $currency,
+                'diameter' => $order->diameter ?? null,
+                'series' => $order->series ?? null,
+                'material_type' => $order->material_type ?? null,
+                'amount_pen' => $amountPen
+            ];
+        }
+
+        $this->sendItemsToInventory(
+            $order->project_id,
+            $items,
+            $batchId,
+            $order->project_name
+        );
     }
 
     /**
@@ -1093,6 +1249,22 @@ class CompraController extends Controller
                     'payment_proof_link' => $proofLink,
                     'updated_at' => now()
                 ]);
+
+            $paidOrder = DB::table($this->ordersTable)
+                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+                ->select('purchase_orders.*', 'projects.name as project_name')
+                ->where('purchase_orders.id', $id)
+                ->first();
+
+            if ($paidOrder && $paidOrder->type === 'material') {
+                $this->sendOrderToInventory(
+                    $paidOrder,
+                    floatval($paidOrder->amount ?? 0),
+                    $paidOrder->currency ?? 'PEN',
+                    floatval($paidOrder->amount_pen ?? 0),
+                    $paidOrder->batch_id ?: 'PAY-' . date('Ymd') . '-' . $id
+                );
+            }
 
             return response()->json([
                 'success' => true,
