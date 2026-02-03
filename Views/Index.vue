@@ -745,13 +745,15 @@
                           <option value="loan">Crédito</option>
                         </select>
                       </div>
-                      <div class="form-group quick-pay-inline-group">
-                        <label>Fecha Emisión</label>
-                        <input v-model="quickPayApprovalForm.issue_date" type="date" class="input-field" />
-                      </div>
-                      <div v-if="quickPayApprovalForm.payment_type === 'loan'" class="form-group quick-pay-inline-group">
-                        <label>Fecha Vencimiento</label>
-                        <input v-model="quickPayApprovalForm.due_date" type="date" class="input-field" />
+                      <div class="quick-pay-dates-row">
+                        <div class="form-group quick-pay-inline-group">
+                          <label>Fecha Emisión</label>
+                          <input v-model="quickPayApprovalForm.issue_date" type="date" class="input-field" />
+                        </div>
+                        <div v-if="quickPayApprovalForm.payment_type === 'loan'" class="form-group quick-pay-inline-group">
+                          <label>Fecha Vencimiento</label>
+                          <input v-model="quickPayApprovalForm.due_date" type="date" class="input-field" />
+                        </div>
                       </div>
                     </div>
 
