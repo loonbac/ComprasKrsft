@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.8.3 - Updated Feb 3 2026 - Por Pagar pills for payment type and due -->
-  <div class="compras-layout" data-v="483">
+  <!-- v4.8.4 - Updated Feb 3 2026 - Larger pills and tighter spacing -->
+  <div class="compras-layout" data-v="484">
     <div class="compras-bg"></div>
     
     <div class="compras-container">

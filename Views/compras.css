@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.8.3 - Por Pagar pills for payment type and due - Feb 3 2026 */
+/* ComprasKrsft v4.8.4 - Larger pills and tighter spacing - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -706,17 +706,17 @@ body.dark-mode .input-date {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 10px;
+  padding: 3px 15px;
   border-radius: var(--compras-radius-full);
-  font-size: 0.75rem;
+  font-size: 1.125rem;
   font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
 }
 
 .pill svg {
-  width: 14px;
-  height: 14px;
+  width: 21px;
+  height: 21px;
 }
 
 .pill-cash {
@@ -755,14 +755,14 @@ body.dark-mode .input-date {
 }
 
 .batch-items {
-  padding: 16px 20px;
+  padding: 12px 16px;
 }
 
 .batch-item {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 8px 0;
+  padding: 6px 0;
   border-bottom: 1px solid var(--compras-border-light);
 }
 
@@ -790,7 +790,7 @@ body.dark-mode .input-date {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 16px 20px;
+  padding: 12px 16px;
   background: var(--compras-bg-light);
   border-top: 1px solid var(--compras-border);
 }
