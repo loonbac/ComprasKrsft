@@ -250,6 +250,7 @@
                 <div class="batch-meta">
                   <span>{{ batch.orders.length }} items</span>
                   <span class="batch-date">Pagado {{ formatDate(batch.payment_confirmed_at) }}</span>
+                  <span v-if="batch.payment_confirmed_by_name" class="batch-paid-by">Por {{ batch.payment_confirmed_by_name }}</span>
                 </div>
               </div>
               
@@ -266,8 +267,19 @@
                 <div class="batch-totals">
                   <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber(batch.total) }}</span>
                 </div>
-                <div v-if="batch.cdp_serie" class="batch-cdp">
-                  Comprobante: {{ batch.cdp_serie }}-{{ batch.cdp_number }}
+                <div class="batch-payment-details">
+                  <div v-if="batch.cdp_type || batch.cdp_serie" class="payment-detail-row">
+                    <span class="detail-label">Comprobante:</span>
+                    <span class="detail-value">{{ batch.cdp_type }} {{ batch.cdp_serie }}-{{ batch.cdp_number }}</span>
+                  </div>
+                  <div v-if="batch.payment_proof_link" class="payment-detail-row">
+                    <span class="detail-label">Link Factura:</span>
+                    <a :href="batch.payment_proof_link" target="_blank" class="detail-link">{{ batch.payment_proof_link }}</a>
+                  </div>
+                  <div v-if="batch.payment_proof" class="payment-detail-row">
+                    <span class="detail-label">Archivo:</span>
+                    <a :href="`/storage/${batch.payment_proof}`" target="_blank" class="detail-link">Descargar</a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1071,8 +1083,12 @@ const loadPaidBatches = async () => {
             seller_name: order.seller_name,
             currency: order.currency,
             payment_confirmed_at: order.payment_confirmed_at,
+            cdp_type: order.cdp_type,
             cdp_serie: order.cdp_serie,
             cdp_number: order.cdp_number,
+            payment_proof: order.payment_proof,
+            payment_proof_link: order.payment_proof_link,
+            payment_confirmed_by_name: order.payment_confirmed_by_name,
             orders: [],
             total: 0
           };

@@ -702,6 +702,46 @@ body.dark-mode .theme-toggle .moon-icon {
   font-size: 0.85rem;
 }
 
+.batch-payment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 300px;
+}
+
+.payment-detail-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--compras-text-dark);
+  min-width: 120px;
+}
+
+.detail-value {
+  color: var(--compras-text-gray);
+  flex: 1;
+  word-break: break-word;
+}
+
+.detail-link {
+  color: var(--compras-info);
+  text-decoration: none;
+  cursor: pointer;
+  flex: 1;
+  word-break: break-word;
+  transition: var(--compras-transition-fast);
+}
+
+.detail-link:hover {
+  text-decoration: underline;
+  color: var(--compras-btn-confirm-hover);
+}
+
 .btn-confirm-payment {
   padding: 10px 20px;
   background: var(--compras-info);
