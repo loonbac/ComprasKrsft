@@ -687,7 +687,8 @@ class CompraController extends Controller
             // Create purchase orders for each item
             $totalSubtotal = 0;
             foreach ($items as $item) {
-                $totalSubtotal += $item['subtotal'] ?? 0;
+                $subtotal = $item['subtotal'] ?? 0;
+                $totalSubtotal += $subtotal;
 
                 $order = [
                     'project_id' => $projectId,
@@ -701,11 +702,13 @@ class CompraController extends Controller
                     'diameter' => $item['diameter'] ?? null,
                     'series' => $item['series'] ?? null,
                     'material_type' => $item['material_type'] ?? null,
-                    'price' => $item['price'] ?? 0,
-                    'amount' => $item['subtotal'] ?? 0,
+                    'amount' => $subtotal,
+                    'amount_pen' => $subtotal,
+                    'currency' => $currency,
+                    'exchange_rate' => 1.0,
+                    'total_with_igv' => $subtotal,
                     'status' => 'approved',
                     'payment_type' => $paymentType,
-                    'currency' => $currency,
                     'issue_date' => $issueDate,
                     'due_date' => $dueDate,
                     'payment_confirmed' => true,
