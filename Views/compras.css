@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.8.2 - Fix Por Pagar credit data - Feb 3 2026 */
+/* ComprasKrsft v4.8.3 - Por Pagar pills for payment type and due - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -702,13 +702,56 @@ body.dark-mode .input-date {
   font-size: 0.85rem;
 }
 
-.batch-payment-type {
-  color: var(--compras-text-dark);
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: var(--compras-radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pill svg {
+  width: 14px;
+  height: 14px;
+}
+
+.pill-cash {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.pill-credit {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+.pill-due {
   background: var(--compras-border);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  color: var(--compras-text-dark);
+}
+
+.pill-overdue {
+  background: var(--compras-alert-overdue-bg);
+  color: var(--compras-alert-overdue-text);
+}
+
+.pill-urgent {
+  background: var(--compras-alert-urgent-bg);
+  color: var(--compras-alert-urgent-text);
+}
+
+.pill-today {
+  background: var(--compras-alert-today-bg);
+  color: var(--compras-alert-today-text);
+}
+
+.pill-warning {
+  background: var(--compras-alert-warning-bg);
+  color: var(--compras-alert-warning-text);
 }
 
 .batch-items {
