@@ -2066,8 +2066,9 @@ body.dark-mode .quick-pay-section-title {
   margin-bottom: 4px;
   width: 100%;
   max-width: 100%;
-  overflow: hidden;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .quick-pay-form-section .form-row {
@@ -2124,11 +2125,11 @@ body.dark-mode .quick-pay-step label {
   border-radius: var(--compras-radius-md);
   padding: 12px;
   box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  max-width: 100%;
   width: 100%;
+  max-width: 100%;
 }
 
 body.dark-mode .quick-pay-box {
@@ -2140,12 +2141,14 @@ body.dark-mode .quick-pay-box {
   display: grid;
   grid-template-columns: 41% 59%;
   gap: 10px;
-  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .quick-pay-review-grid > div {
   min-width: 0;
-  overflow: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
