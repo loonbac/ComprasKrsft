@@ -687,6 +687,9 @@ const currentPagePending = ref(1);
 const expandedProjects = ref({});
 const expandedLists = ref({});
 const dismissedPaymentAlerts = ref({});
+
+console.log('ComprasKrsft v4.7.3 loaded successfully');
+
 const perPagePending = 20;
 
 // Filters & Pagination
