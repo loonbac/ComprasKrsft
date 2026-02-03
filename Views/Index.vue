@@ -1983,34 +1983,7 @@ const completeQuickPay = async () => {
 
   quickPayLoading.value = true;
   try {
-    // Step 1: Create orders for each item in the project
-    for (const item of quickPayItems.value) {
-      const res = await fetch(`${apiBase.value}/${quickPaySelectedProject.value.id}/order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': getCsrfToken()
-        },
-        body: JSON.stringify({
-          type: 'material',
-          description: item.description,
-          materials: [{ name: item.description, qty: item.qty }],
-          unit: item.unit,
-          diameter: item.diameter || null,
-          series: item.series || null,
-          material_type: item.material_type || null,
-          price: item.price,
-          project_id: quickPaySelectedProject.value.id
-        })
-      });
-      
-      if (!res.ok) {
-        showToast('Error creando órdenes', 'error');
-        return;
-      }
-    }
-
-    // Step 2: Create purchase batch and mark as paid
+    // Send all data to backend in one call
     const formData = new FormData();
     formData.append('project_id', quickPaySelectedProject.value.id);
     formData.append('seller_name', quickPayApprovalForm.value.seller_name);
@@ -2030,11 +2003,13 @@ const completeQuickPay = async () => {
     if (quickPayPaymentForm.value.payment_proof) {
       formData.append('payment_proof', quickPayPaymentForm.value.payment_proof);
     }
-    formData.append('quick_pay', 'true');
     formData.append('items', JSON.stringify(quickPayItems.value.map(item => ({
       description: item.description,
       qty: item.qty,
       unit: item.unit,
+      diameter: item.diameter,
+      series: item.series,
+      material_type: item.material_type,
       price: item.price,
       subtotal: item.subtotal
     }))));
