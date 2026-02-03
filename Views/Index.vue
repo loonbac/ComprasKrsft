@@ -48,7 +48,7 @@
 
         </div>
 
-        <!-- TAB: Por Aprobar - Proyectos agrupados -->
+        <!-- TAB: Por Aprobar - Proyectos agrupados con listas colapsibles -->
         <template v-if="activeTab === 'pending'">
           <div v-if="loading" class="loading-container">
             <div class="loading-spinner"></div>
@@ -60,114 +60,98 @@
             <p>Las órdenes de compra aparecerán aquí cuando se creen desde Proyectos</p>
           </div>
 
-          <div v-else class="pending-approval">
-            <div class="project-list">
+          <div v-else class="pending-approval-reorganized">
+            <!-- Bulk actions bar when selections exist -->
+            <div v-if="selectedPendingIds.length > 0" class="bulk-actions-bar">
+              <span class="selection-count">{{ selectedPendingIds.length }} seleccionados</span>
+              <button @click="selectAllPending" class="btn-select-all">Seleccionar todos</button>
+              <button @click="deselectAllPending" class="btn-deselect-all">Deseleccionar</button>
+              <button @click="openApprovalModal" :disabled="approvingPending" class="btn-approve-bulk">
+                {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
+              </button>
+            </div>
+
+            <!-- Projects with collapsible lists -->
+            <div class="projects-container">
               <div
                 v-for="proj in pendingProjects"
                 :key="proj.id"
-                class="project-card"
-                :class="{ active: selectedPendingProjectId === proj.id }"
-                @click="selectPendingProject(proj.id)"
+                class="project-section"
               >
-                <div class="project-title">{{ proj.name }}</div>
-                <div class="project-meta">{{ proj.count }} items</div>
-              </div>
-            </div>
-
-            <!-- Lists View -->
-            <div class="project-orders" v-if="selectedPendingProject">
-              <h3>Listas de {{ selectedPendingProject.name }}</h3>
-              
-              <!-- Lists Grid -->
-              <div v-if="pendingLists.length > 0" class="lists-grid">
-                <div
-                  v-for="list in pendingLists"
-                  :key="list.filename"
-                  class="list-card"
-                  :class="{ active: selectedPendingListId === list.filename }"
-                  @click="selectPendingList(list.filename)"
-                >
-                  <div class="list-name">{{ list.filename || 'Sin archivo' }}</div>
-                  <div class="list-count">{{ list.count }} items</div>
-                </div>
-              </div>
-
-              <!-- Items View -->
-              <div v-if="selectedPendingList" class="items-section">
-                <div class="selection-info">
-                  <button @click="selectAllPendingList" class="btn-approve-selected">
-                    {{ pendingListAllSelected ? 'Deseleccionar de lista' : 'Seleccionar todos de lista' }}
-                  </button>
-                  <span v-if="selectedPendingIds.length > 0" class="selection-count">{{ selectedPendingIds.length }} seleccionados</span>
-                  <button v-if="selectedPendingIds.length > 0" @click="openApprovalModal" :disabled="approvingPending" class="btn-approve-selected">
-                    {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
-                  </button>
+                <!-- Project Header -->
+                <div class="project-header" @click="toggleProjectExpanded(proj.id)">
+                  <svg class="expand-icon" :class="{ expanded: expandedProjects[proj.id] }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                  <span class="project-name">{{ proj.name }}</span>
+                  <span class="project-count">{{ proj.count }} items</span>
                 </div>
                 
-                <div class="table-container">
-                  <table class="orders-table">
-                    <thead>
-                      <tr>
-                        <th class="col-item">ITEM</th>
-                        <th class="col-type">TIPO</th>
-                        <th class="col-description">DESCRIPCIÓN</th>
-                        <th class="col-qty">CANT</th>
-                        <th class="col-und">UND</th>
-                        <th class="col-diam">DIÁMETRO</th>
-                        <th class="col-serie">SERIE</th>
-                        <th class="col-mat">MATERIAL</th>
-                        <th class="col-date">FECHA</th>
-                        <th class="col-actions">ACCIONES</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        v-for="order in paginatedPendingOrders"
-                        :key="order.id"
-                        @click="togglePendingSelect(order.id)"
-                        :class="{ selected: isPendingSelected(order.id) }"
-                      >
-                        <td class="col-item">{{ order.item_number || '-' }}</td>
-                        <td class="col-type">
-                          <span class="type-badge" :class="order.type">
-                            {{ order.type === 'service' ? 'Servicio' : 'Material' }}
-                          </span>
-                        </td>
-                        <td class="col-description">{{ getOrderTitle(order) }}</td>
-                        <td class="col-qty">{{ getOrderQty(order) }}</td>
-                        <td class="col-und">{{ order.unit || 'UND' }}</td>
-                        <td class="col-diam">{{ order.diameter || '-' }}</td>
-                        <td class="col-serie">{{ order.series || '-' }}</td>
-                        <td class="col-mat">{{ order.material_type || '-' }}</td>
-                        <td class="col-date">{{ formatDate(order.created_at) }}</td>
-                        <td class="col-actions">
-                          <div class="action-buttons">
-                            <button @click.stop="approveSinglePending(order.id)" class="btn-sm btn-approve">Aprobar</button>
-                            <button @click.stop="rejectOrder(order.id)" class="btn-sm btn-reject">Rechazar</button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <!-- Pagination -->
-                <div v-if="totalPagesPending > 1" class="pagination">
-                  <button @click="currentPagePending--" :disabled="currentPagePending <= 1" class="btn-page">← Anterior</button>
-                  <span class="page-info">Página {{ currentPagePending }} de {{ totalPagesPending }}</span>
-                  <button @click="currentPagePending++" :disabled="currentPagePending >= totalPagesPending" class="btn-page">Siguiente →</button>
+                <!-- Lists under project -->
+                <div v-if="expandedProjects[proj.id]" class="lists-container">
+                  <div
+                    v-for="list in getProjectLists(proj.id)"
+                    :key="list.filename || 'manual'"
+                    class="list-section"
+                  >
+                    <!-- List Header -->
+                    <div class="list-header" @click="toggleListExpanded(proj.id, list.filename)">
+                      <svg class="expand-icon" :class="{ expanded: expandedLists[getListKey(proj.id, list.filename)] }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                      <span class="list-name">{{ list.filename || 'Órdenes Manuales' }}</span>
+                      <span class="list-count">{{ list.count }} items</span>
+                    </div>
+                    
+                    <!-- Materials table -->
+                    <div v-if="expandedLists[getListKey(proj.id, list.filename)]" class="materials-table-container">
+                      <table class="materials-approval-table">
+                        <thead>
+                          <tr>
+                            <th class="col-checkbox"><input type="checkbox" @change="toggleListAllSelect(proj.id, list.filename)" :checked="isListAllSelected(proj.id, list.filename)" /></th>
+                            <th class="col-item">ITEM</th>
+                            <th class="col-description">DESCRIPCIÓN</th>
+                            <th class="col-qty">CANT</th>
+                            <th class="col-und">UND</th>
+                            <th class="col-diam">DIÁMETRO</th>
+                            <th class="col-serie">SERIE</th>
+                            <th class="col-mat">MATERIAL</th>
+                            <th class="col-actions">ACCIONES</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="order in getListOrders(proj.id, list.filename)"
+                            :key="order.id"
+                            :class="{ selected: isPendingSelected(order.id) }"
+                          >
+                            <td class="col-checkbox">
+                              <input 
+                                type="checkbox" 
+                                :checked="isPendingSelected(order.id)"
+                                @change="togglePendingSelect(order.id)"
+                              />
+                            </td>
+                            <td class="col-item">{{ order.item_number || '-' }}</td>
+                            <td class="col-description">{{ getOrderTitle(order) }}</td>
+                            <td class="col-qty">{{ getOrderQty(order) }}</td>
+                            <td class="col-und">{{ order.unit || 'UND' }}</td>
+                            <td class="col-diam">{{ order.diameter || '-' }}</td>
+                            <td class="col-serie">{{ order.series || '-' }}</td>
+                            <td class="col-mat">{{ order.material_type || '-' }}</td>
+                            <td class="col-actions">
+                              <div class="action-buttons">
+                                <button @click="approveSinglePending(order.id)" class="btn-sm btn-approve" title="Aprobar">✓</button>
+                                <button @click="rejectOrder(order.id)" class="btn-sm btn-reject" title="Rechazar">✕</button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div v-else-if="pendingLists.length > 0" class="empty-state">
-                <h3>Seleccione una lista</h3>
-                <p>Elija una lista para ver sus items</p>
-              </div>
-            </div>
-
-            <div v-else class="empty-state">
-              <h3>Seleccione un proyecto</h3>
-              <p>Elija un proyecto para ver sus listas de materiales</p>
             </div>
           </div>
         </template>
@@ -684,6 +668,8 @@ const showApprovalModal = ref(false);
 const approvalPrices = ref({});
 const selectedApprovalIds = ref([]);
 const currentPagePending = ref(1);
+const expandedProjects = ref({});
+const expandedLists = ref({});
 const perPagePending = 20;
 
 // Filters & Pagination
@@ -1084,6 +1070,68 @@ const togglePendingSelect = (orderId) => {
   } else {
     selectedPendingIds.value.push(orderId);
   }
+};
+
+// New collapsed structure methods
+const getListKey = (projectId, filename) => `${projectId}-${filename || 'manual'}`;
+
+const toggleProjectExpanded = (projectId) => {
+  expandedProjects.value[projectId] = !expandedProjects.value[projectId];
+};
+
+const toggleListExpanded = (projectId, filename) => {
+  const key = getListKey(projectId, filename);
+  expandedLists.value[key] = !expandedLists.value[key];
+};
+
+const getProjectLists = (projectId) => {
+  const lists = {};
+  pendingOrders.value
+    .filter(o => o.project_id === projectId)
+    .forEach(o => {
+      const filename = o.source_filename || 'Manual';
+      if (!lists[filename]) {
+        lists[filename] = { filename, count: 0 };
+      }
+      lists[filename].count += 1;
+    });
+  return Object.values(lists).sort((a, b) => a.filename.localeCompare(b.filename));
+};
+
+const getListOrders = (projectId, filename) => {
+  return pendingOrders.value.filter(o => 
+    o.project_id === projectId &&
+    (o.source_filename || 'Manual') === filename
+  );
+};
+
+const isListAllSelected = (projectId, filename) => {
+  const orders = getListOrders(projectId, filename);
+  if (orders.length === 0) return false;
+  return orders.every(o => isPendingSelected(o.id));
+};
+
+const toggleListAllSelect = (projectId, filename) => {
+  const orders = getListOrders(projectId, filename);
+  const allSelected = isListAllSelected(projectId, filename);
+  
+  orders.forEach(o => {
+    const idx = selectedPendingIds.value.indexOf(o.id);
+    if (allSelected && idx >= 0) {
+      selectedPendingIds.value.splice(idx, 1);
+    } else if (!allSelected && idx < 0) {
+      selectedPendingIds.value.push(o.id);
+    }
+  });
+};
+
+const selectAllPending = () => {
+  const allIds = pendingOrders.value.map(o => o.id);
+  selectedPendingIds.value = [...new Set([...selectedPendingIds.value, ...allIds])];
+};
+
+const deselectAllPending = () => {
+  selectedPendingIds.value = [];
 };
 
 // Data Loading
