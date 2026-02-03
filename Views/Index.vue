@@ -1,6 +1,6 @@
 <template>
-  <!-- v4.7.7 - Updated Feb 3 2026 - UI improvements -->
-  <div class="compras-layout" data-v="477">
+  <!-- v4.7.8 - Updated Feb 3 2026 - Collapsible paid batches -->
+  <div class="compras-layout" data-v="478">
     <div class="compras-bg"></div>
     
     <div class="compras-container">
@@ -247,47 +247,53 @@
           </div>
 
           <div v-else class="batches-list">
-            <div v-for="batch in filteredPaidBatches" :key="batch.batch_id" class="batch-card paid">
-              <div class="batch-header">
-                <div class="batch-info">
-                  <span class="batch-id">{{ batch.batch_id }}</span>
-                  <span class="batch-seller">{{ batch.seller_name }}</span>
-                  <span v-if="batchAllDelivered(batch)" class="delivered-badge">✓ Entregado</span>
-                  <span v-else class="paid-badge">✓ Pagado</span>
+            <div v-for="batch in filteredPaidBatches" :key="batch.batch_id" class="batch-card paid collapsed-batch">
+              <!-- Collapsed Header -->
+              <div @click="togglePaidBatchExpanded(batch.batch_id)" class="batch-header collapsed-header">
+                <div class="expand-icon" :class="{ expanded: expandedPaidBatches.value.has(batch.batch_id) }">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </div>
-                <div class="batch-meta">
-                  <span>{{ batch.orders.length }} items</span>
-                  <span class="batch-date">Pagado {{ formatDate(batch.payment_confirmed_at) }}</span>
-                  <span v-if="batch.approved_by_name" class="batch-approver">Aprobado por: {{ batch.approved_by_name }}</span>
-                  <span v-if="batch.payment_confirmed_by_name" class="batch-paid-by">Pagado por: {{ batch.payment_confirmed_by_name }}</span>
-                </div>
-              </div>
-              
-              <div class="batch-items">
-                <div v-for="order in batch.orders" :key="order.id" class="batch-item">
-                  <span class="item-project">{{ order.project_name }}</span>
-                  <span class="item-desc">{{ getOrderTitle(order) }}</span>
-                  <span class="item-amount">{{ order.currency }} {{ formatNumber(order.amount) }}</span>
-                  <span v-if="order.delivery_confirmed" class="item-delivered-badge">Entregado</span>
-                </div>
+                <span class="batch-id-compact">{{ batch.batch_id }}</span>
+                <span class="batch-seller-compact">{{ batch.seller_name }}</span>
+                <span v-if="batchAllDelivered(batch)" class="delivered-badge-compact">✓ Entregado</span>
+                <span v-else class="paid-badge-compact">✓ Pagado</span>
+                <span class="batch-items-count">{{ batch.orders.length }} items</span>
+                <span class="batch-total-compact">{{ batch.currency }} {{ formatNumber(batch.total) }}</span>
               </div>
 
-              <div class="batch-footer">
-                <div class="batch-totals">
-                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber(batch.total) }}</span>
+              <!-- Expanded Content -->
+              <div v-if="expandedPaidBatches.value.has(batch.batch_id)" class="batch-expanded-content">
+                <div class="batch-meta-expanded">
+                  <span class="meta-item">Pagado {{ formatDate(batch.payment_confirmed_at) }}</span>
+                  <span v-if="batch.approved_by_name" class="meta-item">Aprobado por: {{ batch.approved_by_name }}</span>
+                  <span v-if="batch.payment_confirmed_by_name" class="meta-item">Pagado por: {{ batch.payment_confirmed_by_name }}</span>
                 </div>
-                <div class="batch-payment-details">
-                  <div v-if="batch.cdp_type || batch.cdp_serie" class="payment-detail-row">
-                    <span class="detail-label">Comprobante:</span>
-                    <span class="detail-value">{{ batch.cdp_type }} {{ batch.cdp_serie }}-{{ batch.cdp_number }}</span>
+                
+                <div class="batch-items-expanded">
+                  <div v-for="order in batch.orders" :key="order.id" class="batch-item-expanded">
+                    <span class="item-project-small">{{ order.project_name }}</span>
+                    <span class="item-desc-small">{{ getOrderTitle(order) }}</span>
+                    <span class="item-amount-small">{{ order.currency }} {{ formatNumber(order.amount) }}</span>
+                    <span v-if="order.delivery_confirmed" class="item-delivered-badge-small">Entregado</span>
                   </div>
-                  <div v-if="batch.payment_proof_link" class="payment-detail-row">
-                    <span class="detail-label">Link Factura:</span>
-                    <a :href="batch.payment_proof_link" target="_blank" class="detail-link">{{ batch.payment_proof_link }}</a>
-                  </div>
-                  <div v-if="batch.payment_proof" class="payment-detail-row">
-                    <span class="detail-label">Archivo:</span>
-                    <a :href="`/storage/${batch.payment_proof}`" target="_blank" class="detail-link">Descargar</a>
+                </div>
+
+                <div class="batch-footer-expanded">
+                  <div class="batch-payment-details-expanded">
+                    <div v-if="batch.cdp_type || batch.cdp_serie" class="payment-detail-row-small">
+                      <span class="detail-label-small">Comprobante:</span>
+                      <span class="detail-value-small">{{ batch.cdp_type }} {{ batch.cdp_serie }}-{{ batch.cdp_number }}</span>
+                    </div>
+                    <div v-if="batch.payment_proof_link" class="payment-detail-row-small">
+                      <span class="detail-label-small">Link Factura:</span>
+                      <a :href="batch.payment_proof_link" target="_blank" class="detail-link-small">{{ batch.payment_proof_link }}</a>
+                    </div>
+                    <div v-if="batch.payment_proof" class="payment-detail-row-small">
+                      <span class="detail-label-small">Archivo:</span>
+                      <a :href="`/storage/${batch.payment_proof}`" target="_blank" class="detail-link-small">Descargar</a>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -725,6 +731,7 @@ const confirmingPayment = ref(false);
 // Paid Filter
 const paidFilterStartDate = ref('');
 const paidFilterEndDate = ref('');
+const expandedPaidBatches = ref(new Set());
 
 const exportFilter = ref({
   startDate: '',
@@ -1308,6 +1315,14 @@ const closeExportModal = () => {
 const resetPaidFilter = () => {
   paidFilterStartDate.value = '';
   paidFilterEndDate.value = '';
+};
+
+const togglePaidBatchExpanded = (batchId) => {
+  if (expandedPaidBatches.value.has(batchId)) {
+    expandedPaidBatches.value.delete(batchId);
+  } else {
+    expandedPaidBatches.value.add(batchId);
+  }
 };
 
 const setExportPreset = (preset) => {

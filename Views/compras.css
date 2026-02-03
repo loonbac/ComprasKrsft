@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.7.7 - UI improvements: transparent selection, solid blue export button - Feb 3 2026 */
+/* ComprasKrsft v4.7.8 - Collapsible paid batches with compact layout - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -1646,4 +1646,210 @@ body.dark-mode .input-date {
 .batch-due-date {
   color: var(--compras-text-gray);
   font-size: 0.85rem;
+}
+
+/* ============================================
+   COLLAPSED BATCH STYLES - Pagadas Section
+   ============================================ */
+
+.collapsed-batch {
+  border: none;
+  box-shadow: none;
+}
+
+.collapsed-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.collapsed-header:hover {
+  background: var(--compras-border);
+  border-color: var(--compras-primary);
+}
+
+.expand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.expand-icon svg {
+  width: 16px;
+  height: 16px;
+  color: var(--compras-text-gray);
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.batch-id-compact {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--compras-text-gray);
+  background: var(--compras-border);
+  padding: 3px 7px;
+  border-radius: 3px;
+  min-width: 90px;
+}
+
+.batch-seller-compact {
+  color: var(--compras-text-dark);
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-width: 120px;
+}
+
+.delivered-badge-compact,
+.paid-badge-compact {
+  background: var(--compras-badge-success-bg);
+  color: var(--compras-badge-success-text);
+  padding: 3px 8px;
+  border-radius: var(--compras-radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.batch-items-count {
+  font-size: 0.75rem;
+  color: var(--compras-text-gray);
+  background: var(--compras-border);
+  padding: 3px 7px;
+  border-radius: 3px;
+}
+
+.batch-total-compact {
+  font-weight: 700;
+  color: var(--compras-primary);
+  font-size: 0.85rem;
+  margin-left: auto;
+}
+
+.batch-expanded-content {
+  padding: 12px 16px;
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
+  border-top: none;
+  border-radius: 0 0 var(--compras-radius-md) var(--compras-radius-md);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.batch-meta-expanded {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  font-size: 0.75rem;
+  color: var(--compras-text-gray);
+}
+
+.meta-item {
+  background: var(--compras-bg-light);
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+
+.batch-items-expanded {
+  margin-bottom: 10px;
+}
+
+.batch-item-expanded {
+  display: grid;
+  grid-template-columns: 100px 1fr 80px auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--compras-border-light);
+  font-size: 0.8rem;
+}
+
+.batch-item-expanded:last-child {
+  border-bottom: none;
+}
+
+.item-project-small {
+  color: var(--compras-text-gray);
+  font-size: 0.7rem;
+}
+
+.item-desc-small {
+  color: var(--compras-text-dark);
+  font-size: 0.8rem;
+}
+
+.item-amount-small {
+  font-weight: 600;
+  color: var(--compras-primary);
+  text-align: right;
+  font-size: 0.75rem;
+}
+
+.item-delivered-badge-small {
+  background: var(--compras-badge-success-bg);
+  color: var(--compras-badge-success-text);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.batch-footer-expanded {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--compras-border-light);
+}
+
+.batch-payment-details-expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payment-detail-row-small {
+  display: flex;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.detail-label-small {
+  font-weight: 600;
+  color: var(--compras-text-gray);
+  min-width: 90px;
+}
+
+.detail-value-small {
+  color: var(--compras-text-dark);
+}
+
+.detail-link-small {
+  color: var(--compras-primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.detail-link-small:hover {
+  text-decoration: underline;
 }
