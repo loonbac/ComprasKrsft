@@ -905,7 +905,8 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 }
 
 .modal-lg {
-  max-width: 1080px;
+  width: min(1200px, 95vw);
+  max-width: 1200px;
 }
 
 .modal-header {
@@ -2054,15 +2055,18 @@ body.dark-mode .quick-pay-section-title {
 }
 
 .quick-pay-inline-group label {
-  min-width: 140px;
+  min-width: 110px;
+  max-width: 160px;
   flex-shrink: 0;
   margin-bottom: 0;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .quick-pay-inline-group .input-field,
 .quick-pay-inline-group .input-file {
   flex: 1;
+  min-width: 0;
 }
 
 .quick-pay-step label {
