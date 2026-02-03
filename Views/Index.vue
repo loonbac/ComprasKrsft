@@ -639,13 +639,13 @@
               <!-- Step 2: Add Items -->
               <div v-if="quickPayStep === 2 && quickPaySelectedProject" class="quick-pay-step">
                 <h4>
-                  Proyecto:
+                  <span class="quick-pay-label">Proyecto:</span>
                   <span class="quick-pay-project-pill" :style="{ background: getProjectColor(quickPaySelectedProject.id) }">
                     {{ quickPaySelectedProject.name }}
                   </span>
                 </h4>
-                <div style="margin-top: 10px; margin-bottom: 20px;" class="form-section">
-                  <h5 style="margin-bottom: 10px;">Agregar Material</h5>
+                <div class="form-section quick-pay-form-section">
+                  <h5 class="quick-pay-section-title">Agregar Material</h5>
                   <div class="form-row">
                     <div class="form-group flex-1">
                       <label>Cantidad</label>
@@ -691,11 +691,11 @@
 
               <!-- Step 3: Review & Pay -->
               <div v-if="quickPayStep === 3" class="quick-pay-step">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="quick-pay-review-grid">
                   <!-- Left: Items & Pricing -->
                   <div>
-                    <h5>Items a Pagar</h5>
-                    <div class="items-table" style="margin-bottom: 20px;">
+                    <h5 class="quick-pay-section-title">Items a Pagar</h5>
+                    <div class="items-table quick-pay-items-table">
                       <div v-for="(item, idx) in quickPayItems" :key="idx" class="item-row">
                         <div class="item-desc">{{ item.description }}<br/><small>{{ item.qty }} {{ item.unit }}</small></div>
                         <div class="item-price">
@@ -712,8 +712,8 @@
 
                   <!-- Right: Supplier & Payment Info -->
                   <div>
-                    <h5>Datos del Proveedor</h5>
-                    <div class="form-section">
+                    <h5 class="quick-pay-section-title">Datos del Proveedor</h5>
+                    <div class="form-section quick-pay-form-section">
                       <div class="form-group">
                         <label>Proveedor *</label>
                         <input v-model="quickPayApprovalForm.seller_name" type="text" class="input-field" placeholder="Razón social" />
@@ -750,8 +750,8 @@
                       </div>
                     </div>
 
-                    <h5 style="margin-top: 20px;">Comprobante de Pago</h5>
-                    <div class="form-section">
+                    <h5 class="quick-pay-section-title with-top">Comprobante de Pago</h5>
+                    <div class="form-section quick-pay-form-section">
                       <div class="form-row">
                         <div class="form-group flex-1">
                           <label>Tipo *</label>
@@ -782,7 +782,7 @@
 
             <div class="modal-footer">
               <button @click="closeQuickPayModal" type="button" class="btn-cancel">Cancelar</button>
-              <button v-if="quickPayStep > 1" @click="quickPayStep--" type="button" class="btn-secondary btn-quick-back">← Atrás</button>
+              <button v-if="quickPayStep > 1" @click="quickPayStep--" type="button" class="btn-secondary btn-quick-back">Atrás</button>
               <button v-if="quickPayStep < 3" @click="proceedToQuickPayReview" type="button" class="btn-submit">Siguiente →</button>
               <button v-if="quickPayStep === 3" @click="completeQuickPay" :disabled="quickPayLoading" type="button" class="btn-submit">
                 {{ quickPayLoading ? 'Procesando...' : 'Confirmar Pago Rápido' }}

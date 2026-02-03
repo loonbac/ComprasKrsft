@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.9.7 - Quick Pay modal refinements - Feb 3 2026 */
+/* ComprasKrsft v4.9.8 - Quick Pay readability tweaks - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -1947,13 +1947,79 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 }
 
 .quick-pay-subtitle {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   color: var(--compras-text-dark);
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 body.dark-mode .quick-pay-subtitle {
-  color: var(--compras-text-gray);
+  color: var(--compras-text-white);
+}
+
+.quick-pay-label {
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+  color: var(--compras-text-dark);
+}
+
+body.dark-mode .quick-pay-label {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--compras-text-dark);
+  margin: 0 0 10px 0;
+}
+
+.quick-pay-section-title.with-top {
+  margin-top: 12px;
+}
+
+body.dark-mode .quick-pay-section-title {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-form-section {
+  margin-top: 8px;
+  margin-bottom: 14px;
+}
+
+.quick-pay-step label {
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--compras-text-dark);
+}
+
+body.dark-mode .quick-pay-step label {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .quick-pay-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quick-pay-items-table {
+  margin-bottom: 12px;
+  max-height: 240px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .btn-quick-pay {
@@ -1982,7 +2048,7 @@ body.dark-mode .quick-pay-subtitle {
 }
 
 .quick-pay-step {
-  padding: 20px 0;
+  padding: 12px 0;
 }
 
 .projects-grid {
@@ -2058,7 +2124,10 @@ body.dark-mode .quick-pay-subtitle {
 .btn-quick-back {
   background: var(--compras-bg-light);
   color: var(--compras-text-dark);
-  border: 1px solid var(--compras-border);
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--compras-radius-sm);
+  font-weight: 500;
 }
 
 .btn-quick-back:hover {
@@ -2077,42 +2146,60 @@ body.dark-mode .quick-pay-subtitle {
 }
 
 .items-summary {
-  margin-top: 20px;
-  padding: 15px;
-  background: var(--compras-bg-secondary);
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--compras-bg-light);
   border-radius: 8px;
+  border: 1px solid var(--compras-border);
 }
 
 .items-summary h5 {
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
   color: var(--compras-text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+body.dark-mode .items-summary h5 {
+  color: var(--compras-text-white);
 }
 
 .items-table {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .item-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  background: var(--compras-bg-container);
-  border-radius: 6px;
-  font-size: 0.9rem;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--compras-bg-card);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  border: 1px solid var(--compras-border);
   border-left: 3px solid var(--compras-primary);
 }
 
 .item-info {
   flex: 1;
+  font-weight: 600;
+  color: var(--compras-text-dark);
 }
 
 .item-desc {
   flex: 1;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--compras-text-dark);
+}
+
+body.dark-mode .item-info,
+body.dark-mode .item-desc {
+  color: var(--compras-text-white);
 }
 
 .item-price {
@@ -2139,7 +2226,7 @@ body.dark-mode .quick-pay-subtitle {
 .item-subtotal {
   flex: 0 0 100px;
   text-align: right;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--compras-primary);
 }
 
@@ -2164,6 +2251,12 @@ body.dark-mode .quick-pay-subtitle {
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
+}
+
+.items-summary .btn-remove {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
 }
 
 .btn-remove:hover {
