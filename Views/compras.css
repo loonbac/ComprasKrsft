@@ -1,4 +1,4 @@
-/* ComprasKrsft v4.9.8 - Quick Pay readability tweaks - Feb 3 2026 */
+/* ComprasKrsft v4.9.9 - Inline form layout for provider data - Feb 3 2026 */
 
 /* Layout */
 .compras-layout {
@@ -1989,6 +1989,23 @@ body.dark-mode .quick-pay-section-title {
 .quick-pay-form-section {
   margin-top: 8px;
   margin-bottom: 14px;
+}
+
+.quick-pay-inline-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.quick-pay-inline-group label {
+  min-width: 100px;
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.quick-pay-inline-group .input-field {
+  flex: 1;
 }
 
 .quick-pay-step label {

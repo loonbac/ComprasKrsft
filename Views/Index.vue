@@ -714,29 +714,27 @@
                   <div>
                     <h5 class="quick-pay-section-title">Datos del Proveedor</h5>
                     <div class="form-section quick-pay-form-section">
-                      <div class="form-group">
+                      <div class="form-group quick-pay-inline-group">
                         <label>Proveedor *</label>
                         <input v-model="quickPayApprovalForm.seller_name" type="text" class="input-field" placeholder="Razón social" />
                       </div>
-                      <div class="form-group">
+                      <div class="form-group quick-pay-inline-group">
                         <label>RUC *</label>
                         <input v-model="quickPayApprovalForm.seller_document" type="text" class="input-field" placeholder="20123456789" />
                       </div>
-                      <div class="form-row">
-                        <div class="form-group flex-1">
-                          <label>Moneda</label>
-                          <select v-model="quickPayApprovalForm.currency" @change="onQuickPayApprovalCurrencyChange" class="input-field">
-                            <option value="PEN">Soles</option>
-                            <option value="USD">Dólares</option>
-                          </select>
-                        </div>
-                        <div class="form-group flex-1">
-                          <label>Tipo Pago</label>
-                          <select v-model="quickPayApprovalForm.payment_type" class="input-field">
-                            <option value="cash">Al Contado</option>
-                            <option value="loan">Crédito</option>
-                          </select>
-                        </div>
+                      <div class="form-group quick-pay-inline-group">
+                        <label>Moneda</label>
+                        <select v-model="quickPayApprovalForm.currency" @change="onQuickPayApprovalCurrencyChange" class="input-field">
+                          <option value="PEN">Soles</option>
+                          <option value="USD">Dólares</option>
+                        </select>
+                      </div>
+                      <div class="form-group quick-pay-inline-group">
+                        <label>Tipo Pago</label>
+                        <select v-model="quickPayApprovalForm.payment_type" class="input-field">
+                          <option value="cash">Al Contado</option>
+                          <option value="loan">Crédito</option>
+                        </select>
                       </div>
                       <div class="form-row">
                         <div class="form-group flex-1">
