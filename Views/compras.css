@@ -2118,6 +2118,21 @@ body.dark-mode .quick-pay-step label {
   color: var(--compras-text-white);
 }
 
+.quick-pay-box {
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+  padding: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+}
+
+body.dark-mode .quick-pay-box {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 .quick-pay-review-grid {
   display: grid;
   grid-template-columns: 43% 57%;

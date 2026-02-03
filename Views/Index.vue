@@ -702,7 +702,7 @@
               <div v-if="quickPayStep === 3" class="quick-pay-step">
                 <div class="quick-pay-review-grid">
                   <!-- Left: Items & Pricing -->
-                  <div>
+                  <div class="quick-pay-box">
                     <h5 class="quick-pay-section-title">Items a Pagar</h5>
                     <div class="items-table quick-pay-items-table">
                       <div v-for="(item, idx) in quickPayItems" :key="idx" class="item-row">
@@ -720,7 +720,7 @@
                   </div>
 
                   <!-- Right: Supplier & Payment Info -->
-                  <div>
+                  <div class="quick-pay-box">
                     <h5 class="quick-pay-section-title">Datos del Proveedor</h5>
                     <div class="form-section quick-pay-form-section">
                       <div class="form-group quick-pay-inline-group">
