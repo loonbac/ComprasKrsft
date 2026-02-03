@@ -1265,6 +1265,22 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   background: var(--compras-border);
 }
 
+.btn-cancel-red {
+  padding: 10px 20px;
+  background: var(--compras-danger);
+  border: none;
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-cancel-red:hover {
+  background: var(--compras-danger-dark);
+  transform: translateY(-1px);
+}
+
 .btn-submit {
   padding: 10px 24px;
   background: var(--compras-primary);

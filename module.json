@@ -1,14 +1,15 @@
 {
     "name": "ComprasKrsft",
     "display_name": "GESTIÓN DE COMPRAS",
-    "version": "5.0.0",
-    "description": "Sistema de gestión de órdenes de compra y pagos. Nuevo flujo: Por Aprobar → Por Pagar → Pagadas. Incluye Pago Rápido express.",
+    "version": "5.1.0",
+    "description": "Sistema de gestión de órdenes de compra y pagos. Integración automática con Inventario: todas las compras aprobadas se envían como materiales apartados. Flujo: Por Aprobar → Por Pagar → Pagadas. Incluye Pago Rápido express.",
     "icon": "icon.svg",
     "color": "#10b981",
     "gradient": "linear-gradient(135deg, #10b981, #059669)",
     "author": "loonbac21, insent1209, yokonad",
     "enabled": true,
     "dependencies": [
-        "ProyectosKrsft"
+        "ProyectosKrsft",
+        "InventarioKrsft"
     ]
 }
