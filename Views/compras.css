@@ -2122,7 +2122,7 @@ body.dark-mode .quick-pay-step label {
   background: var(--compras-bg-card);
   border: 1px solid var(--compras-border);
   border-radius: var(--compras-radius-md);
-  padding: 16px;
+  padding: 12px;
   box-sizing: border-box;
   overflow: hidden;
   min-width: 0;
@@ -2135,8 +2135,8 @@ body.dark-mode .quick-pay-box {
 
 .quick-pay-review-grid {
   display: grid;
-  grid-template-columns: 43% 57%;
-  gap: 14px;
+  grid-template-columns: 41% 59%;
+  gap: 10px;
   overflow: hidden;
 }
 
