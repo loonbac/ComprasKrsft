@@ -739,39 +739,35 @@
                           <option value="loan">Crédito</option>
                         </select>
                       </div>
-                      <div class="form-row">
-                        <div class="form-group flex-1">
-                          <label>Fecha Emisión</label>
-                          <input v-model="quickPayApprovalForm.issue_date" type="date" class="input-field" />
-                        </div>
-                        <div v-if="quickPayApprovalForm.payment_type === 'loan'" class="form-group flex-1">
-                          <label>Fecha Vencimiento</label>
-                          <input v-model="quickPayApprovalForm.due_date" type="date" class="input-field" />
-                        </div>
+                      <div class="form-group quick-pay-inline-group">
+                        <label>Fecha Emisión</label>
+                        <input v-model="quickPayApprovalForm.issue_date" type="date" class="input-field" />
+                      </div>
+                      <div v-if="quickPayApprovalForm.payment_type === 'loan'" class="form-group quick-pay-inline-group">
+                        <label>Fecha Vencimiento</label>
+                        <input v-model="quickPayApprovalForm.due_date" type="date" class="input-field" />
                       </div>
                     </div>
 
                     <h5 class="quick-pay-section-title with-top">Comprobante de Pago</h5>
                     <div class="form-section quick-pay-form-section">
-                      <div class="form-row">
-                        <div class="form-group flex-1">
-                          <label>Tipo *</label>
-                          <input v-model="quickPayPaymentForm.cdp_type" type="text" class="input-field" placeholder="01, 03" />
-                        </div>
-                        <div class="form-group flex-1">
-                          <label>Serie *</label>
-                          <input v-model="quickPayPaymentForm.cdp_serie" type="text" class="input-field" placeholder="F001" />
-                        </div>
-                        <div class="form-group flex-1">
-                          <label>Número *</label>
-                          <input v-model="quickPayPaymentForm.cdp_number" type="text" class="input-field" placeholder="00001234" />
-                        </div>
+                      <div class="form-group quick-pay-inline-group">
+                        <label>Tipo *</label>
+                        <input v-model="quickPayPaymentForm.cdp_type" type="text" class="input-field" placeholder="01, 03" />
                       </div>
-                      <div class="form-group">
+                      <div class="form-group quick-pay-inline-group">
+                        <label>Serie *</label>
+                        <input v-model="quickPayPaymentForm.cdp_serie" type="text" class="input-field" placeholder="F001" />
+                      </div>
+                      <div class="form-group quick-pay-inline-group">
+                        <label>Número *</label>
+                        <input v-model="quickPayPaymentForm.cdp_number" type="text" class="input-field" placeholder="00001234" />
+                      </div>
+                      <div class="form-group quick-pay-inline-group">
                         <label>Comprobante (archivo)</label>
                         <input type="file" @change="onQuickPayProofChange" accept="image/*,.pdf" class="input-file" />
                       </div>
-                      <div class="form-group">
+                      <div class="form-group quick-pay-inline-group">
                         <label>Comprobante (link)</label>
                         <input v-model="quickPayPaymentForm.payment_proof_link" type="url" placeholder="https://..." class="input-field" />
                       </div>

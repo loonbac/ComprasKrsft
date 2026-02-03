@@ -2049,16 +2049,18 @@ body.dark-mode .quick-pay-section-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 0;
+  margin-bottom: 12px;
 }
 
 .quick-pay-inline-group label {
-  min-width: 100px;
+  min-width: 140px;
   flex-shrink: 0;
   margin-bottom: 0;
+  font-weight: 600;
 }
 
-.quick-pay-inline-group .input-field {
+.quick-pay-inline-group .input-field,
+.quick-pay-inline-group .input-file {
   flex: 1;
 }
 
