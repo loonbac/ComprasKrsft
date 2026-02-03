@@ -1057,6 +1057,12 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   gap: 6px;
 }
 
+.form-group.quick-pay-inline-group {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+}
+
 .payment-form .form-row .form-group {
   flex: 1;
   min-width: 200px;
