@@ -216,13 +216,13 @@
                 <div v-for="order in batch.orders" :key="order.id" class="batch-item">
                   <span class="item-project">{{ order.project_name }}</span>
                   <span class="item-desc">{{ getOrderTitle(order) }}</span>
-                  <span class="item-amount">{{ batch.currency }} {{ formatNumber(order.amount_with_igv ?? order.amount || 0) }}</span>
+                  <span class="item-amount">{{ batch.currency }} {{ formatNumber((order.amount_with_igv ?? order.amount) || 0) }}</span>
                 </div>
               </div>
 
               <div class="batch-footer">
                 <div class="batch-totals">
-                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber(batch.total_with_igv ?? batch.total) }}</span>
+                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber((batch.total_with_igv ?? batch.total) || 0) }}</span>
                 </div>
                 <button @click="openPaymentModal(batch)" class="btn-confirm-payment">Pagar</button>
               </div>
