@@ -689,10 +689,19 @@
                 <!-- Items List -->
                 <div v-if="quickPayItems.length > 0" class="items-summary">
                   <h5>Items Agregados</h5>
-                  <div class="items-table">
-                    <div v-for="(item, idx) in quickPayItems" :key="idx" class="item-row">
-                      <span class="item-info">{{ item.qty }} {{ item.unit }} - {{ item.description }}</span>
-                      <button @click="removeQuickPayItem(idx)" type="button" class="btn-remove">✕</button>
+                  <div class="items-table items-summary-table">
+                    <div v-for="(item, idx) in quickPayItems" :key="idx" class="item-summary-row">
+                      <div class="item-summary-content">
+                        <div class="item-summary-title">{{ item.description }}</div>
+                        <div class="item-summary-meta">
+                          <span><span class="item-summary-label">CANTIDAD:</span> {{ item.qty }}</span>
+                          <span><span class="item-summary-label">UNIDAD:</span> {{ item.unit }}</span>
+                          <span v-if="item.diameter"><span class="item-summary-label">DIÁMETRO:</span> {{ item.diameter }}</span>
+                          <span v-if="item.series"><span class="item-summary-label">SERIE:</span> {{ item.series }}</span>
+                          <span v-if="item.material_type"><span class="item-summary-label">MATERIAL:</span> {{ item.material_type }}</span>
+                        </div>
+                      </div>
+                      <button @click="removeQuickPayItem(idx)" type="button" class="btn-remove btn-remove-square" aria-label="Eliminar item">×</button>
                     </div>
                   </div>
                 </div>
