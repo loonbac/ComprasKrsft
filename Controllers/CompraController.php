@@ -215,6 +215,10 @@ class CompraController extends Controller
 
             $batchId = 'AP-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
 
+            // IGV settings from request
+            $igvEnabled = $request->input('igv_enabled', false);
+            $igvRate = floatval($request->input('igv_rate', 18.00));
+
             $sharedData = [
                 'status' => 'to_pay',
                 'approved_by' => auth()->id(),
@@ -227,6 +231,8 @@ class CompraController extends Controller
                 'payment_type' => $request->input('payment_type', 'cash'),
                 'issue_date' => $request->input('issue_date'),
                 'due_date' => $request->input('due_date'),
+                'igv_enabled' => $igvEnabled,
+                'igv_rate' => $igvRate,
                 'updated_at' => now()
             ];
 
@@ -236,12 +242,17 @@ class CompraController extends Controller
 
                 $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
 
+                // Calculate IGV
+                $igvAmount = $igvEnabled ? ($amountPen * ($igvRate / 100)) : 0;
+                $totalWithIgv = $igvEnabled ? ($amountPen + $igvAmount) : $amountPen;
+
                 DB::table($this->ordersTable)
                     ->where('id', $orderId)
                     ->update(array_merge($sharedData, [
                         'amount' => $amount,
                         'amount_pen' => $amountPen,
-                        'total_with_igv' => $amountPen
+                        'igv_amount' => $igvAmount,
+                        'total_with_igv' => $totalWithIgv
                     ]));
             }
 
