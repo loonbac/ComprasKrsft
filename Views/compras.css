@@ -901,8 +901,8 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   border-radius: var(--compras-radius-xl);
   width: min(1200px, 95vw);
   max-height: 92vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--compras-shadow-lg);
 }
 
@@ -944,6 +944,8 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 .modal-body {
   padding: 16px;
   box-sizing: border-box;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .modal-footer {
@@ -2109,13 +2111,11 @@ body.dark-mode .quick-pay-section-title {
 }
 
 .quick-pay-dates-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
-  align-items: center;
-  transition: var(--compras-transition);
   margin-bottom: 12px;
 }
 
@@ -2125,7 +2125,8 @@ body.dark-mode .quick-pay-section-title {
   flex-direction: row;
   align-items: center;
   gap: 12px;
-  width: 100%;
+  flex: 1;
+  min-width: calc(50% - 6px);
 }
 
 @media (max-width: 768px) {
