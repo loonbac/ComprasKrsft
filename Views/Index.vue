@@ -1381,13 +1381,16 @@ const openApprovalModal = () => {
     payment_type: 'cash',
     currency: 'PEN',
     issue_date: getLocalDateString(),
-    due_date: ''
+    due_date: '',
+    igv_enabled: false,
+    igv_rate: 18.00
   };
 
   if (selectedApprovalIds.value.length === 1) {
     const order = pendingOrders.value.find(o => o.id === selectedApprovalIds.value[0]);
     if (order) {
       approvalForm.value = {
+        ...defaultForm,
         seller_name: order.seller_name || defaultForm.seller_name,
         seller_document: order.seller_document || defaultForm.seller_document,
         payment_type: order.payment_type || defaultForm.payment_type,

@@ -1031,10 +1031,10 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 .approval-modal .total-final {
   color: var(--compras-primary);
   font-weight: 700;
-  background: transparent;
-  padding: 4px 0;
+  background: transparent !important;
+  padding: 0;
   border-radius: 0;
-  margin-top: 0;
+  margin: 0;
 }
 
 .approval-modal .total-row span,
