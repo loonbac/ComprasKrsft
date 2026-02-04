@@ -899,7 +899,7 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 .modal-content {
   background: var(--compras-modal-bg);
   border-radius: var(--compras-radius-xl);
-  width: min(1200px, 95vw);
+  width: min(1400px, 95vw);
   max-height: 92vh;
   display: flex;
   flex-direction: column;
@@ -907,8 +907,8 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 }
 
 .modal-lg {
-  width: min(1200px, 95vw);
-  max-width: 1200px;
+  width: min(1400px, 95vw);
+  max-width: 1400px;
 }
 
 .modal-header {
@@ -944,7 +944,7 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 .modal-body {
   padding: 16px;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow-y: hidden;
   flex: 1;
 }
 
