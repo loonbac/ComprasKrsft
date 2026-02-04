@@ -927,6 +927,15 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
   max-width: 1800px;
 }
 
+.payment-modal {
+  width: min(700px, 90vw);
+  max-width: 700px;
+}
+
+.payment-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -1353,8 +1362,8 @@ body.dark-mode .totals-section {
 /* Batch Summary */
 /* Payment Summary Card */
 .payment-summary-card {
-  background: var(--compras-bg-light);
-  border: 1px solid var(--compras-border);
+  background: transparent;
+  border: none;
   border-radius: var(--compras-radius-md);
   padding: 14px 16px;
   margin-bottom: 18px;
@@ -1391,24 +1400,35 @@ body.dark-mode .totals-section {
 
 .summary-value.total-amount {
   font-size: 1.1rem;
-  color: var(--compras-primary);
+  color: #0ca5a5;
   font-weight: 700;
 }
 
 /* Buttons */
 .btn-cancel {
   padding: 10px 20px;
-  background: var(--compras-bg-light);
+  background: #ff4444;
   border: none;
   border-radius: var(--compras-radius-sm);
-  color: var(--compras-text-dark);
-  font-weight: 500;
+  color: var(--compras-text-white);
+  font-weight: 600;
   cursor: pointer;
   transition: var(--compras-transition-fast);
 }
 
 .btn-cancel:hover {
-  background: var(--compras-border);
+  background: #cc0000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
+body.dark-mode .btn-cancel {
+  background: #ff4444;
+  color: #ffffff;
+}
+
+body.dark-mode .btn-cancel:hover {
+  background: #cc0000;
 }
 
 .btn-cancel-red {

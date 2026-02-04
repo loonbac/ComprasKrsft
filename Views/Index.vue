@@ -557,10 +557,9 @@
       <!-- Payment Modal -->
       <Teleport to="body">
         <div v-if="showPaymentModal" class="modal-overlay" @click.self="closePaymentModal">
-          <div class="modal-content">
+          <div class="modal-content payment-modal">
             <div class="modal-header">
-              <h2>Confirmar Pago</h2>
-              <button @click="closePaymentModal" class="btn-close">×</button>
+              <h2>CONFIRMAR PAGO</h2>
             </div>
             
             <div class="modal-body" v-if="paymentBatch">
