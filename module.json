@@ -2,7 +2,7 @@
     "name": "ComprasKrsft",
     "slug": "compras_krsft",
     "display_name": "GESTIÓN DE COMPRAS",
-    "version": "5.7.0",
+    "version": "5.7.1",
     "description": "Sistema de gestión de órdenes de compra y pagos. Integración directa con tabla inventario_productos. Flujo: Por Aprobar → Por Pagar → Pagadas. Incluye Pago Rápido express.",
     "icon": "icon.svg",
     "color": "#10b981",

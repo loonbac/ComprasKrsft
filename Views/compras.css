@@ -369,6 +369,11 @@ body.dark-mode .quick-pay-inline-group input[type="date"]::-webkit-calendar-pick
   opacity: 1;
 }
 
+body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+
 .btn-reset-filter {
   padding: 8px 12px;
   background: var(--compras-bg-card);
@@ -931,6 +936,10 @@ body.dark-mode .quick-pay-inline-group input[type="date"]::-webkit-calendar-pick
   margin: 0;
 }
 
+.bulk-approve-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
 .btn-close {
   width: 32px;
   height: 32px;
@@ -947,6 +956,10 @@ body.dark-mode .quick-pay-inline-group input[type="date"]::-webkit-calendar-pick
   background: var(--compras-border);
 }
 
+.bulk-approve-modal .btn-close {
+  display: none;
+}
+
 .modal-body {
   padding: 16px;
   box-sizing: border-box;
@@ -960,6 +973,27 @@ body.dark-mode .quick-pay-inline-group input[type="date"]::-webkit-calendar-pick
   gap: 12px;
   padding: 12px 20px;
   border-top: 1px solid var(--compras-border);
+}
+
+.bulk-approve-modal .btn-submit {
+  background: var(--compras-primary);
+  color: var(--compras-text-white);
+  border: none;
+  box-shadow: 0 8px 16px rgba(10, 164, 164, 0.25);
+}
+
+.bulk-approve-modal .btn-submit:hover:not(:disabled) {
+  background: var(--compras-primary-dark);
+}
+
+.bulk-approve-modal .btn-cancel {
+  background: var(--compras-danger);
+  color: var(--compras-text-white);
+  border: none;
+}
+
+.bulk-approve-modal .btn-cancel:hover {
+  background: var(--compras-danger-dark);
 }
 
 /* Export Modal Styles */
@@ -1211,8 +1245,14 @@ body.dark-mode .quick-pay-inline-group input[type="date"]::-webkit-calendar-pick
 .totals-section {
   margin-top: 20px;
   padding: 16px;
-  background: var(--compras-badge-success-bg);
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
   border-radius: var(--compras-radius-sm);
+}
+
+body.dark-mode .totals-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .totals-section .total-row {
@@ -2210,7 +2250,7 @@ body.dark-mode .quick-pay-box {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: var(--compras-bg-card);
+  background: var(--compras-bg-light);
   border: 2px solid var(--compras-border);
   border-radius: var(--compras-radius-md);
 }

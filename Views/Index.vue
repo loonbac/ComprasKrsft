@@ -425,7 +425,7 @@
       <!-- Bulk Approve Modal -->
       <Teleport to="body">
         <div v-if="showBulkModal" class="modal-overlay" @click.self="closeBulkModal">
-          <div class="modal-content modal-lg">
+          <div class="modal-content modal-lg bulk-approve-modal">
             <div class="modal-header">
               <h2>Pagar {{ selectedOrdersData.length }} Órdenes</h2>
               <button @click="closeBulkModal" class="btn-close">×</button>
