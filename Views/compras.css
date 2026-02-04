@@ -2352,9 +2352,8 @@ body.dark-mode .items-summary h5 {
 }
 
 .item-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 100px;
   gap: 12px;
   padding: 10px 12px;
   background: var(--compras-bg-card);
@@ -2362,28 +2361,42 @@ body.dark-mode .items-summary h5 {
   font-size: 0.88rem;
   border: 1px solid var(--compras-border);
   border-left: 3px solid var(--compras-primary);
-}
-
-.item-info {
-  flex: 1;
-  font-weight: 600;
-  color: var(--compras-text-dark);
+  align-items: center;
 }
 
 .item-desc {
-  flex: 1;
+  grid-column: 1;
   font-size: 0.88rem;
   color: var(--compras-text-dark);
+  line-height: 1.4;
 }
 
-body.dark-mode .item-info,
+.item-desc small {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--compras-text-gray);
+  margin-top: 4px;
+}
+
 body.dark-mode .item-desc {
   color: var(--compras-text-white);
 }
 
+body.dark-mode .item-desc small {
+  color: var(--compras-text-light);
+}
+
 .item-price {
-  flex: 0 0 120px;
-  margin: 0 10px;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  width: 100%;
+}
+
+.item-subtotal {
+  grid-column: 1;
+  font-weight: 600;
+  color: var(--compras-primary);
+  padding-top: 4px;
 }
 
 .input-price {
