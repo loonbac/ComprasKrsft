@@ -893,7 +893,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+
+// Polling interval para tiempo real
+let pollingInterval = null;
+const POLLING_INTERVAL_MS = 5000; // 5 segundos
 
 // State
 const loading = ref(false);
@@ -2180,6 +2184,26 @@ const confirmPayment = async () => {
 onMounted(() => {
   loadPendingOrders();
   loadToPayOrders();
+  
+  // Iniciar polling para tiempo real
+  pollingInterval = setInterval(() => {
+    // Actualizar según la pestaña activa
+    if (activeTab.value === 'pending') {
+      loadPendingOrders();
+    } else if (activeTab.value === 'to_pay') {
+      loadToPayOrders();
+    } else if (activeTab.value === 'paid') {
+      loadPaidBatches();
+    }
+  }, POLLING_INTERVAL_MS);
+});
+
+onUnmounted(() => {
+  // Limpiar polling al salir del componente
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
 });
 </script>
 
