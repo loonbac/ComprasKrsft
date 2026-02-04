@@ -957,7 +957,24 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .bulk-approve-modal .btn-close {
-  display: none;
+  display: none !important;
+}
+
+.bulk-approve-modal .totals-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.bulk-approve-modal .total-row,
+.bulk-approve-modal .total-final {
+  color: var(--compras-primary);
+  font-weight: 700;
+}
+
+.bulk-approve-modal .total-row span,
+.bulk-approve-modal .total-final span {
+  color: var(--compras-primary);
 }
 
 .modal-body {

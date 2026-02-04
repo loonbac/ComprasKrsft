@@ -517,10 +517,6 @@
 
               <!-- Totals -->
               <div class="totals-section">
-                <div class="total-row">
-                  <span>Subtotal:</span>
-                  <span>{{ bulkForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(bulkSubtotal) }}</span>
-                </div>
                 <div v-if="bulkForm.igv_enabled" class="total-row">
                   <span>IGV ({{ bulkForm.igv_rate }}%):</span>
                   <span>{{ bulkForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(bulkIgv) }}</span>
