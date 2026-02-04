@@ -2194,10 +2194,10 @@ body.dark-mode .quick-pay-box {
 .quick-pay-items-table {
   margin-bottom: 8px;
   flex: 1;
+  max-height: 350px;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
-  min-height: 200px;
 }
 
 .btn-quick-pay {
@@ -2368,6 +2368,10 @@ body.dark-mode .items-table .item-info {
 
 .items-summary-table {
   gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
 }
 
 .item-summary-row {
