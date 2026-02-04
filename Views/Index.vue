@@ -899,8 +899,33 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 let pollingInterval = null;
 const POLLING_INTERVAL_MS = 3000; // 3 segundos
 
-// Helper para comparar arrays y evitar re-renders innecesarios
+// ============= SISTEMA DE CACHÉ =============
+const CACHE_PREFIX = 'compras_cache_';
+
+// Helper para comparar y evitar re-renders
 const arraysEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+// Guardar en caché
+const saveToCache = (key, data) => {
+    try {
+        localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({
+            data,
+            timestamp: Date.now()
+        }));
+    } catch (e) { console.warn('Cache save error:', e); }
+};
+
+// Cargar desde caché
+const loadFromCache = (key) => {
+    try {
+        const cached = localStorage.getItem(CACHE_PREFIX + key);
+        if (cached) {
+            const { data } = JSON.parse(cached);
+            return data;
+        }
+    } catch (e) { console.warn('Cache load error:', e); }
+    return null;
+};
 
 // State
 const loading = ref(false);
@@ -1620,7 +1645,7 @@ const dismissPaymentAlert = (batchId) => {
   dismissedPaymentAlerts.value[batchId] = true;
 };
 
-// Data Loading - Solo actualiza si hay cambios para evitar parpadeo
+// Data Loading - Con sistema de caché para carga instantánea
 const loadPendingOrders = async (showLoading = false) => {
   if (showLoading) loading.value = true;
   try {
@@ -1631,6 +1656,7 @@ const loadPendingOrders = async (showLoading = false) => {
       // Solo actualizar si hay cambios reales
       if (!arraysEqual(pendingOrders.value, newOrders)) {
         pendingOrders.value = newOrders;
+        saveToCache('pendingOrders', newOrders);
         
         // Auto-expand all projects when data loads
         if (pendingOrders.value.length > 0) {
@@ -1681,6 +1707,7 @@ const loadToPayOrders = async (showLoading = false) => {
       // Solo actualizar si hay cambios reales
       if (!arraysEqual(orders.value, newOrders)) {
         orders.value = newOrders;
+        saveToCache('toPayOrders', newOrders);
         // Extract unique projects for filters
         const projects = {};
         orders.value.forEach(o => { projects[o.project_id] = { id: o.project_id, name: o.project_name }; });
@@ -1817,12 +1844,21 @@ const loadPaidBatches = async () => {
       // Solo actualizar si hay cambios reales
       if (!arraysEqual(paidBatches.value, newBatches)) {
         paidBatches.value = newBatches;
+        saveToCache('paidBatches', newBatches);
       }
     }
   } catch (e) { console.error(e); }
 };
 
-
+// Inicializar datos desde caché inmediatamente
+const initFromCache = () => {
+  const cachedPending = loadFromCache('pendingOrders');
+  const cachedToPay = loadFromCache('toPayOrders');
+  const cachedPaid = loadFromCache('paidBatches');
+  if (cachedPending) pendingOrders.value = cachedPending;
+  if (cachedToPay) orders.value = cachedToPay;
+  if (cachedPaid) paidBatches.value = cachedPaid;
+};
 
 const fetchExchangeRate = async () => {
   loadingRate.value = true;
@@ -2197,10 +2233,14 @@ const confirmPayment = async () => {
 };
 
 onMounted(() => {
-  loadPendingOrders(true);
-  loadToPayOrders(true);
+  // 1. Cargar datos cacheados INMEDIATAMENTE (sin esperar fetch)
+  initFromCache();
   
-  // Iniciar polling para tiempo real (sin loading spinner)
+  // 2. Fetch en background para actualizar si hay cambios
+  loadPendingOrders();
+  loadToPayOrders();
+  
+  // 3. Iniciar polling para tiempo real
   pollingInterval = setInterval(() => {
     // Actualizar según la pestaña activa
     if (activeTab.value === 'pending') {
