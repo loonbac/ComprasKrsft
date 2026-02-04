@@ -319,10 +319,9 @@
       <!-- Approval Pricing Modal (Por Aprobar) -->
       <Teleport to="body">
         <div v-if="showApprovalModal" class="modal-overlay" @click.self="closeApprovalModal">
-          <div class="modal-content modal-lg">
+          <div class="modal-content modal-lg approval-modal">
             <div class="modal-header">
               <h2>Enviar {{ selectedApprovalOrdersData.length }} Órdenes a Por Pagar</h2>
-              <button @click="closeApprovalModal" class="btn-close">×</button>
             </div>
             
             <div class="modal-body">
@@ -365,6 +364,18 @@
                     <input v-model="approvalForm.due_date" type="date" class="input-field" />
                   </div>
                 </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="checkbox-label">
+                      <input type="checkbox" v-model="approvalForm.igv_enabled" />
+                      Aplicar IGV
+                    </label>
+                  </div>
+                  <div v-if="approvalForm.igv_enabled" class="form-group flex-1">
+                    <label>Tasa IGV (%)</label>
+                    <input v-model.number="approvalForm.igv_rate" type="number" step="0.01" class="input-field" />
+                  </div>
+                </div>
               </div>
 
               <!-- Exchange Rate Info -->
@@ -401,13 +412,13 @@
 
               <!-- Totals -->
               <div class="totals-section">
-                <div class="total-row">
-                  <span>Subtotal:</span>
-                  <span>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalSubtotal) }}</span>
+                <div v-if="approvalForm.igv_enabled" class="total-row">
+                  <span>IGV ({{ approvalForm.igv_rate }}%):</span>
+                  <span>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalIgv) }}</span>
                 </div>
                 <div class="total-row total-final">
                   <span>TOTAL:</span>
-                  <span>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalSubtotal) }}</span>
+                  <span>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalTotal) }}</span>
                 </div>
               </div>
             </div>
@@ -953,7 +964,9 @@ const approvalForm = ref({
   payment_type: 'cash',
   currency: 'PEN',
   issue_date: getLocalDateString(),
-  due_date: ''
+  due_date: '',
+  igv_enabled: false,
+  igv_rate: 18.00
 });
 
 const bulkForm = ref({
@@ -1191,6 +1204,12 @@ const approvalSubtotal = computed(() => {
   return selectedPendingIds.value.reduce((sum, id) => sum + (parseFloat(approvalPrices.value[id]) || 0), 0);
 });
 
+const approvalIgv = computed(() => {
+  return approvalForm.value.igv_enabled ? approvalSubtotal.value * (approvalForm.value.igv_rate / 100) : 0;
+});
+
+const approvalTotal = computed(() => approvalSubtotal.value + approvalIgv.value);
+
 const canSubmitApproval = computed(() => {
   if (!approvalForm.value.seller_name) return false;
   if (approvalSubtotal.value <= 0) return false;
@@ -1419,7 +1438,9 @@ const submitApprovalPending = async () => {
       seller_document: approvalForm.value.seller_document,
       payment_type: approvalForm.value.payment_type,
       issue_date: approvalForm.value.issue_date,
-      due_date: approvalForm.value.payment_type === 'loan' ? approvalForm.value.due_date : null
+      due_date: approvalForm.value.payment_type === 'loan' ? approvalForm.value.due_date : null,
+      igv_enabled: approvalForm.value.igv_enabled,
+      igv_rate: approvalForm.value.igv_rate
     };
 
     const res = await fetch(`${apiBase.value}/mark-to-pay-bulk`, {

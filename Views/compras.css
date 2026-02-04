@@ -1013,6 +1013,52 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
   background: var(--compras-danger-dark);
 }
 
+.approval-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
+.approval-modal .btn-close {
+  display: none !important;
+}
+
+.approval-modal .totals-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.approval-modal .total-row,
+.approval-modal .total-final {
+  color: var(--compras-primary);
+  font-weight: 700;
+}
+
+.approval-modal .total-row span,
+.approval-modal .total-final span {
+  color: var(--compras-primary);
+}
+
+.approval-modal .btn-submit {
+  background: var(--compras-primary);
+  color: var(--compras-text-white);
+  border: none;
+  box-shadow: 0 8px 16px rgba(10, 164, 164, 0.25);
+}
+
+.approval-modal .btn-submit:hover:not(:disabled) {
+  background: var(--compras-primary-dark);
+}
+
+.approval-modal .btn-cancel {
+  background: var(--compras-danger);
+  color: var(--compras-text-white);
+  border: none;
+}
+
+.approval-modal .btn-cancel:hover {
+  background: var(--compras-danger-dark);
+}
+
 /* Export Modal Styles */
 .export-options {
   display: flex;
