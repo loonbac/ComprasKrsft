@@ -897,7 +897,10 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 // Polling interval para tiempo real
 let pollingInterval = null;
-const POLLING_INTERVAL_MS = 5000; // 5 segundos
+const POLLING_INTERVAL_MS = 3000; // 3 segundos
+
+// Helper para comparar arrays y evitar re-renders innecesarios
+const arraysEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // State
 const loading = ref(false);
@@ -1617,67 +1620,75 @@ const dismissPaymentAlert = (batchId) => {
   dismissedPaymentAlerts.value[batchId] = true;
 };
 
-// Data Loading
-const loadPendingOrders = async () => {
-  loading.value = true;
+// Data Loading - Solo actualiza si hay cambios para evitar parpadeo
+const loadPendingOrders = async (showLoading = false) => {
+  if (showLoading) loading.value = true;
   try {
     const res = await fetch(`${apiBase.value}/pending`);
     const data = await res.json();
     if (data.success) {
-      pendingOrders.value = data.orders || [];
-      
-      // Auto-expand all projects when data loads
-      if (pendingOrders.value.length > 0) {
-        const projects = new Set(pendingOrders.value.map(o => o.project_id));
-        projects.forEach(projectId => {
-          expandedProjects.value[projectId] = true;
-          // Also auto-expand lists for each project
-          const projectLists = new Set(
-            pendingOrders.value
-              .filter(o => o.project_id === projectId)
-              .map(o => o.source_filename || 'Manual')
-          );
-          projectLists.forEach(filename => {
-            const key = getListKey(projectId, filename);
-            expandedLists.value[key] = true;
+      const newOrders = data.orders || [];
+      // Solo actualizar si hay cambios reales
+      if (!arraysEqual(pendingOrders.value, newOrders)) {
+        pendingOrders.value = newOrders;
+        
+        // Auto-expand all projects when data loads
+        if (pendingOrders.value.length > 0) {
+          const projects = new Set(pendingOrders.value.map(o => o.project_id));
+          projects.forEach(projectId => {
+            expandedProjects.value[projectId] = true;
+            // Also auto-expand lists for each project
+            const projectLists = new Set(
+              pendingOrders.value
+                .filter(o => o.project_id === projectId)
+                .map(o => o.source_filename || 'Manual')
+            );
+            projectLists.forEach(filename => {
+              const key = getListKey(projectId, filename);
+              expandedLists.value[key] = true;
+            });
           });
-        });
-      }
-      
-      if (!selectedPendingProjectId.value && pendingOrders.value.length > 0) {
-        selectedPendingProjectId.value = pendingOrders.value[0].project_id;
-      }
-      if (selectedPendingProjectId.value && pendingOrders.value.length > 0) {
-        const exists = pendingOrders.value.some(o => o.project_id === selectedPendingProjectId.value);
-        if (!exists) {
-          selectedPendingProjectId.value = pendingOrders.value[0].project_id;
-          selectedPendingListId.value = null;
         }
-      }
-      const pendingIdSet = new Set(pendingOrders.value.map(o => o.id));
-      selectedPendingIds.value = selectedPendingIds.value.filter(id => pendingIdSet.has(id));
-      if (selectedPendingProjectId.value && !selectedPendingListId.value && pendingLists.value.length > 0) {
-        selectedPendingListId.value = pendingLists.value[0].filename;
+        
+        if (!selectedPendingProjectId.value && pendingOrders.value.length > 0) {
+          selectedPendingProjectId.value = pendingOrders.value[0].project_id;
+        }
+        if (selectedPendingProjectId.value && pendingOrders.value.length > 0) {
+          const exists = pendingOrders.value.some(o => o.project_id === selectedPendingProjectId.value);
+          if (!exists) {
+            selectedPendingProjectId.value = pendingOrders.value[0].project_id;
+            selectedPendingListId.value = null;
+          }
+        }
+        const pendingIdSet = new Set(pendingOrders.value.map(o => o.id));
+        selectedPendingIds.value = selectedPendingIds.value.filter(id => pendingIdSet.has(id));
+        if (selectedPendingProjectId.value && !selectedPendingListId.value && pendingLists.value.length > 0) {
+          selectedPendingListId.value = pendingLists.value[0].filename;
+        }
       }
     }
   } catch (e) { console.error(e); }
-  loading.value = false;
+  if (showLoading) loading.value = false;
 };
 
-const loadToPayOrders = async () => {
-  loading.value = true;
+const loadToPayOrders = async (showLoading = false) => {
+  if (showLoading) loading.value = true;
   try {
     const res = await fetch(`${apiBase.value}/to-pay`);
     const data = await res.json();
     if (data.success) {
-      orders.value = data.orders || [];
-      // Extract unique projects for filters
-      const projects = {};
-      orders.value.forEach(o => { projects[o.project_id] = { id: o.project_id, name: o.project_name }; });
-      projectList.value = Object.values(projects).sort((a, b) => a.name.localeCompare(b.name));
+      const newOrders = data.orders || [];
+      // Solo actualizar si hay cambios reales
+      if (!arraysEqual(orders.value, newOrders)) {
+        orders.value = newOrders;
+        // Extract unique projects for filters
+        const projects = {};
+        orders.value.forEach(o => { projects[o.project_id] = { id: o.project_id, name: o.project_name }; });
+        projectList.value = Object.values(projects).sort((a, b) => a.name.localeCompare(b.name));
+      }
     }
   } catch (e) { console.error(e); }
-  loading.value = false;
+  if (showLoading) loading.value = false;
 };
 
 // Export paid orders to Excel
@@ -1802,7 +1813,11 @@ const loadPaidBatches = async () => {
         batchMap[batchId].orders.push(order);
         batchMap[batchId].total += parseFloat(order.total_with_igv || order.amount || 0);
       });
-      paidBatches.value = Object.values(batchMap).sort((a, b) => new Date(b.payment_confirmed_at) - new Date(a.payment_confirmed_at));
+      const newBatches = Object.values(batchMap).sort((a, b) => new Date(b.payment_confirmed_at) - new Date(a.payment_confirmed_at));
+      // Solo actualizar si hay cambios reales
+      if (!arraysEqual(paidBatches.value, newBatches)) {
+        paidBatches.value = newBatches;
+      }
     }
   } catch (e) { console.error(e); }
 };
@@ -2182,10 +2197,10 @@ const confirmPayment = async () => {
 };
 
 onMounted(() => {
-  loadPendingOrders();
-  loadToPayOrders();
+  loadPendingOrders(true);
+  loadToPayOrders(true);
   
-  // Iniciar polling para tiempo real
+  // Iniciar polling para tiempo real (sin loading spinner)
   pollingInterval = setInterval(() => {
     // Actualizar según la pestaña activa
     if (activeTab.value === 'pending') {
