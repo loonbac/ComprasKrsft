@@ -2194,7 +2194,7 @@ body.dark-mode .quick-pay-box {
 .quick-pay-items-table {
   margin-bottom: 8px;
   flex: 1;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
   min-height: 200px;
