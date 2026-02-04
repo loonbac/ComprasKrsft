@@ -15,6 +15,7 @@ Route::get('/sellers', "{$ctrl}@getSellers");
 Route::get('/exchange-rate', "{$ctrl}@exchangeRate");
 Route::get('/export', "{$ctrl}@exportExcel");
 Route::get('/export-paid', "{$ctrl}@exportPaidExcel");
+Route::get('/search-inventory', "{$ctrl}@searchInventory");
 Route::get('/{id}', "{$ctrl}@show")->where('id', '[0-9]+');
 
 // Acciones

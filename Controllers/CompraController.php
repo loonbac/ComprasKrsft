@@ -1317,6 +1317,77 @@ class CompraController extends Controller
     }
 
     /**
+     * Buscar coincidencias en inventario para un material
+     * Retorna items disponibles y apartados
+     */
+    public function searchInventory(Request $request)
+    {
+        $request->validate([
+            'search' => 'required|string|min:2',
+            'project_id' => 'nullable|integer'
+        ]);
+
+        $search = $request->input('search');
+        $projectId = $request->input('project_id');
+
+        // Verificar si existe la tabla de inventario
+        if (!DB::getSchemaBuilder()->hasTable('inventario_productos')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Módulo de inventario no disponible',
+                'items' => []
+            ]);
+        }
+
+        // Buscar productos que coincidan por nombre, descripción, sku o características
+        $items = DB::table('inventario_productos')
+            ->where(function ($q) use ($search) {
+                $q->where('nombre', 'LIKE', "%{$search}%")
+                  ->orWhere('descripcion', 'LIKE', "%{$search}%")
+                  ->orWhere('sku', 'LIKE', "%{$search}%")
+                  ->orWhere('diameter', 'LIKE', "%{$search}%")
+                  ->orWhere('series', 'LIKE', "%{$search}%")
+                  ->orWhere('material_type', 'LIKE', "%{$search}%");
+            })
+            ->where('cantidad', '>', 0) // Solo items con stock
+            ->orderByRaw('CASE WHEN apartado = 1 OR apartado = true THEN 1 ELSE 0 END') // Disponibles primero
+            ->orderBy('nombre')
+            ->get()
+            ->map(function ($item) use ($projectId) {
+                // Calcular costo unitario
+                $unitCost = $item->cantidad > 0 ? ($item->precio / $item->cantidad) : $item->precio;
+                
+                // Determinar si está disponible o apartado
+                $isReserved = $item->apartado && $item->project_id && $item->project_id != $projectId;
+                
+                return [
+                    'id' => $item->id,
+                    'nombre' => $item->nombre,
+                    'descripcion' => $item->descripcion,
+                    'sku' => $item->sku,
+                    'cantidad_disponible' => $item->cantidad,
+                    'precio_total' => $item->precio,
+                    'costo_unitario' => round($unitCost, 4),
+                    'moneda' => $item->moneda ?? 'PEN',
+                    'unidad' => $item->unidad ?? 'und',
+                    'diameter' => $item->diameter,
+                    'series' => $item->series,
+                    'material_type' => $item->material_type,
+                    'project_id' => $item->project_id,
+                    'nombre_proyecto' => $item->nombre_proyecto,
+                    'apartado' => $isReserved,
+                    'disponible' => !$isReserved
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'items' => $items,
+            'total' => $items->count()
+        ]);
+    }
+
+    /**
      * Exportar órdenes aprobadas a CSV (Excel compatible)
      */
     public function exportExcel(Request $request)

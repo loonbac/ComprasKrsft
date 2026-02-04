@@ -386,26 +386,120 @@
                 <span v-else class="error">No se pudo obtener tipo de cambio</span>
               </div>
 
-              <!-- Materials Pricing -->
+              <!-- Materials Pricing with Inventory Search -->
               <div class="form-section">
                 <h4>Precios por Material</h4>
                 <div class="pricing-list">
-                  <div v-for="order in selectedApprovalOrdersData" :key="order.id" class="pricing-row">
-                    <div class="pricing-info">
-                      <span class="pricing-project">{{ order.project_name }}</span>
-                      <span class="pricing-material">{{ getOrderTitle(order) }}</span>
-                      <span class="pricing-qty">{{ getOrderQty(order) }}</span>
+                  <div v-for="order in selectedApprovalOrdersData" :key="order.id" class="pricing-row-container">
+                    <div class="pricing-row">
+                      <div class="pricing-info">
+                        <span class="pricing-project">{{ order.project_name }}</span>
+                        <span class="pricing-material">{{ getOrderTitle(order) }}</span>
+                        <span class="pricing-qty">{{ getOrderQty(order) }}</span>
+                      </div>
+                      <div class="pricing-actions">
+                        <!-- Botón Consulta Almacén -->
+                        <button 
+                          @click="searchInventoryForOrder(order)" 
+                          :disabled="inventoryLoading[order.id]"
+                          class="btn-inventory-search"
+                          :class="{ 'active': inventoryExpanded[order.id] }"
+                          title="Consultar Almacén"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                          </svg>
+                          {{ inventoryLoading[order.id] ? 'Buscando...' : 'Almacén' }}
+                        </button>
+                        
+                        <!-- Input de precio -->
+                        <div class="pricing-input">
+                          <span class="currency-prefix">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }}</span>
+                          <input 
+                            v-model.number="approvalPrices[order.id]" 
+                            type="number" 
+                            step="0.01" 
+                            min="0.01"
+                            class="input-field price-input" 
+                            :class="{ 'locked': isPriceLocked(order.id) }"
+                            :disabled="isPriceLocked(order.id)"
+                            placeholder="0.00"
+                          />
+                          <!-- Indicador de origen -->
+                          <span v-if="inventorySelection[order.id]?.type === 'inventory'" class="price-source inventory">
+                            📦 Inventario
+                          </span>
+                          <span v-if="inventorySelection[order.id]?.type === 'new'" class="price-source new-purchase">
+                            🛒 Nueva compra
+                          </span>
+                          <!-- Botón limpiar selección -->
+                          <button 
+                            v-if="inventorySelection[order.id]" 
+                            @click="clearInventorySelection(order.id)"
+                            class="btn-clear-selection"
+                            title="Limpiar selección"
+                          >✕</button>
+                        </div>
+                      </div>
                     </div>
-                    <div class="pricing-input">
-                      <span class="currency-prefix">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }}</span>
-                      <input 
-                        v-model.number="approvalPrices[order.id]" 
-                        type="number" 
-                        step="0.01" 
-                        min="0.01"
-                        class="input-field price-input" 
-                        placeholder="0.00"
-                      />
+                    
+                    <!-- Dropdown de resultados de inventario -->
+                    <div v-if="inventoryExpanded[order.id]" class="inventory-dropdown">
+                      <div v-if="inventoryLoading[order.id]" class="inventory-loading">
+                        <span class="spinner"></span> Buscando en almacén...
+                      </div>
+                      <div v-else-if="inventorySearchResults[order.id]?.length > 0" class="inventory-results">
+                        <!-- Opción: Sin inventario (nueva compra) -->
+                        <div 
+                          class="inventory-item new-purchase-option"
+                          :class="{ 'selected': isNewPurchaseSelected(order.id) }"
+                          @click="selectNewPurchase(order.id)"
+                        >
+                          <div class="item-info">
+                            <span class="item-name">🛒 Sin inventario - Nueva compra</span>
+                            <span class="item-desc">Comprar nuevos materiales para este proyecto</span>
+                          </div>
+                          <span class="item-status available">Disponible</span>
+                        </div>
+                        
+                        <!-- Items del inventario -->
+                        <div 
+                          v-for="item in inventorySearchResults[order.id]" 
+                          :key="item.id"
+                          class="inventory-item"
+                          :class="{ 
+                            'reserved': item.apartado, 
+                            'available': item.disponible,
+                            'selected': isInventoryItemSelected(order.id, item.id)
+                          }"
+                          @click="item.disponible && selectInventoryItem(order.id, item, getOrderQtyNum(order))"
+                        >
+                          <div class="item-info">
+                            <span class="item-name">{{ item.nombre }}</span>
+                            <span class="item-desc">
+                              {{ item.descripcion || '' }}
+                              <template v-if="item.diameter"> | Ø{{ item.diameter }}</template>
+                              <template v-if="item.series"> | Serie {{ item.series }}</template>
+                            </span>
+                            <span class="item-stock">
+                              Stock: {{ item.cantidad_disponible }} {{ item.unidad }} | 
+                              Costo unit: {{ item.moneda === 'USD' ? '$' : 'S/' }}{{ item.costo_unitario.toFixed(2) }}
+                            </span>
+                          </div>
+                          <div class="item-status-container">
+                            <span v-if="item.apartado" class="item-status reserved">
+                              Apartado: {{ item.nombre_proyecto }}
+                            </span>
+                            <span v-else class="item-status available">Disponible</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="inventory-empty">
+                        <p>No se encontraron items similares en inventario</p>
+                        <button @click="selectNewPurchase(order.id)" class="btn-new-purchase">
+                          Continuar como nueva compra
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -954,7 +1048,13 @@ const expandedProjects = ref({});
 const expandedLists = ref({});
 const dismissedPaymentAlerts = ref({});
 
-console.log('ComprasKrsft v4.7.3 loaded successfully');
+// Estado para consulta de inventario
+const inventorySearchResults = ref({}); // { orderId: [items...] }
+const inventoryLoading = ref({}); // { orderId: true/false }
+const inventoryExpanded = ref({}); // { orderId: true/false }
+const inventorySelection = ref({}); // { orderId: { type: 'inventory'|'new', itemId: number, qty: number } }
+
+console.log('ComprasKrsft v4.8.0 loaded successfully');
 
 const perPagePending = 20;
 
@@ -1392,6 +1492,16 @@ const getOrderQty = (order) => {
   return '-';
 };
 
+// Retorna cantidad como número para cálculos
+const getOrderQtyNum = (order) => {
+  if (order.type === 'service') return 1;
+  if (order.materials?.length > 0) {
+    const mat = order.materials[0];
+    if (typeof mat === 'object' && mat.qty) return parseInt(mat.qty) || 1;
+  }
+  return 1;
+};
+
 const selectPendingProject = (projectId) => {
   selectedPendingProjectId.value = projectId;
   selectedPendingListId.value = null;
@@ -1475,6 +1585,109 @@ const openApprovalModal = () => {
 
 const closeApprovalModal = () => {
   showApprovalModal.value = false;
+  // Limpiar estado de inventario
+  inventorySearchResults.value = {};
+  inventoryLoading.value = {};
+  inventoryExpanded.value = {};
+  inventorySelection.value = {};
+};
+
+// ============= FUNCIONES DE CONSULTA DE INVENTARIO =============
+
+// Buscar en inventario para un material específico
+const searchInventoryForOrder = async (order) => {
+  const orderId = order.id;
+  inventoryLoading.value[orderId] = true;
+  inventoryExpanded.value[orderId] = true;
+  
+  try {
+    // Construir término de búsqueda basado en la descripción del material
+    const searchTerm = order.description || getOrderTitle(order);
+    
+    const res = await fetch(`${apiBase.value}/search-inventory?search=${encodeURIComponent(searchTerm)}&project_id=${order.project_id}`);
+    const data = await res.json();
+    
+    if (data.success) {
+      inventorySearchResults.value[orderId] = data.items || [];
+    } else {
+      inventorySearchResults.value[orderId] = [];
+      showToast(data.message || 'Error al buscar en inventario', 'error');
+    }
+  } catch (e) {
+    console.error('Error searching inventory:', e);
+    inventorySearchResults.value[orderId] = [];
+    showToast('Error al consultar inventario', 'error');
+  }
+  
+  inventoryLoading.value[orderId] = false;
+};
+
+// Seleccionar item de inventario para un pedido
+const selectInventoryItem = (orderId, item, orderQty) => {
+  const qtyNeeded = parseInt(orderQty) || 1;
+  const qtyAvailable = item.cantidad_disponible;
+  const qtyToUse = Math.min(qtyNeeded, qtyAvailable);
+  
+  // Calcular precio basado en costo unitario
+  const totalPrice = item.costo_unitario * qtyToUse;
+  
+  inventorySelection.value[orderId] = {
+    type: 'inventory',
+    itemId: item.id,
+    itemName: item.nombre,
+    qtyUsed: qtyToUse,
+    qtyNeeded: qtyNeeded,
+    unitCost: item.costo_unitario,
+    totalPrice: totalPrice,
+    moneda: item.moneda
+  };
+  
+  // Establecer precio automáticamente y bloquearlo
+  approvalPrices.value[orderId] = parseFloat(totalPrice.toFixed(2));
+  
+  // Cerrar el dropdown
+  inventoryExpanded.value[orderId] = false;
+  
+  showToast(`Usando ${qtyToUse} unidades de inventario`, 'success');
+};
+
+// Seleccionar opción "Sin inventario" (nueva compra)
+const selectNewPurchase = (orderId) => {
+  inventorySelection.value[orderId] = {
+    type: 'new',
+    itemId: null
+  };
+  
+  // Permitir editar precio manualmente
+  approvalPrices.value[orderId] = 0;
+  
+  // Cerrar el dropdown
+  inventoryExpanded.value[orderId] = false;
+};
+
+// Limpiar selección de inventario
+const clearInventorySelection = (orderId) => {
+  delete inventorySelection.value[orderId];
+  approvalPrices.value[orderId] = 0;
+  inventoryExpanded.value[orderId] = false;
+};
+
+// Verificar si un item de inventario está seleccionado para un pedido
+const isInventoryItemSelected = (orderId, itemId) => {
+  const sel = inventorySelection.value[orderId];
+  return sel && sel.type === 'inventory' && sel.itemId === itemId;
+};
+
+// Verificar si "nueva compra" está seleccionada
+const isNewPurchaseSelected = (orderId) => {
+  const sel = inventorySelection.value[orderId];
+  return sel && sel.type === 'new';
+};
+
+// Verificar si el precio está bloqueado (viene de inventario)
+const isPriceLocked = (orderId) => {
+  const sel = inventorySelection.value[orderId];
+  return sel && sel.type === 'inventory';
 };
 
 const onApprovalCurrencyChange = () => {
