@@ -734,16 +734,23 @@
               <!-- Step 1: Select Project -->
               <div v-if="quickPayStep === 1" class="quick-pay-step">
                 <h4 class="quick-pay-subtitle">Selecciona un Proyecto</h4>
-                <div v-if="quickPayProjects.length === 0" class="empty-state">
+                <div v-if="quickPayAvailableProjects.length === 0" class="empty-state">
                   <p>No hay proyectos disponibles</p>
                 </div>
-                <div v-else class="projects-grid">
-                  <div v-for="project in quickPayProjects" :key="project.id" @click="selectProjectForQuickPay(project)" class="project-card clickable" :style="{ '--project-color': getProjectColor(project.id) }">
-                    <div class="project-name">
-                      <span class="project-pill">{{ project.name }}</span>
-                    </div>
-                    <div class="project-currency">{{ project.currency }}</div>
-                  </div>
+                <div v-else class="projects-list">
+                  <button
+                    v-for="project in quickPayAvailableProjects"
+                    :key="project.id"
+                    type="button"
+                    @click="selectProjectForQuickPay(project)"
+                    class="project-list-item"
+                  >
+                    <span class="project-list-left">
+                      <span class="project-color-dot" :style="{ background: getProjectColor(project.id) }"></span>
+                      <span class="project-list-name">{{ project.name }}</span>
+                    </span>
+                    <span class="project-list-currency">{{ project.currency }}</span>
+                  </button>
                 </div>
               </div>
 
@@ -1179,6 +1186,17 @@ const getProjectColor = (projectId) => {
   const index = Number(projectId || 0) % projectColors.length;
   return projectColors[index];
 };
+
+const isProjectInProgress = (project) => {
+  const rawStatus = (project?.status ?? project?.estado ?? '').toString().trim().toLowerCase();
+  if (!rawStatus) return true;
+  if (rawStatus.includes('final') || rawStatus.includes('completed') || rawStatus.includes('closed') || rawStatus.includes('cerrado')) {
+    return false;
+  }
+  return true;
+};
+
+const quickPayAvailableProjects = computed(() => quickPayProjects.value.filter(isProjectInProgress));
 
 // Computed
 const filteredOrders = computed(() => {

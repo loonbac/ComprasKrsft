@@ -2413,6 +2413,66 @@ body.dark-mode .quick-pay-section {
   margin-top: 15px;
 }
 
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.project-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  background: var(--compras-bg-secondary);
+  border: 1px solid var(--compras-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.project-list-item:hover {
+  border-color: var(--compras-primary);
+  background: var(--compras-bg-hover);
+  transform: translateY(-1px);
+}
+
+.project-list-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.project-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.project-list-name {
+  font-weight: 700;
+  color: var(--compras-text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-list-currency {
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--compras-text-muted);
+  background: var(--compras-bg-hover);
+  padding: 4px 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
 .project-card {
   padding: 20px;
   background: var(--compras-bg-secondary);
@@ -2762,6 +2822,24 @@ body.dark-mode .project-card {
 body.dark-mode .project-card.clickable:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: var(--compras-primary);
+}
+
+body.dark-mode .project-list-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .project-list-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--compras-primary);
+}
+
+body.dark-mode .project-list-name {
+  color: var(--compras-text-light);
+}
+
+body.dark-mode .project-list-currency {
+  color: var(--compras-text-muted);
 }
 
 body.dark-mode .input-price {
