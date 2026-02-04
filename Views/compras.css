@@ -2193,9 +2193,11 @@ body.dark-mode .quick-pay-box {
 
 .quick-pay-items-table {
   margin-bottom: 8px;
-  max-height: 250px;
+  flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 4px;
+  min-height: 200px;
 }
 
 .btn-quick-pay {
@@ -2332,6 +2334,10 @@ body.dark-mode .quick-pay-box {
   border: 1px solid var(--compras-border);
 }
 
+body.dark-mode .items-summary {
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .items-summary h5 {
   margin: 0 0 10px 0;
   color: var(--compras-text-dark);
@@ -2349,6 +2355,15 @@ body.dark-mode .items-summary h5 {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.items-table .item-info {
+  color: var(--compras-text-dark);
+  font-weight: 500;
+}
+
+body.dark-mode .items-table .item-info {
+  color: var(--compras-text-white);
 }
 
 .item-row {
