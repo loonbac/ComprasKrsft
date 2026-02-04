@@ -899,8 +899,9 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 .modal-content {
   background: var(--compras-modal-bg);
   border-radius: var(--compras-radius-xl);
-  width: min(960px, 95vw);
-  max-height: 92vh;
+  width: min(1200px, 95vw);
+  max-height: 90vh;
+  height: auto;
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: var(--compras-shadow-lg);
