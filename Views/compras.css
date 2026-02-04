@@ -2205,10 +2205,25 @@ body.dark-mode .quick-pay-box {
   padding-right: 4px;
 }
 
-.btn-quick-pay {
+.quick-pay-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
   background: var(--compras-bg-card);
-  color: var(--compras-text-dark);
-  border: 2px solid var(--compras-primary);
+  border: 2px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+}
+
+body.dark-mode .quick-pay-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.btn-quick-pay {
+  background: #8b5cf6;
+  color: #ffffff;
+  border: none;
   padding: 10px 20px;
   border-radius: 6px;
   font-weight: 600;
@@ -2219,16 +2234,10 @@ body.dark-mode .quick-pay-box {
   transition: all 0.3s ease;
 }
 
-body.dark-mode .btn-quick-pay {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--compras-text-white);
-}
-
 .btn-quick-pay:hover {
   transform: translateY(-2px);
-  background: var(--compras-primary);
-  color: white;
-  box-shadow: 0 8px 16px rgba(10, 164, 164, 0.3);
+  background: #7c3aed;
+  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.35);
 }
 
 .btn-quick-pay svg {
