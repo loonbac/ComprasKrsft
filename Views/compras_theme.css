@@ -33,10 +33,10 @@
 
     /* Pago Rápido */
     --compras-quickpay-bg: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
-    --compras-quickpay-btn-bg: #8b5cf6;
-    --compras-quickpay-btn-hover: #7c3aed;
+    --compras-quickpay-btn-bg: #0AA4A4;
+    --compras-quickpay-btn-hover: #087A7A;
     --compras-quickpay-btn-text: #ffffff;
-    --compras-quickpay-shadow: 0 8px 16px rgba(124, 58, 237, 0.35);
+    --compras-quickpay-shadow: 0 8px 16px rgba(10, 164, 164, 0.35);
     
     /* Selección de fila */
     --compras-row-selected-bg: rgba(16, 185, 129, 0.15);

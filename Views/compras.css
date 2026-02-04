@@ -363,6 +363,12 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+/* Quick pay date inputs - ensure calendar icon is white in dark mode */
+body.dark-mode .quick-pay-inline-group input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+
 .btn-reset-filter {
   padding: 8px 12px;
   background: var(--compras-bg-card);
@@ -899,7 +905,7 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 .modal-content {
   background: var(--compras-modal-bg);
   border-radius: var(--compras-radius-xl);
-  width: min(1600px, 95vw);
+  width: min(1800px, 95vw);
   max-height: 92vh;
   display: flex;
   flex-direction: column;
@@ -907,8 +913,8 @@ body.dark-mode .input-date::-webkit-calendar-picker-indicator {
 }
 
 .modal-lg {
-  width: min(1600px, 95vw);
-  max-width: 1600px;
+  width: min(1800px, 95vw);
+  max-width: 1800px;
 }
 
 .modal-header {
@@ -2167,7 +2173,7 @@ body.dark-mode .quick-pay-box {
 
 .quick-pay-review-grid {
   display: grid;
-  grid-template-columns: 48% 52%;
+  grid-template-columns: 45% 55%;
   gap: 10px;
   width: 100%;
   box-sizing: border-box;
