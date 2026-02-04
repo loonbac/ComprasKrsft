@@ -751,6 +751,11 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
   color: #ffffff;
 }
 
+.pill-igv {
+  background: #8b5cf6;
+  color: #ffffff;
+}
+
 .pill-due {
   background: var(--compras-border);
   color: var(--compras-text-dark);

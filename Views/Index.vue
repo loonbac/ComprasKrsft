@@ -198,6 +198,7 @@
                   <span v-else class="pill pill-cash">
                     CONTADO
                   </span>
+                  <span v-if="batch.igv_enabled" class="pill pill-igv">+IGV</span>
                   <span v-if="batch.payment_type === 'loan' && getPaymentAlertStatus(batch)" class="pill pill-due" :class="`pill-${getPaymentAlertStatus(batch)}`">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M12 8v5l3 3 1-1.5-2.5-2.5V8h-1.5z"/>
@@ -215,13 +216,13 @@
                 <div v-for="order in batch.orders" :key="order.id" class="batch-item">
                   <span class="item-project">{{ order.project_name }}</span>
                   <span class="item-desc">{{ getOrderTitle(order) }}</span>
-                  <span class="item-amount">{{ batch.currency }} {{ formatNumber(order.amount || 0) }}</span>
+                  <span class="item-amount">{{ batch.currency }} {{ formatNumber(order.amount_with_igv ?? order.amount || 0) }}</span>
                 </div>
               </div>
 
               <div class="batch-footer">
                 <div class="batch-totals">
-                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber(batch.total) }}</span>
+                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber(batch.total_with_igv ?? batch.total) }}</span>
                 </div>
                 <button @click="openPaymentModal(batch)" class="btn-confirm-payment">Pagar</button>
               </div>
@@ -1071,7 +1072,9 @@ const toPayBatches = computed(() => {
         approved_by_name: order.approved_by_name || '',
         approved_at: order.approved_at || order.updated_at || order.created_at,
         orders: [],
-        total: 0
+        total: 0,
+        total_with_igv: 0,
+        igv_enabled: false
       };
     }
     const orderDueDate = order.due_date || order.payment_due_date || order.credit_due_date || null;
@@ -1095,8 +1098,27 @@ const toPayBatches = computed(() => {
         }
       }
     }
+    const baseAmount = parseFloat(order.amount || 0);
+    const igvEnabled = !!order.igv_enabled;
+    const igvRate = parseFloat(order.igv_rate ?? 18);
+    const igvAmount = igvEnabled
+      ? (parseFloat(order.igv_amount ?? 0) || (baseAmount * (igvRate / 100)))
+      : 0;
+    const totalWithIgv = igvEnabled
+      ? (parseFloat(order.total_with_igv ?? 0) || (baseAmount + igvAmount))
+      : baseAmount;
+
+    order.amount_with_igv = totalWithIgv;
+    order.igv_rate = igvRate;
+    order.igv_amount = igvAmount;
+    order.igv_enabled = igvEnabled;
+
     map[batchId].orders.push(order);
-    map[batchId].total += parseFloat(order.amount || 0);
+    map[batchId].total += baseAmount;
+    map[batchId].total_with_igv += totalWithIgv;
+    if (igvEnabled) {
+      map[batchId].igv_enabled = true;
+    }
   });
 
   return Object.values(map).sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
