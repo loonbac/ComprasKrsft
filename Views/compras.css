@@ -2194,7 +2194,7 @@ body.dark-mode .quick-pay-box {
 .quick-pay-items-table {
   margin-bottom: 8px;
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   padding-right: 4px;
   min-height: 200px;
@@ -2367,67 +2367,92 @@ body.dark-mode .items-table .item-info {
 }
 
 .item-row {
-  display: grid;
-  grid-template-columns: 1fr 100px;
-  gap: 12px;
-  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
   background: var(--compras-bg-card);
   border-radius: 8px;
   font-size: 0.88rem;
   border: 1px solid var(--compras-border);
   border-left: 3px solid var(--compras-primary);
-  align-items: center;
 }
 
-.item-desc {
-  grid-column: 1;
-  font-size: 0.88rem;
+.item-name {
+  font-weight: 600;
+  font-size: 0.95rem;
   color: var(--compras-text-dark);
-  line-height: 1.4;
 }
 
-.item-desc small {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--compras-text-gray);
-  margin-top: 4px;
-}
-
-body.dark-mode .item-desc {
+body.dark-mode .item-name {
   color: var(--compras-text-white);
 }
 
-body.dark-mode .item-desc small {
+.item-qty-unit {
+  font-size: 0.85rem;
+  color: var(--compras-text-gray);
+  display: flex;
+  gap: 16px;
+}
+
+body.dark-mode .item-qty-unit {
   color: var(--compras-text-light);
 }
 
-.item-price {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  width: 100%;
+.item-label {
+  font-weight: 600;
+  color: var(--compras-text-muted);
 }
 
-.item-subtotal {
-  grid-column: 1;
+body.dark-mode .item-label {
+  color: var(--compras-text-light);
+}
+
+.item-price-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-label {
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--compras-primary);
-  padding-top: 4px;
+  color: var(--compras-text-muted);
+  flex-shrink: 0;
+}
+
+body.dark-mode .price-label {
+  color: var(--compras-text-light);
 }
 
 .input-price {
-  width: 100%;
-  padding: 6px 10px;
+  flex: 1;
+  padding: 8px 10px;
   border: 1px solid var(--compras-border);
   border-radius: 4px;
   font-size: 0.9rem;
-  background: white;
+  background: var(--compras-bg-input);
   color: var(--compras-text-dark);
+  min-width: 80px;
+}
+
+body.dark-mode .input-price {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--compras-text-white);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .input-price:focus {
   outline: none;
   border-color: var(--compras-primary);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.1);
+}
+
+.item-subtotal {
+  font-weight: 600;
+  color: var(--compras-primary);
+  flex-shrink: 0;
+}
 }
 
 .item-subtotal {

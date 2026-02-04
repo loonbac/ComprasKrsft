@@ -706,11 +706,16 @@
                     <h5 class="quick-pay-section-title">Items a Pagar</h5>
                     <div class="items-table quick-pay-items-table">
                       <div v-for="(item, idx) in quickPayItems" :key="idx" class="item-row">
-                        <div class="item-desc">{{ item.description }}<br/><small>{{ item.qty }} {{ item.unit }}</small></div>
-                        <div class="item-price">
-                          <input v-model.number="item.price" @input="updateQuickPayItemPrice(idx, $event.target.value)" type="number" min="0" step="0.01" class="input-price" placeholder="0.00" />
+                        <div class="item-name">{{ item.description }}</div>
+                        <div class="item-qty-unit">
+                          <span class="item-label">CANTIDAD:</span> {{ item.qty }}
+                          <span class="item-label">UNIDAD:</span> {{ item.unit }}
                         </div>
-                        <div class="item-subtotal">S/ {{ formatNumber(item.subtotal) }}</div>
+                        <div class="item-price-row">
+                          <label class="price-label">PRECIO x Unidad:</label>
+                          <input v-model.number="item.price" @input="updateQuickPayItemPrice(idx, $event.target.value)" type="number" min="0" step="0.01" class="input-price" placeholder="0.00" />
+                          <div class="item-subtotal">S/ {{ formatNumber(item.subtotal) }}</div>
+                        </div>
                       </div>
                       <div class="total-row">
                         <strong>Total:</strong>
