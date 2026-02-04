@@ -1405,14 +1405,19 @@ body.dark-mode .quick-pay-inline-group input[type="date"]::-webkit-calendar-pick
 .bulk-actions-bar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 16px;
   padding: 14px 16px;
-  background: var(--compras-badge-success-bg);
-  border: 1px solid var(--compras-border);
+  background: var(--compras-bg-card);
+  border: 2px solid var(--compras-primary);
   border-radius: var(--compras-radius-md);
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+body.dark-mode .bulk-actions-bar {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .selection-count {
@@ -2201,9 +2206,9 @@ body.dark-mode .quick-pay-box {
 }
 
 .btn-quick-pay {
-  background: var(--compras-quickpay-btn-bg);
-  color: var(--compras-quickpay-btn-text);
-  border: none;
+  background: var(--compras-bg-card);
+  color: var(--compras-text-dark);
+  border: 2px solid var(--compras-primary);
   padding: 10px 20px;
   border-radius: 6px;
   font-weight: 600;
@@ -2214,10 +2219,16 @@ body.dark-mode .quick-pay-box {
   transition: all 0.3s ease;
 }
 
+body.dark-mode .btn-quick-pay {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--compras-text-white);
+}
+
 .btn-quick-pay:hover {
   transform: translateY(-2px);
-  background: var(--compras-quickpay-btn-hover);
-  box-shadow: var(--compras-quickpay-shadow);
+  background: var(--compras-primary);
+  color: white;
+  box-shadow: 0 8px 16px rgba(10, 164, 164, 0.3);
 }
 
 .btn-quick-pay svg {
