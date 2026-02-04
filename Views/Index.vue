@@ -560,6 +560,7 @@
           <div class="modal-content payment-modal">
             <div class="modal-header">
               <h2>CONFIRMAR PAGO</h2>
+              <span v-if="paymentBatch && paymentBatch.igv_enabled" class="pill pill-igv header-igv">+IGV</span>
             </div>
             
             <div class="modal-body" v-if="paymentBatch">

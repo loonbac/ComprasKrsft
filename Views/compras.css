@@ -936,6 +936,15 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
   text-transform: uppercase;
 }
 
+.payment-modal .modal-header {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.payment-modal .header-igv {
+  margin-left: 8px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -1452,7 +1461,7 @@ body.dark-mode .btn-cancel:hover {
   background: var(--compras-primary);
   border: none;
   border-radius: var(--compras-radius-md);
-  color: var(--compras-text-white);
+  color: #ffffff;
   font-weight: 600;
   cursor: pointer;
   transition: var(--compras-transition-fast);
