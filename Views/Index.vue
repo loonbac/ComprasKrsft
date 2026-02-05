@@ -163,6 +163,13 @@
                 placeholder="Buscar por proveedor..." 
                 class="search-input-topay"
               />
+              <select v-model="toPayFilterProject" class="filter-select">
+                <option value="">Todos los proyectos</option>
+                <option value="active-only">Solo proyectos activos</option>
+                <option v-for="proj in toPayProjects" :key="proj.id" :value="proj.id">
+                  {{ proj.name }}
+                </option>
+              </select>
               <select v-model="toPayFilterCurrency" class="filter-select">
                 <option value="">Todas las monedas</option>
                 <option value="PEN">PEN (Soles)</option>
@@ -202,53 +209,55 @@
 
           <!-- Batches List -->
           <div v-else class="batches-list">
-            <div v-for="batch in filteredToPayBatches" :key="batch.batch_id" class="batch-card to-pay" :class="{ 'alert-urgent': getPaymentAlertStatus(batch) === 'urgent', 'alert-overdue': getPaymentAlertStatus(batch) === 'overdue', 'alert-today': getPaymentAlertStatus(batch) === 'today', 'alert-warning': getPaymentAlertStatus(batch) === 'warning' }">
-              <div class="batch-header">
-                <div class="batch-info">
-                  <span class="batch-id">{{ batch.batch_id }}</span>
-                  <span class="batch-seller">Proveedor: {{ batch.seller_name }}</span>
-                  <span class="batch-ruc">RUC: {{ batch.seller_document || 'N/D' }}</span>
-                  <span class="batch-approver">Aprobado por: {{ batch.approved_by_name || 'N/D' }}</span>
+            <div v-for="batch in filteredToPayBatches" :key="batch.batch_id" class="batch-card to-pay collapsed-batch" :class="{ 'alert-urgent': getPaymentAlertStatus(batch) === 'urgent', 'alert-overdue': getPaymentAlertStatus(batch) === 'overdue', 'alert-today': getPaymentAlertStatus(batch) === 'today', 'alert-warning': getPaymentAlertStatus(batch) === 'warning' }">
+              <!-- Collapsed Header -->
+              <div @click="toggleToPayBatchExpanded(batch.batch_id)" class="batch-header collapsed-header">
+                <div class="expand-icon" :class="{ expanded: expandedToPayBatches[batch.batch_id] }">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </div>
-                <div class="batch-meta">
-                  <span>{{ batch.orders.length }} items</span>
-                  <span v-if="batch.payment_type === 'loan'" class="pill pill-credit">
-                    CRÉDITO
-                  </span>
-                  <span v-else class="pill pill-cash">
-                    CONTADO
-                  </span>
-                  <span class="pill" :class="batch.currency === 'PEN' ? 'pill-pen' : 'pill-usd'">
-                    {{ batch.currency }}
-                  </span>
-                  <span v-if="batch.igv_enabled" class="pill pill-igv">+IGV</span>
-                  <span v-if="batch.payment_type === 'loan' && getPaymentAlertStatus(batch)" class="pill pill-due" :class="`pill-${getPaymentAlertStatus(batch)}`">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M12 8v5l3 3 1-1.5-2.5-2.5V8h-1.5z"/>
-                      <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z"/>
-                    </svg>
-                    {{ getAlertLabel(batch) }}
-                  </span>
-                  <span class="batch-date">Aprobado {{ formatDate(batch.approved_at) }}</span>
-                  <span v-if="batch.issue_date" class="batch-date">Emisión {{ formatDate(batch.issue_date) }}</span>
-                  <span v-if="batch.due_date" class="batch-due-date">Vence {{ formatDate(batch.due_date) }}</span>
-                </div>
+                <span class="batch-id-compact">{{ batch.batch_id }}</span>
+                <span class="batch-seller-compact">Proveedor: {{ batch.seller_name }}</span>
+                <span class="batch-items-count">{{ batch.orders.length }} items</span>
+                <span v-if="batch.payment_type === 'loan'" class="pill pill-credit">CRÉDITO</span>
+                <span v-else class="pill pill-cash">CONTADO</span>
+                <span class="pill" :class="batch.currency === 'PEN' ? 'pill-pen' : 'pill-usd'">{{ batch.currency }}</span>
+                <span v-if="batch.igv_enabled" class="pill pill-igv">+IGV</span>
+                <span v-if="batch.payment_type === 'loan' && getPaymentAlertStatus(batch)" class="pill pill-due" :class="`pill-${getPaymentAlertStatus(batch)}`">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 8v5l3 3 1-1.5-2.5-2.5V8h-1.5z"/>
+                    <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z"/>
+                  </svg>
+                  {{ getAlertLabel(batch) }}
+                </span>
+                <span class="batch-total-compact">{{ batch.currency }} {{ formatNumber((batch.total_with_igv ?? batch.total) || 0) }}</span>
               </div>
 
-              <div class="batch-items">
-                <div v-for="order in batch.orders" :key="order.id" class="batch-item">
-                  <span class="item-project">{{ order.project_name }}</span>
-                  <span class="item-desc">{{ getOrderTitle(order) }}</span>
-                  <span class="item-separator"></span>
-                  <span class="item-amount">{{ batch.currency }} {{ formatNumber((order.amount_with_igv ?? order.amount) || 0) }}</span>
+              <!-- Expanded Content -->
+              <div v-if="expandedToPayBatches[batch.batch_id]" class="batch-expanded-content">
+                <div class="batch-meta-expanded">
+                  <span v-if="batch.approved_by_name" class="meta-item">Aprobado por: {{ batch.approved_by_name }}</span>
+                  <span class="meta-item">Aprobado {{ formatDate(batch.approved_at) }}</span>
+                  <span v-if="batch.issue_date" class="meta-item">Emisión {{ formatDate(batch.issue_date) }}</span>
+                  <span v-if="batch.due_date" class="meta-item">Vence {{ formatDate(batch.due_date) }}</span>
                 </div>
-              </div>
+                
+                <div class="batch-items-expanded">
+                  <div v-for="order in batch.orders" :key="order.id" class="batch-item-expanded">
+                    <span class="item-project-small">{{ order.project_name }}</span>
+                    <span class="item-desc-small">{{ getOrderTitle(order) }}</span>
+                    <span class="item-qty-small">Cant: {{ getOrderQty(order) }}</span>
+                    <span class="item-amount-small">{{ batch.currency }} {{ formatNumber((order.amount_with_igv ?? order.amount) || 0) }}</span>
+                  </div>
+                </div>
 
-              <div class="batch-footer">
-                <div class="batch-totals">
-                  Total: {{ batch.currency }} {{ formatNumber((batch.total_with_igv ?? batch.total) || 0) }}
+                <div class="batch-footer">
+                  <div class="batch-totals">
+                    Total: {{ batch.currency }} {{ formatNumber((batch.total_with_igv ?? batch.total) || 0) }}
+                  </div>
+                  <button @click.stop="openPaymentModal(batch)" class="btn-confirm-payment">Pagar</button>
                 </div>
-                <button @click="openPaymentModal(batch)" class="btn-confirm-payment">Pagar</button>
               </div>
             </div>
           </div>
@@ -1172,9 +1181,11 @@ const quickPayItems = ref([]);
 
 // To Pay filters
 const toPaySearch = ref('');
+const toPayFilterProject = ref('');
 const toPayFilterCurrency = ref('');
 const toPayFilterPaymentType = ref('');
 const toPayFilterIgv = ref('');
+const expandedToPayBatches = ref({});
 
 const quickPayApprovalForm = ref({
   seller_name: '',
@@ -1315,6 +1326,23 @@ const toPayBatches = computed(() => {
   return Object.values(map).sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
 });
 
+const toPayProjects = computed(() => {
+  const map = {};
+  toPayBatches.value.forEach(batch => {
+    batch.orders.forEach(o => {
+      if (!map[o.project_id]) {
+        map[o.project_id] = { 
+          id: o.project_id, 
+          name: o.project_name,
+          status: o.project_status,
+          estado: o.project_estado
+        };
+      }
+    });
+  });
+  return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+});
+
 const filteredToPayBatches = computed(() => {
   let result = toPayBatches.value;
   
@@ -1325,6 +1353,23 @@ const filteredToPayBatches = computed(() => {
       (batch.seller_name || '').toLowerCase().includes(searchLower) ||
       (batch.seller_document || '').toLowerCase().includes(searchLower)
     );
+  }
+  
+  // Filtro por proyecto
+  if (toPayFilterProject.value === 'active-only') {
+    result = result.filter(batch => {
+      return batch.orders.some(order => {
+        const project = {
+          status: order.project_status,
+          estado: order.project_estado
+        };
+        return isProjectInProgress(project);
+      });
+    });
+  } else if (toPayFilterProject.value) {
+    result = result.filter(batch => {
+      return batch.orders.some(order => order.project_id === toPayFilterProject.value);
+    });
   }
   
   // Filtro por moneda
@@ -2046,6 +2091,14 @@ const togglePaidBatchExpanded = (batchId) => {
     delete expandedPaidBatches.value[batchId];
   } else {
     expandedPaidBatches.value[batchId] = true;
+  }
+};
+
+const toggleToPayBatchExpanded = (batchId) => {
+  if (expandedToPayBatches.value[batchId]) {
+    delete expandedToPayBatches.value[batchId];
+  } else {
+    expandedToPayBatches.value[batchId] = true;
   }
 };
 
