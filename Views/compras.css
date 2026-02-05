@@ -1761,7 +1761,7 @@ body.dark-mode .bulk-actions-bar {
 .materials-table-container {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  background: transparent;
+  background: var(--compras-bg-card);
   margin-left: 60px;
 }
 
