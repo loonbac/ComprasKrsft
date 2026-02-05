@@ -1711,7 +1711,7 @@ body.dark-mode .bulk-actions-bar {
   display: flex;
   flex-direction: column;
   gap: 0;
-  background: var(--compras-bg-page);
+  background: var(--compras-bg-card);
   border-top: 1px solid var(--compras-border);
   padding: 0;
 }
