@@ -798,7 +798,7 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 .batch-item {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   padding: 3px 0;
   border-bottom: 1px solid var(--compras-border-light);
 }
@@ -814,13 +814,27 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .item-desc {
-  flex: 1;
+  flex: 0 0 auto;
   color: var(--compras-text-dark);
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-separator {
+  flex: 1;
+  border-bottom: 2px dotted var(--compras-border);
+  min-width: 20px;
+  margin: 0 4px;
+  opacity: 0.5;
 }
 
 .item-amount {
   font-weight: 600;
   color: var(--compras-primary);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .batch-footer {
@@ -836,10 +850,13 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 .batch-totals {
   display: flex;
   align-items: center;
+  justify-content: center;
   order: 2;
   background: var(--compras-primary);
   padding: 6px 14px;
   border-radius: var(--compras-radius-sm);
+  height: 32px;
+  min-width: fit-content;
 }
 
 .total-row {
@@ -851,6 +868,8 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 0.85rem;
   font-weight: 700;
   color: #ffffff;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .batch-cdp {
@@ -909,6 +928,8 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 0.85rem;
   cursor: pointer;
   transition: var(--compras-transition-fast);
+  height: 32px;
+  line-height: 1;
 }
 
 .btn-confirm-payment:hover {

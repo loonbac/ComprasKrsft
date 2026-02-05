@@ -216,6 +216,7 @@
                 <div v-for="order in batch.orders" :key="order.id" class="batch-item">
                   <span class="item-project">{{ order.project_name }}</span>
                   <span class="item-desc">{{ getOrderTitle(order) }}</span>
+                  <span class="item-separator"></span>
                   <span class="item-amount">{{ batch.currency }} {{ formatNumber((order.amount_with_igv ?? order.amount) || 0) }}</span>
                 </div>
               </div>
