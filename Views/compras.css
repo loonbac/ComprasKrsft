@@ -1733,7 +1733,7 @@ body.dark-mode .bulk-actions-bar {
 
 .materials-approval-table th,
 .materials-approval-table td {
-  padding: 10px 12px;
+  padding: 6px 10px;
   text-align: left;
   border-bottom: 1px solid var(--compras-border);
   white-space: nowrap;
