@@ -1638,7 +1638,7 @@ body.dark-mode .bulk-actions-bar {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 10px 16px;
   background: var(--compras-bg-light);
   border-bottom: 1px solid var(--compras-border);
   cursor: pointer;
@@ -1671,10 +1671,10 @@ body.dark-mode .bulk-actions-bar {
 .project-name-pill {
   display: inline-flex;
   align-items: center;
-  padding: 6px 16px;
+  padding: 5px 14px;
   border-radius: var(--compras-radius-full);
   color: var(--compras-text-white);
-  font-size: 0.9rem;
+  font-size: 0.765rem;
   font-weight: 700;
   letter-spacing: 0.4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
@@ -1746,6 +1746,7 @@ body.dark-mode .bulk-actions-bar {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   background: var(--compras-bg-card);
+  margin-left: 60px;
 }
 
 .materials-approval-table {
