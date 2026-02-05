@@ -1340,7 +1340,10 @@ const toPayProjects = computed(() => {
       }
     });
   });
-  return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+  // Solo mostrar proyectos activos en la lista
+  const allProjects = Object.values(map);
+  const activeProjects = allProjects.filter(project => isProjectInProgress(project));
+  return activeProjects.sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const filteredToPayBatches = computed(() => {
