@@ -1577,8 +1577,8 @@ body.dark-mode .btn-cancel:hover {
   justify-content: flex-end;
   gap: 16px;
   padding: 14px 16px;
-  background: var(--compras-bg-card);
-  border: 2px solid var(--compras-primary);
+  background: var(--compras-bg-container);
+  border: 1px solid var(--compras-primary);
   border-radius: var(--compras-radius-md);
   position: sticky;
   top: 0;
@@ -1586,7 +1586,7 @@ body.dark-mode .btn-cancel:hover {
 }
 
 body.dark-mode .bulk-actions-bar {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--compras-bg-container);
 }
 
 .selection-count {
@@ -1617,6 +1617,22 @@ body.dark-mode .bulk-actions-bar {
 .btn-approve-bulk:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.btn-cancel-bulk {
+  padding: 8px 16px;
+  background: #ef4444;
+  border: none;
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-white);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-cancel-bulk:hover {
+  background: #dc2626;
 }
 
 /* Projects Container */
@@ -1745,7 +1761,7 @@ body.dark-mode .bulk-actions-bar {
 .materials-table-container {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  background: var(--compras-bg-card);
+  background: transparent;
   margin-left: 60px;
 }
 

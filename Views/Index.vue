@@ -68,6 +68,9 @@
               <button @click="openApprovalModal" :disabled="approvingPending" class="btn-approve-bulk">
                 {{ approvingPending ? 'Aprobando...' : 'Aprobar seleccionados' }}
               </button>
+              <button @click="selectedPendingIds = []" class="btn-cancel-bulk">
+                Cancelar
+              </button>
             </div>
 
             <!-- Projects with collapsible lists -->
