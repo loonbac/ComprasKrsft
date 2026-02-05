@@ -107,7 +107,6 @@
                       <table class="materials-approval-table">
                         <thead>
                           <tr>
-                            <th class="col-checkbox"><input type="checkbox" @change="toggleListAllSelect(proj.id, list.filename)" :checked="isListAllSelected(proj.id, list.filename)" /></th>
                             <th class="col-item">ITEM</th>
                             <th class="col-description">DESCRIPCIÓN</th>
                             <th class="col-qty">CANT</th>
@@ -123,14 +122,9 @@
                             v-for="order in getListOrders(proj.id, list.filename)"
                             :key="order.id"
                             :class="{ selected: isPendingSelected(order.id) }"
+                            @click="togglePendingSelect(order.id)"
+                            class="clickable-row"
                           >
-                            <td class="col-checkbox">
-                              <input 
-                                type="checkbox" 
-                                :checked="isPendingSelected(order.id)"
-                                @change="togglePendingSelect(order.id)"
-                              />
-                            </td>
                             <td class="col-item">{{ order.item_number || '-' }}</td>
                             <td class="col-description">{{ getOrderTitle(order) }}</td>
                             <td class="col-qty">{{ getOrderQty(order) }}</td>
@@ -138,7 +132,7 @@
                             <td class="col-diam">{{ order.diameter || '-' }}</td>
                             <td class="col-serie">{{ order.series || '-' }}</td>
                             <td class="col-mat">{{ order.material_type || '-' }}</td>
-                            <td class="col-actions">
+                            <td class="col-actions" @click.stop>
                               <div class="action-buttons">
                                 <button @click="approveSinglePending(order.id)" class="btn-sm btn-approve" title="Aprobar">✓</button>
                                 <button @click="rejectOrder(order.id)" class="btn-sm btn-reject" title="Rechazar">✕</button>

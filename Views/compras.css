@@ -1677,7 +1677,6 @@ body.dark-mode .bulk-actions-bar {
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.4px;
-  flex: 1;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
@@ -1777,6 +1776,7 @@ body.dark-mode .bulk-actions-bar {
 
 .materials-approval-table tbody tr {
   transition: background 0.15s ease;
+  cursor: pointer;
 }
 
 .materials-approval-table tbody tr:hover {
@@ -1787,16 +1787,8 @@ body.dark-mode .bulk-actions-bar {
   background: var(--compras-row-selected-bg);
 }
 
-.materials-approval-table .col-checkbox {
-  width: 40px;
-  text-align: center;
-}
-
-.materials-approval-table .col-checkbox input {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--compras-primary);
+.materials-approval-table tbody tr.selected:hover {
+  background: var(--compras-row-selected-bg-hover);
 }
 
 .materials-approval-table .col-item {
