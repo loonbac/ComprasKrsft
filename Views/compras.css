@@ -2145,7 +2145,7 @@ body.dark-mode .bulk-actions-bar {
 }
 
 .meta-no-igv {
-  background: var(--compras-text-gray);
+  background: #64748b;
   color: #ffffff;
 }
 

@@ -2128,6 +2128,8 @@ const loadPaidBatches = async () => {
             batch_id: batchId,
             seller_name: order.seller_name,
             currency: order.currency,
+            payment_type: order.payment_type || 'cash',
+            issue_date: order.issue_date || null,
             payment_confirmed_at: order.payment_confirmed_at,
             cdp_type: order.cdp_type,
             cdp_serie: order.cdp_serie,
@@ -2137,8 +2139,17 @@ const loadPaidBatches = async () => {
             payment_confirmed_by_name: order.payment_confirmed_by_name,
             approved_by_name: order.approved_by_name,
             orders: [],
-            total: 0
+            total: 0,
+            igv_enabled: false
           };
+        }
+        // Actualizar issue_date si existe en la orden actual
+        if (order.issue_date && !batchMap[batchId].issue_date) {
+          batchMap[batchId].issue_date = order.issue_date;
+        }
+        // Si alguna orden tiene IGV, el batch tiene IGV
+        if (order.igv_enabled || order.igv_amount > 0) {
+          batchMap[batchId].igv_enabled = true;
         }
         batchMap[batchId].orders.push(order);
         batchMap[batchId].total += parseFloat(order.total_with_igv || order.amount || 0);
