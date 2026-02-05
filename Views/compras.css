@@ -792,14 +792,14 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .batch-items {
-  padding: 8px 12px;
+  padding: 6px 12px;
 }
 
 .batch-item {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 6px 0;
+  padding: 3px 0;
   border-bottom: 1px solid var(--compras-border-light);
 }
 
@@ -835,10 +835,11 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 
 .batch-totals {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-end;
+  align-items: center;
   order: 2;
+  background: var(--compras-primary);
+  padding: 6px 14px;
+  border-radius: var(--compras-radius-sm);
 }
 
 .total-row {
@@ -847,9 +848,9 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .total-final {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: var(--compras-text-dark);
+  color: #ffffff;
 }
 
 .batch-cdp {
