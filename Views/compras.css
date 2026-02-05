@@ -1794,6 +1794,7 @@ body.dark-mode .bulk-actions-bar {
 .materials-approval-table tbody tr {
   transition: background 0.15s ease;
   cursor: pointer;
+  background: var(--compras-bg-card);
 }
 
 .materials-approval-table tbody tr:hover {
