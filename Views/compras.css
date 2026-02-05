@@ -310,10 +310,10 @@ body.dark-mode .theme-toggle .moon-icon {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin: 8px 0 16px;
   flex-wrap: wrap;
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: var(--compras-bg-light);
   border: 1px solid var(--compras-border);
   border-radius: var(--compras-radius-md);
@@ -328,19 +328,20 @@ body.dark-mode .theme-toggle .moon-icon {
 
 .date-filter-group label {
   color: var(--compras-text-gray);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .input-date {
-  padding: 8px 10px;
+  padding: 6px 8px;
   background: var(--compras-bg-card);
   border: 2px solid var(--compras-border);
   border-radius: var(--compras-radius-sm);
   color: var(--compras-text-dark);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  height: 32px;
 }
 
 .input-date:focus {
@@ -375,41 +376,44 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .btn-reset-filter {
-  padding: 8px 12px;
-  background: var(--compras-bg-card);
-  border: 1px solid var(--compras-border);
+  padding: 6px 12px;
+  background: #ef4444;
+  border: none;
   border-radius: var(--compras-radius-sm);
-  color: var(--compras-text-gray);
+  color: #ffffff;
   font-weight: 600;
   font-size: 0.8rem;
   cursor: pointer;
   transition: var(--compras-transition-fast);
+  height: 32px;
 }
 
 .btn-reset-filter:hover {
-  background: var(--compras-border);
-  color: var(--compras-text-dark);
+  background: #dc2626;
 }
 
 .btn-export {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 6px;
+  padding: 6px 12px;
   background: var(--compras-btn-export-bg);
   color: #fff;
   border: none;
   border-radius: var(--compras-radius-md);
   font-weight: 700;
+  font-size: 0.8rem;
   letter-spacing: 0.2px;
-  box-shadow: var(--compras-shadow-md);
+  box-shadow: var(--compras-shadow-sm);
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+  height: 32px;
+  white-space: nowrap;
 }
 
 .btn-export svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .btn-export:hover {
@@ -2121,6 +2125,23 @@ body.dark-mode .bulk-actions-bar {
   background: var(--compras-bg-light);
   padding: 4px 8px;
   border-radius: 3px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.meta-cash {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.meta-credit {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+.meta-igv {
+  background: #8b5cf6;
+  color: #ffffff;
 }
 
 .batch-items-expanded {
@@ -2129,8 +2150,8 @@ body.dark-mode .bulk-actions-bar {
 
 .batch-item-expanded {
   display: grid;
-  grid-template-columns: 100px 1fr 80px auto;
-  gap: 8px;
+  grid-template-columns: minmax(150px, 200px) 1fr auto 100px auto;
+  gap: 12px;
   align-items: center;
   padding: 6px 0;
   border-bottom: 1px solid var(--compras-border-light);
@@ -2143,12 +2164,25 @@ body.dark-mode .bulk-actions-bar {
 
 .item-project-small {
   color: var(--compras-text-gray);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .item-desc-small {
   color: var(--compras-text-dark);
   font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-qty-small {
+  color: var(--compras-text-gray);
+  font-size: 0.75rem;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .item-amount-small {

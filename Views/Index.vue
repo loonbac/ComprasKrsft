@@ -274,7 +274,7 @@
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              Exportar Registro de Compras
+              Exportar Registro
             </button>
           </div>
 
@@ -304,14 +304,20 @@
               <div v-if="expandedPaidBatches[batch.batch_id]" class="batch-expanded-content">
                 <div class="batch-meta-expanded">
                   <span class="meta-item">Pagado {{ formatDate(batch.payment_confirmed_at) }}</span>
+                  <span v-if="batch.issue_date" class="meta-item">Emisión {{ formatDate(batch.issue_date) }}</span>
                   <span v-if="batch.approved_by_name" class="meta-item">Aprobado por: {{ batch.approved_by_name }}</span>
                   <span v-if="batch.payment_confirmed_by_name" class="meta-item">Pagado por: {{ batch.payment_confirmed_by_name }}</span>
+                  <span class="meta-item" :class="batch.payment_type === 'cash' ? 'meta-cash' : 'meta-credit'">
+                    {{ batch.payment_type === 'cash' ? 'Contado' : 'Crédito' }}
+                  </span>
+                  <span v-if="batch.igv_enabled" class="meta-item meta-igv">Con IGV</span>
                 </div>
                 
                 <div class="batch-items-expanded">
                   <div v-for="order in batch.orders" :key="order.id" class="batch-item-expanded">
                     <span class="item-project-small">{{ order.project_name }}</span>
                     <span class="item-desc-small">{{ getOrderTitle(order) }}</span>
+                    <span class="item-qty-small">Cant: {{ getOrderQty(order) }}</span>
                     <span class="item-amount-small">{{ order.currency }} {{ formatNumber(order.amount) }}</span>
                     <span v-if="order.delivery_confirmed" class="item-delivered-badge-small">Entregado</span>
                   </div>
