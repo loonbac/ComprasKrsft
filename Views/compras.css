@@ -1668,6 +1668,19 @@ body.dark-mode .bulk-actions-bar {
   font-size: 0.95rem;
 }
 
+.project-name-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: var(--compras-radius-full);
+  color: var(--compras-text-white);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  flex: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
 .project-count {
   background: var(--compras-badge-info-bg);
   color: var(--compras-badge-info-text);
