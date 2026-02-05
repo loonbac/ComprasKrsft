@@ -151,7 +151,7 @@ body.dark-mode .theme-toggle .moon-icon {
   gap: 8px;
   margin-bottom: 24px;
   background: var(--compras-bg-light);
-  padding: 4px;
+  padding: 3px;
   border-radius: 10px;
   border: 1px solid var(--compras-border);
 }
@@ -1576,8 +1576,8 @@ body.dark-mode .btn-cancel:hover {
   align-items: center;
   justify-content: flex-end;
   gap: 16px;
-  padding: 14px 16px;
-  background: var(--compras-bg-card);
+  padding: 10px 14px;
+  background: #ffffff;
   border: 1px solid var(--compras-primary);
   border-radius: var(--compras-radius-md);
   position: sticky;
@@ -1586,7 +1586,7 @@ body.dark-mode .btn-cancel:hover {
 }
 
 body.dark-mode .bulk-actions-bar {
-  background: var(--compras-bg-card);
+  background: #1e293b;
 }
 
 .selection-count {
