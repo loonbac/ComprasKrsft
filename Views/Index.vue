@@ -154,8 +154,31 @@
 
         <!-- TAB: Por Pagar - Listas por aprobación -->
         <template v-if="activeTab === 'to_pay'">
-          <!-- Pago Rápido Button -->
-          <div class="quick-pay-section">
+          <!-- Search and Filters Bar -->
+          <div class="to-pay-filters-bar">
+            <div class="search-filter-group">
+              <input 
+                v-model="toPaySearch" 
+                type="text" 
+                placeholder="Buscar por proveedor..." 
+                class="search-input-topay"
+              />
+              <select v-model="toPayFilterCurrency" class="filter-select">
+                <option value="">Todas las monedas</option>
+                <option value="PEN">PEN (Soles)</option>
+                <option value="USD">USD (Dólares)</option>
+              </select>
+              <select v-model="toPayFilterPaymentType" class="filter-select">
+                <option value="">Todos los tipos</option>
+                <option value="cash">Contado</option>
+                <option value="loan">Crédito</option>
+              </select>
+              <select v-model="toPayFilterIgv" class="filter-select">
+                <option value="">IGV: Todos</option>
+                <option value="true">Con IGV</option>
+                <option value="false">Sin IGV</option>
+              </select>
+            </div>
             <button @click="openQuickPayModal" class="btn-quick-pay">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="2" x2="12" y2="22"></line>
@@ -179,7 +202,7 @@
 
           <!-- Batches List -->
           <div v-else class="batches-list">
-            <div v-for="batch in toPayBatches" :key="batch.batch_id" class="batch-card to-pay" :class="{ 'alert-urgent': getPaymentAlertStatus(batch) === 'urgent', 'alert-overdue': getPaymentAlertStatus(batch) === 'overdue', 'alert-today': getPaymentAlertStatus(batch) === 'today', 'alert-warning': getPaymentAlertStatus(batch) === 'warning' }">
+            <div v-for="batch in filteredToPayBatches" :key="batch.batch_id" class="batch-card to-pay" :class="{ 'alert-urgent': getPaymentAlertStatus(batch) === 'urgent', 'alert-overdue': getPaymentAlertStatus(batch) === 'overdue', 'alert-today': getPaymentAlertStatus(batch) === 'today', 'alert-warning': getPaymentAlertStatus(batch) === 'warning' }">
               <div class="batch-header">
                 <div class="batch-info">
                   <span class="batch-id">{{ batch.batch_id }}</span>
@@ -223,7 +246,7 @@
 
               <div class="batch-footer">
                 <div class="batch-totals">
-                  <span class="total-row total-final">Total: {{ batch.currency }} {{ formatNumber((batch.total_with_igv ?? batch.total) || 0) }}</span>
+                  Total: {{ batch.currency }} {{ formatNumber((batch.total_with_igv ?? batch.total) || 0) }}
                 </div>
                 <button @click="openPaymentModal(batch)" class="btn-confirm-payment">Pagar</button>
               </div>
@@ -1136,6 +1159,13 @@ const quickPayStep = ref(1); // 1: select project, 2: add items, 3: review & pay
 const quickPaySelectedProject = ref(null);
 const quickPayProjects = ref([]);
 const quickPayItems = ref([]);
+
+// To Pay filters
+const toPaySearch = ref('');
+const toPayFilterCurrency = ref('');
+const toPayFilterPaymentType = ref('');
+const toPayFilterIgv = ref('');
+
 const quickPayApprovalForm = ref({
   seller_name: '',
   seller_document: '',
@@ -1273,6 +1303,37 @@ const toPayBatches = computed(() => {
   });
 
   return Object.values(map).sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
+});
+
+const filteredToPayBatches = computed(() => {
+  let result = toPayBatches.value;
+  
+  // Filtro por búsqueda de proveedor
+  if (toPaySearch.value.trim()) {
+    const searchLower = toPaySearch.value.toLowerCase().trim();
+    result = result.filter(batch => 
+      (batch.seller_name || '').toLowerCase().includes(searchLower) ||
+      (batch.seller_document || '').toLowerCase().includes(searchLower)
+    );
+  }
+  
+  // Filtro por moneda
+  if (toPayFilterCurrency.value) {
+    result = result.filter(batch => batch.currency === toPayFilterCurrency.value);
+  }
+  
+  // Filtro por tipo de pago
+  if (toPayFilterPaymentType.value) {
+    result = result.filter(batch => batch.payment_type === toPayFilterPaymentType.value);
+  }
+  
+  // Filtro por IGV
+  if (toPayFilterIgv.value) {
+    const hasIgv = toPayFilterIgv.value === 'true';
+    result = result.filter(batch => batch.igv_enabled === hasIgv);
+  }
+  
+  return result;
 });
 
 const pendingProjects = computed(() => {

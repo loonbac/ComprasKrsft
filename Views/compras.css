@@ -824,10 +824,15 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 
 .item-separator {
   flex: 1;
-  border-bottom: 2px dotted var(--compras-border);
+  border-bottom: 2px dotted var(--compras-text-dark);
   min-width: 20px;
   margin: 0 4px;
-  opacity: 0.5;
+  opacity: 0.3;
+}
+
+body.dark-mode .item-separator {
+  border-bottom-color: var(--compras-text-light);
+  opacity: 0.4;
 }
 
 .item-amount {
@@ -857,6 +862,11 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: var(--compras-radius-sm);
   height: 32px;
   min-width: fit-content;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .total-row {
@@ -2470,6 +2480,88 @@ body.dark-mode .quick-pay-section {
 .btn-quick-pay svg {
   width: 16px;
   height: 16px;
+}
+
+/* To Pay Filters Bar */
+.to-pay-filters-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--compras-bg-light);
+  border: 2px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+  margin-bottom: 16px;
+}
+
+body.dark-mode .to-pay-filters-bar {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.search-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.search-input-topay {
+  padding: 6px 12px;
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  background: var(--compras-bg-input);
+  color: var(--compras-text-dark);
+  font-size: 0.85rem;
+  min-width: 200px;
+  flex: 1;
+  max-width: 300px;
+  transition: var(--compras-transition-fast);
+}
+
+.search-input-topay:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 2px rgba(10, 164, 164, 0.1);
+}
+
+body.dark-mode .search-input-topay {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--compras-text-light);
+}
+
+body.dark-mode .search-input-topay::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.filter-select {
+  padding: 6px 10px;
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  background: var(--compras-bg-input);
+  color: var(--compras-text-dark);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+  min-width: 120px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+}
+
+body.dark-mode .filter-select {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--compras-text-light);
+}
+
+body.dark-mode .filter-select option {
+  background: #1e293b;
+  color: #e2e8f0;
 }
 
 .quick-pay-step {
