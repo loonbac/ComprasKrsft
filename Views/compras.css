@@ -2144,6 +2144,28 @@ body.dark-mode .bulk-actions-bar {
   color: #ffffff;
 }
 
+.meta-no-igv {
+  background: var(--compras-text-gray);
+  color: #ffffff;
+}
+
+.meta-pen {
+  background: #ef4444;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.meta-usd {
+  background: #3b82f6;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.meta-info {
+  background: var(--compras-bg-light);
+  color: var(--compras-text-gray);
+}
+
 .batch-items-expanded {
   margin-bottom: 10px;
 }

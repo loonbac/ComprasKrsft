@@ -305,12 +305,16 @@
                 <div class="batch-meta-expanded">
                   <span class="meta-item">Pagado {{ formatDate(batch.payment_confirmed_at) }}</span>
                   <span v-if="batch.issue_date" class="meta-item">Emisión {{ formatDate(batch.issue_date) }}</span>
-                  <span v-if="batch.approved_by_name" class="meta-item">Aprobado por: {{ batch.approved_by_name }}</span>
-                  <span v-if="batch.payment_confirmed_by_name" class="meta-item">Pagado por: {{ batch.payment_confirmed_by_name }}</span>
+                  <span class="meta-item" :class="batch.currency === 'PEN' ? 'meta-pen' : 'meta-usd'">
+                    {{ batch.currency }}
+                  </span>
                   <span class="meta-item" :class="batch.payment_type === 'cash' ? 'meta-cash' : 'meta-credit'">
                     {{ batch.payment_type === 'cash' ? 'Contado' : 'Crédito' }}
                   </span>
                   <span v-if="batch.igv_enabled" class="meta-item meta-igv">Con IGV</span>
+                  <span v-else class="meta-item meta-no-igv">Sin IGV</span>
+                  <span v-if="batch.approved_by_name" class="meta-item meta-info">Aprobado por: {{ batch.approved_by_name }}</span>
+                  <span v-if="batch.payment_confirmed_by_name" class="meta-item meta-info">Pagado por: {{ batch.payment_confirmed_by_name }}</span>
                 </div>
                 
                 <div class="batch-items-expanded">
