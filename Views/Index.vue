@@ -165,7 +165,6 @@
               />
               <select v-model="toPayFilterProject" class="filter-select">
                 <option value="">Todos los proyectos</option>
-                <option value="active-only">Solo proyectos activos</option>
                 <option v-for="proj in toPayProjects" :key="proj.id" :value="proj.id">
                   {{ proj.name }}
                 </option>
@@ -1359,17 +1358,7 @@ const filteredToPayBatches = computed(() => {
   }
   
   // Filtro por proyecto
-  if (toPayFilterProject.value === 'active-only') {
-    result = result.filter(batch => {
-      return batch.orders.some(order => {
-        const project = {
-          status: order.project_status,
-          estado: order.project_estado
-        };
-        return isProjectInProgress(project);
-      });
-    });
-  } else if (toPayFilterProject.value) {
+  if (toPayFilterProject.value) {
     result = result.filter(batch => {
       return batch.orders.some(order => order.project_id === toPayFilterProject.value);
     });

@@ -2187,9 +2187,7 @@ body.dark-mode .bulk-actions-bar {
 .item-project-small {
   color: var(--compras-text-gray);
   font-size: 0.75rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-wrap: break-word;
 }
 
 .item-desc-small {

@@ -2,7 +2,7 @@
     "name": "ComprasKrsft",
     "slug": "compras_krsft",
     "display_name": "COMPRAS",
-    "version": "5.13.5",
+    "version": "5.13.6",
     "description": "Sistema de gestión de órdenes de compra y pagos. Incluye Consulta de Almacén para reutilizar inventario existente. Actualización en tiempo real con caché localStorage.",
     "icon": "icon.svg",
     "color": "#10b981",
