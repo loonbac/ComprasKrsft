@@ -195,6 +195,9 @@
                   <span v-else class="pill pill-cash">
                     CONTADO
                   </span>
+                  <span class="pill" :class="batch.currency === 'PEN' ? 'pill-pen' : 'pill-usd'">
+                    {{ batch.currency }}
+                  </span>
                   <span v-if="batch.igv_enabled" class="pill pill-igv">+IGV</span>
                   <span v-if="batch.payment_type === 'loan' && getPaymentAlertStatus(batch)" class="pill pill-due" :class="`pill-${getPaymentAlertStatus(batch)}`">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
