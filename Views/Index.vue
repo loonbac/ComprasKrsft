@@ -393,7 +393,7 @@
                   <div v-for="order in selectedApprovalOrdersData" :key="order.id" class="pricing-row-container">
                     <div class="pricing-row">
                       <div class="pricing-info">
-                        <span class="pricing-project">{{ order.project_name }}</span>
+                        <span class="pricing-project-pill" :style="{ background: getProjectColor(order.project_id) }">{{ order.project_name }}</span>
                         <span class="pricing-material">{{ getOrderTitle(order) }}</span>
                         <span class="pricing-qty">{{ getOrderQty(order) }}</span>
                       </div>

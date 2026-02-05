@@ -151,14 +151,14 @@ body.dark-mode .theme-toggle .moon-icon {
   gap: 8px;
   margin-bottom: 24px;
   background: var(--compras-bg-light);
-  padding: 6px;
+  padding: 4px;
   border-radius: 10px;
   border: 1px solid var(--compras-border);
 }
 
 .main-tab {
   flex: 1;
-  padding: 12px 16px;
+  padding: 8px 14px;
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -1305,7 +1305,7 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  padding: 8px;
   background: var(--compras-bg-light);
   border-radius: var(--compras-radius-sm);
 }
@@ -1319,6 +1319,18 @@ body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
 .pricing-project {
   font-size: 0.75rem;
   color: var(--compras-text-gray);
+}
+
+.pricing-project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--compras-radius-full);
+  color: var(--compras-text-white);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .pricing-material {
