@@ -561,21 +561,20 @@
                         </div>
                       </div>
                       <div class="split-budget-info">
-                        <span class="budget-label">Costo ref. inventario:</span>
+                        <span class="budget-label">Costo Total (Budget):</span>
                         <div class="qty-edit-wrapper">
                           <span class="currency-prefix-mini">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }}</span>
                           <input 
                             type="number" 
                             step="0.01"
-                            v-model.number="inventorySelection[order.id].referencePrice" 
-                            @input="updateReferencePrice(order.id)"
+                            v-model.number="inventorySelection[order.id].budgetTotalInput" 
                             class="input-price-mini"
                             min="0"
                             placeholder="0.00"
-                            title="Valor inmaterial imputado al proyecto"
+                            title="Indique el costo total teórico del pedido completo"
                           />
                         </div>
-                        <span class="budget-hint">(Imputado al presupuesto del proyecto)</span>
+                        <span class="budget-hint">(Valor imputado al proyecto)</span>
                       </div>
                     </div>
 
@@ -2084,6 +2083,7 @@ const selectInventoryItem = (orderId, item, orderQty) => {
       qtyToBuy: qtyToBuy,
       unitCost: item.costo_unitario,
       referencePrice: inventoryRefPrice,
+      budgetTotalInput: parseFloat((item.costo_unitario * qtyNeeded).toFixed(2)), // Inicializar con costo total estimado
       moneda: item.moneda,
       stockAvailable: qtyAvailable
     };
@@ -2147,6 +2147,11 @@ const updateInventoryUsage = (orderId) => {
     selection.type = 'split';
     selection.qtyToBuy = parseFloat((qtyNeeded - requestedQty).toFixed(2));
     selection.referencePrice = selection.unitCost * requestedQty;
+
+    // Si no existe, inicializar budget total estimado
+    if (selection.budgetTotalInput === undefined) {
+      selection.budgetTotalInput = parseFloat((selection.unitCost * qtyNeeded).toFixed(2));
+    }
     
     // Backend data
     inventorySplitData.value[orderId] = {
@@ -2161,32 +2166,7 @@ const updateInventoryUsage = (orderId) => {
 
 // Actualizar precio de referencia manualmente (para input de inventario)
 const updateReferencePrice = (orderId) => {
-  const selection = inventorySelection.value[orderId];
-  if (!selection) return;
-  
-  // Validar y asegurar número
-  let newRefPrice = parseFloat(selection.type === 'inventory' ? selection.totalPrice : selection.referencePrice);
-  if (isNaN(newRefPrice) || newRefPrice < 0) newRefPrice = 0;
-
-  // Actualizar en objeto de selección visual
-  if (selection.type === 'inventory') {
-    selection.totalPrice = newRefPrice;
-    // Opcional: Recalcular costo unitario visual
-    if (selection.qtyUsed > 0) {
-      selection.unitCost = newRefPrice / selection.qtyUsed;
-    }
-  } else {
-    selection.referencePrice = newRefPrice;
-    // Opcional: Recalcular costo unitario visual
-    if (selection.qtyUsed > 0) {
-      selection.unitCost = newRefPrice / selection.qtyUsed;
-    }
-  }
-
-  // Actualizar Backend data
-  if (inventorySplitData.value[orderId]) {
-    inventorySplitData.value[orderId].reference_price = parseFloat(newRefPrice.toFixed(2));
-  }
+  // Placeholder para mantener consistencia
 };
 
 // Seleccionar opción "Sin inventario" (nueva compra)
@@ -2261,10 +2241,10 @@ const getProjectBudgetCost = (orderId) => {
     return sel.totalPrice || 0;
   }
   if (sel.type === 'split') {
-    // Split: Si el usuario ingresó un "Total Teórico" (referencePriceInput), usamos eso.
+    // Split: Si el usuario ingresó un "Total Teórico" (budgetTotalInput), usamos eso.
     // Si no, usamos la lógica clásica (suma de partes).
-    if (sel.referencePriceInput !== undefined) {
-      return sel.referencePriceInput || 0;
+    if (sel.budgetTotalInput !== undefined) {
+      return sel.budgetTotalInput || 0;
     }
     return purchasePrice + (sel.referencePrice || 0);
   }
@@ -2294,7 +2274,19 @@ const submitApprovalPending = async () => {
     const inventorySplitsPayload = {};
     for (const orderId of selectedApprovalIds.value) {
       const splitData = inventorySplitData.value[orderId];
+      const sel = inventorySelection.value[orderId];
+      
       if (splitData) {
+        // Recalcular reference_price si estamos en split manual con budgetTotalInput
+        if (sel && sel.type === 'split' && sel.budgetTotalInput !== undefined) {
+          const purchasePrice = parseFloat(approvalPrices.value[orderId] || 0);
+          const totalBudget = parseFloat(sel.budgetTotalInput || 0);
+          let inventoryPart = totalBudget - purchasePrice;
+          if (inventoryPart < 0) inventoryPart = 0;
+          
+          splitData.reference_price = parseFloat(inventoryPart.toFixed(2));
+        }
+        
         inventorySplitsPayload[orderId] = splitData;
       }
     }
