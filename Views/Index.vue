@@ -540,7 +540,16 @@
                       <div class="split-rows">
                         <div class="split-row split-row-inventory">
                           <span class="split-label">📦 De Inventario:</span>
-                          <span class="split-value">{{ getSplitInfo(order.id)?.qtyFromInventory }} uds</span>
+                          <div class="qty-edit-wrapper">
+                            <input 
+                              type="number" 
+                              v-model.number="inventorySelection[order.id].qtyUsed" 
+                              @input="updateInventoryUsage(order.id)"
+                              class="input-qty-mini"
+                              min="0"
+                              title="Modificar cantidad a usar"
+                            />
+                          </div>
                           <span class="split-detail">({{ getSplitInfo(order.id)?.itemName }})</span>
                           <span class="split-badge badge-inventory">Entrega Inmediata</span>
                         </div>
@@ -563,7 +572,17 @@
                       <div class="inventory-full-row">
                         <span class="inventory-full-icon">✅</span>
                         <span class="inventory-full-text">
-                          {{ inventorySelection[order.id]?.qtyUsed }} uds cubiertas desde <strong>{{ inventorySelection[order.id]?.itemName }}</strong>
+                          <div class="qty-edit-inline">
+                            <input 
+                              type="number" 
+                              v-model.number="inventorySelection[order.id].qtyUsed" 
+                              @input="updateInventoryUsage(order.id)"
+                              class="input-qty-mini"
+                              min="0"
+                              title="Modificar cantidad"
+                            />
+                            <span>uds cubiertas desde <strong>{{ inventorySelection[order.id]?.itemName }}</strong></span>
+                          </div>
                         </span>
                         <span class="inventory-full-badge">Sin Costo Real</span>
                       </div>
@@ -2057,6 +2076,62 @@ const selectInventoryItem = (orderId, item, orderQty) => {
     
     inventoryExpanded.value[orderId] = false;
     showToast(`📦 ${qtyFromInventory} de inventario + ${qtyToBuy} a comprar`, 'success');
+  }
+};
+
+// Actualizar cantidad usada de inventario manualmente
+const updateInventoryUsage = (orderId) => {
+  const selection = inventorySelection.value[orderId];
+  if (!selection) return;
+
+  const order = pendingOrders.value.find(o => o.id === orderId);
+  if (!order) return;
+
+  const qtyNeeded = getOrderQtyNum(order);
+  let requestedQty = parseFloat(selection.qtyUsed);
+  
+  if (isNaN(requestedQty)) requestedQty = 0;
+
+  // Validaciones
+  const maxStock = selection.stockAvailable;
+  
+  if (requestedQty > maxStock) requestedQty = maxStock;
+  if (requestedQty > qtyNeeded) requestedQty = qtyNeeded;
+  if (requestedQty < 0) requestedQty = 0;
+  
+  // Actualizar el valor en el objeto reactivo
+  selection.qtyUsed = requestedQty;
+  
+  // Recalcular lógica (Type inventory vs Split)
+  if (requestedQty >= qtyNeeded) {
+    // Caso: Cubre todo el pedido
+    selection.type = 'inventory';
+    selection.qtyToBuy = 0;
+    selection.totalPrice = selection.unitCost * requestedQty;
+    
+    // Backend data
+    approvalPrices.value[orderId] = 0;
+    inventorySplitData.value[orderId] = {
+      inventory_item_id: selection.itemId,
+      qty_from_inventory: requestedQty,
+      qty_to_buy: 0,
+      reference_price: parseFloat((selection.unitCost * requestedQty).toFixed(2)),
+      source_type: 'inventory'
+    };
+  } else {
+    // Caso: Split (Parcial o 0)
+    selection.type = 'split';
+    selection.qtyToBuy = parseFloat((qtyNeeded - requestedQty).toFixed(2));
+    selection.referencePrice = selection.unitCost * requestedQty;
+    
+    // Backend data
+    inventorySplitData.value[orderId] = {
+      inventory_item_id: selection.itemId,
+      qty_from_inventory: requestedQty,
+      qty_to_buy: selection.qtyToBuy,
+      reference_price: parseFloat(selection.referencePrice.toFixed(2)),
+      source_type: 'split'
+    };
   }
 };
 
