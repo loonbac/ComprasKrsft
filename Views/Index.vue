@@ -2261,7 +2261,11 @@ const getProjectBudgetCost = (orderId) => {
     return sel.totalPrice || 0;
   }
   if (sel.type === 'split') {
-    // Split: precio compra + precio referencia inventario
+    // Split: Si el usuario ingresó un "Total Teórico" (referencePriceInput), usamos eso.
+    // Si no, usamos la lógica clásica (suma de partes).
+    if (sel.referencePriceInput !== undefined) {
+      return sel.referencePriceInput || 0;
+    }
     return purchasePrice + (sel.referencePrice || 0);
   }
   return purchasePrice;
