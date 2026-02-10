@@ -3720,10 +3720,6 @@ body.dark-mode .qty-edit-inline {
   border-color: var(--compras-border-dark);
 }
 
-  font-weight: 700;
-  color: var(--compras-text-dark);
-}
-
 .split-detail {
   color: var(--compras-text-gray);
   font-size: 0.75rem;
