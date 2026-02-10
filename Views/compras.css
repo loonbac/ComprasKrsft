@@ -2374,6 +2374,7 @@ body.dark-mode .missing-comprobante-badge {
 /* Edit Comprobante Modal */
 .edit-comprobante-modal .modal-header {
   background: var(--compras-warning);
+  border-radius: var(--compras-radius-xl) var(--compras-radius-xl) 0 0;
 }
 
 .edit-comprobante-modal .modal-header h2 {
