@@ -3485,3 +3485,35 @@ body.dark-mode .inventory-empty {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
+/* Edit Button in Batch Header */
+.btn-edit-comprobante-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  margin-left: 12px;
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  background: transparent;
+  color: var(--compras-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+  white-space: nowrap;
+}
+
+body.dark-mode .btn-edit-comprobante-header {
+  border-color: var(--compras-border-light);
+  color: var(--compras-primary-light);
+}
+
+.btn-edit-comprobante-header:hover {
+  background: var(--compras-primary);
+  color: white;
+  border-color: var(--compras-primary);
+}
+
+.btn-edit-comprobante-header svg {
+  flex-shrink: 0;
+}

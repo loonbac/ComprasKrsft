@@ -314,6 +314,14 @@
                 </span>
                 <span class="batch-items-count">{{ batch.orders.length }} items</span>
                 <span class="batch-total-compact">{{ batch.currency }} {{ formatNumber(batch.total) }}</span>
+                <!-- Edit button next to total -->
+                <button v-if="!batchMissingComprobante(batch)" @click.stop="openEditComprobante(batch)" class="btn-edit-comprobante-header" title="Editar Comprobante">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Editar
+                </button>
               </div>
 
               <!-- Expanded Content -->
@@ -373,17 +381,6 @@
                     <div v-if="batch.payment_proof" class="payment-detail-row-small">
                       <span class="detail-label-small">Archivo:</span>
                       <a :href="`/storage/${batch.payment_proof}`" target="_blank" class="detail-link-small">Descargar</a>
-                    </div>
-                    
-                    <!-- Edit button when comprobante data exists -->
-                    <div v-if="!batchMissingComprobante(batch)" class="comprobante-edit-row">
-                      <button @click.stop="openEditComprobante(batch)" class="btn-edit-comprobante-small">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                        Editar
-                      </button>
                     </div>
                   </div>
                 </div>
