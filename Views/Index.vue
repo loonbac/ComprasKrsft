@@ -562,7 +562,19 @@
                       </div>
                       <div class="split-budget-info">
                         <span class="budget-label">Costo ref. inventario:</span>
-                        <span class="budget-value">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(getSplitInfo(order.id)?.referencePrice || 0) }}</span>
+                        <div class="qty-edit-wrapper">
+                          <span class="currency-prefix-mini">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }}</span>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            v-model.number="inventorySelection[order.id].referencePrice" 
+                            @input="updateReferencePrice(order.id)"
+                            class="input-price-mini"
+                            min="0"
+                            placeholder="0.00"
+                            title="Valor inmaterial imputado al proyecto"
+                          />
+                        </div>
                         <span class="budget-hint">(Imputado al presupuesto del proyecto)</span>
                       </div>
                     </div>
@@ -588,7 +600,19 @@
                       </div>
                       <div class="inventory-full-ref">
                         <span>Costo de referencia (presupuesto):</span>
-                        <strong>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(inventorySelection[order.id]?.totalPrice || 0) }}</strong>
+                        <div class="qty-edit-wrapper">
+                          <span class="currency-prefix-mini">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }}</span>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            v-model.number="inventorySelection[order.id].totalPrice" 
+                            @input="updateReferencePrice(order.id)"
+                            class="input-price-mini"
+                            min="0"
+                            placeholder="0.00"
+                            title="Valor inmaterial imputado al proyecto"
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -2132,6 +2156,36 @@ const updateInventoryUsage = (orderId) => {
       reference_price: parseFloat(selection.referencePrice.toFixed(2)),
       source_type: 'split'
     };
+  }
+};
+
+// Actualizar precio de referencia manualmente (para input de inventario)
+const updateReferencePrice = (orderId) => {
+  const selection = inventorySelection.value[orderId];
+  if (!selection) return;
+  
+  // Validar y asegurar número
+  let newRefPrice = parseFloat(selection.type === 'inventory' ? selection.totalPrice : selection.referencePrice);
+  if (isNaN(newRefPrice) || newRefPrice < 0) newRefPrice = 0;
+
+  // Actualizar en objeto de selección visual
+  if (selection.type === 'inventory') {
+    selection.totalPrice = newRefPrice;
+    // Opcional: Recalcular costo unitario visual
+    if (selection.qtyUsed > 0) {
+      selection.unitCost = newRefPrice / selection.qtyUsed;
+    }
+  } else {
+    selection.referencePrice = newRefPrice;
+    // Opcional: Recalcular costo unitario visual
+    if (selection.qtyUsed > 0) {
+      selection.unitCost = newRefPrice / selection.qtyUsed;
+    }
+  }
+
+  // Actualizar Backend data
+  if (inventorySplitData.value[orderId]) {
+    inventorySplitData.value[orderId].reference_price = parseFloat(newRefPrice.toFixed(2));
   }
 };
 

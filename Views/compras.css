@@ -3695,6 +3695,24 @@ input.input-qty-mini:focus {
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 
+input.input-price-mini {
+  width: 90px;
+  padding: 3px 4px;
+  border: none;
+  background: transparent;
+  text-align: right;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--compras-text-main);
+  outline: none;
+}
+
+.currency-prefix-mini {
+  font-size: 0.8rem;
+  color: var(--compras-text-light);
+  font-weight: 600;
+}
+
 .split-unit, .unit-text {
   font-size: 0.75rem;
   color: var(--compras-text-light);
