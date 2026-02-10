@@ -5,6 +5,7 @@ namespace Modulos_ERP\ComprasKrsft\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -162,9 +163,10 @@ class CompraController extends Controller
                 'message' => 'Orden enviada a Por Pagar'
             ]);
         } catch (\Exception $e) {
+            Log::error('Error en markToPay', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al procesar la orden'
             ], 500);
         }
     }
@@ -184,6 +186,7 @@ class CompraController extends Controller
         ]);
 
         try {
+            $result = DB::transaction(function () use ($request) {
             $orderIds = $request->input('order_ids');
             $prices = $request->input('prices');
             $currency = $request->input('currency');
@@ -422,17 +425,21 @@ class CompraController extends Controller
                 $message = "{$purchaseCount} órdenes enviadas a Por Pagar";
             }
 
-            return response()->json([
+            return [
                 'success' => true,
                 'message' => $message,
                 'batch_id' => $batchId,
                 'inventory_count' => $inventoryCount,
                 'purchase_count' => $purchaseCount
-            ]);
+            ];
+            }); // end DB::transaction
+
+            return response()->json($result);
         } catch (\Exception $e) {
+            Log::error('Error en markToPayBulk', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al procesar las órdenes'
             ], 500);
         }
     }
@@ -602,9 +609,10 @@ class CompraController extends Controller
                 'amount_pen' => $amountPen
             ]);
         } catch (\Exception $e) {
+            Log::error('Error en approve', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al aprobar la orden'
             ], 500);
         }
     }
@@ -626,6 +634,7 @@ class CompraController extends Controller
         ]);
 
         try {
+            $result = DB::transaction(function () use ($request) {
             $orderIds = $request->input('order_ids');
             $prices = $request->input('prices'); // { order_id: amount }
             $currency = $request->input('currency');
@@ -725,41 +734,19 @@ class CompraController extends Controller
                 );
             }
 
-            $approvedOrders = DB::table($this->ordersTable)
-                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
-                ->select('purchase_orders.*', 'projects.name as project_name')
-                ->whereIn('purchase_orders.id', $orderIds)
-                ->get();
-
-            foreach ($approvedOrders as $order) {
-                if ($order->type !== 'material') {
-                    continue;
-                }
-
-                $amount = floatval($prices[$order->id] ?? 0);
-                if ($amount <= 0) {
-                    continue;
-                }
-
-                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
-                $this->sendOrderToInventory(
-                    $order,
-                    $amount,
-                    $currency,
-                    $amountPen,
-                    $batchId
-                );
-            }
-
-            return response()->json([
+            return [
                 'success' => true,
                 'message' => count($orderIds) . ' órdenes aprobadas exitosamente',
                 'batch_id' => $batchId
-            ]);
+            ];
+            }); // end DB::transaction
+
+            return response()->json($result);
         } catch (\Exception $e) {
+            Log::error('Error en approveBulk', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al aprobar las órdenes'
             ], 500);
         }
     }
@@ -780,6 +767,7 @@ class CompraController extends Controller
         ]);
 
         try {
+            $result = DB::transaction(function () use ($request) {
             $orderIds = $request->input('order_ids');
             $prices = $request->input('prices');
             $currency = $request->input('currency');
@@ -854,15 +842,19 @@ class CompraController extends Controller
                     ]));
             }
 
-            return response()->json([
+            return [
                 'success' => true,
                 'message' => count($orderIds) . ' órdenes pagadas exitosamente',
                 'batch_id' => $batchId
-            ]);
+            ];
+            }); // end DB::transaction
+
+            return response()->json($result);
         } catch (\Exception $e) {
+            Log::error('Error en payBulk', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al procesar el pago'
             ], 500);
         }
     }
@@ -939,9 +931,10 @@ class CompraController extends Controller
                 'message' => 'Pago confirmado'
             ]);
         } catch (\Exception $e) {
+            Log::error('Error en payBatch', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al confirmar el pago'
             ], 500);
         }
     }
@@ -1001,9 +994,10 @@ class CompraController extends Controller
                 'message' => 'Comprobante actualizado correctamente'
             ]);
         } catch (\Exception $e) {
+            Log::error('Error en updateComprobante', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al actualizar comprobante'
             ], 500);
         }
     }
@@ -1014,6 +1008,7 @@ class CompraController extends Controller
     public function quickPay(Request $request)
     {
         try {
+            return DB::transaction(function () use ($request) {
             $projectId = $request->input('project_id');
             $sellerName = $request->input('seller_name');
             $sellerDocument = $request->input('seller_document');
@@ -1111,8 +1106,10 @@ class CompraController extends Controller
             $this->sendItemsToInventory($projectId, $items, $batchId, $projectName);
 
             return response()->json(['success' => true, 'message' => 'Pago rápido completado']);
+            }); // end DB::transaction
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            Log::error('Error en quickPay', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error interno al procesar pago rápido'], 500);
         }
     }
 
@@ -1264,7 +1261,8 @@ class CompraController extends Controller
 
             return response()->json(['success' => true, 'projects' => $projects]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            Log::error('Error en projects', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Error interno al obtener proyectos'], 500);
         }
     }
 
@@ -1274,7 +1272,13 @@ class CompraController extends Controller
     protected function getExchangeRate($date = null)
     {
         try {
-            $apiKey = 'sk_12725.xbGMYdLZTrQvrowVM3LNDAUeNadco86A';
+            $envPath = dirname(__DIR__) . '/.env';
+            $envContent = file_exists($envPath) ? parse_ini_file($envPath) : [];
+            $apiKey = $envContent['DECOLECTA_API_KEY'] ?? '';
+            if (empty($apiKey)) {
+                Log::warning('DECOLECTA_API_KEY no configurada en ' . $envPath);
+                return null;
+            }
             $url = 'https://api.decolecta.com/v1/tipo-cambio/sunat';
             
             if ($date) {
@@ -1359,9 +1363,10 @@ class CompraController extends Controller
                 'message' => 'Orden rechazada'
             ]);
         } catch (\Exception $e) {
+            Log::error('Error en reject', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al rechazar la orden'
             ], 500);
         }
     }
@@ -1525,9 +1530,10 @@ class CompraController extends Controller
                 'message' => 'Pago confirmado exitosamente'
             ]);
         } catch (\Exception $e) {
+            Log::error('Error en confirmPayment', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error interno al confirmar el pago'
             ], 500);
         }
     }
@@ -1564,7 +1570,7 @@ class CompraController extends Controller
             'project_id' => 'nullable|integer'
         ]);
 
-        $search = $request->input('search');
+        $search = str_replace(['%', '_'], ['\%', '\_'], $request->input('search'));
         $projectId = $request->input('project_id');
 
         // Verificar si existe la tabla de inventario
