@@ -3,34 +3,41 @@
 use Illuminate\Support\Facades\Route;
 
 $moduleName = basename(dirname(__DIR__));
-$ctrl = "Modulos_ERP\\{$moduleName}\\Controllers\\CompraController";
+$ns = "Modulos_ERP\\{$moduleName}\\Controllers";
 
-// Órdenes de compra
-Route::get('/list', "{$ctrl}@list");
-Route::get('/pending', "{$ctrl}@pending");
-Route::get('/to-pay', "{$ctrl}@toPayOrders");
-Route::get('/stats', "{$ctrl}@stats");
-Route::get('/projects', "{$ctrl}@projects");
-Route::get('/sellers', "{$ctrl}@getSellers");
-Route::get('/exchange-rate', "{$ctrl}@exchangeRate");
-Route::get('/export', "{$ctrl}@exportExcel");
-Route::get('/export-paid', "{$ctrl}@exportPaidExcel");
-Route::get('/search-inventory', "{$ctrl}@searchInventory");
-Route::get('/{id}', "{$ctrl}@show")->where('id', '[0-9]+');
+$compra   = "{$ns}\\CompraController";
+$approval = "{$ns}\\ApprovalController";
+$payment  = "{$ns}\\PaymentController";
+$export   = "{$ns}\\ExportController";
 
-// Acciones
-Route::put('/{id}/approve', "{$ctrl}@approve")->where('id', '[0-9]+');
-Route::put('/{id}/reject', "{$ctrl}@reject")->where('id', '[0-9]+');
-Route::put('/{id}/mark-to-pay', "{$ctrl}@markToPay")->where('id', '[0-9]+');
-Route::post('/mark-to-pay-bulk', "{$ctrl}@markToPayBulk");
-Route::post('/approve-bulk', "{$ctrl}@approveBulk");
-Route::post('/pay-bulk', "{$ctrl}@payBulk");
-Route::post('/pay-batch', "{$ctrl}@payBatch");
-Route::post('/update-comprobante', "{$ctrl}@updateComprobante");
-Route::post('/quick-pay', "{$ctrl}@quickPay");
+// ── Consultas generales (CompraController) ──────────────────────────
+Route::get('/list', "{$compra}@list");
+Route::get('/pending', "{$compra}@pending");
+Route::get('/to-pay', "{$compra}@toPayOrders");
+Route::get('/stats', "{$compra}@stats");
+Route::get('/projects', "{$compra}@projects");
+Route::get('/sellers', "{$compra}@getSellers");
+Route::get('/exchange-rate', "{$compra}@exchangeRate");
+Route::get('/search-inventory', "{$compra}@searchInventory");
+Route::get('/{id}', "{$compra}@show")->where('id', '[0-9]+');
 
-// Payment confirmation
-Route::get('/approved-unpaid', "{$ctrl}@approvedUnpaid");
-Route::get('/paid-orders', "{$ctrl}@paidOrders");
-Route::get('/delivered-orders', "{$ctrl}@deliveredOrders");
-Route::post('/{id}/confirm-payment', "{$ctrl}@confirmPayment")->where('id', '[0-9]+');
+// ── Aprobación (ApprovalController) ─────────────────────────────────
+Route::put('/{id}/approve', "{$approval}@approve")->where('id', '[0-9]+');
+Route::put('/{id}/reject', "{$approval}@reject")->where('id', '[0-9]+');
+Route::put('/{id}/mark-to-pay', "{$approval}@markToPay")->where('id', '[0-9]+');
+Route::post('/mark-to-pay-bulk', "{$approval}@markToPayBulk");
+Route::post('/approve-bulk', "{$approval}@approveBulk");
+
+// ── Pagos (PaymentController) ───────────────────────────────────────
+Route::post('/pay-bulk', "{$payment}@payBulk");
+Route::post('/pay-batch', "{$payment}@payBatch");
+Route::post('/update-comprobante', "{$payment}@updateComprobante");
+Route::post('/quick-pay', "{$payment}@quickPay");
+Route::get('/approved-unpaid', "{$payment}@approvedUnpaid");
+Route::get('/paid-orders', "{$payment}@paidOrders");
+Route::get('/delivered-orders', "{$payment}@deliveredOrders");
+Route::post('/{id}/confirm-payment', "{$payment}@confirmPayment")->where('id', '[0-9]+');
+
+// ── Exportaciones (ExportController) ────────────────────────────────
+Route::get('/export', "{$export}@exportExcel");
+Route::get('/export-paid', "{$export}@exportPaidExcel");
