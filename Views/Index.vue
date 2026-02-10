@@ -304,6 +304,14 @@
                 <span class="batch-seller-compact">{{ batch.seller_name }}</span>
                 <span v-if="batchAllDelivered(batch)" class="delivered-badge-compact">✓ Entregado</span>
                 <span v-else class="paid-badge-compact">✓ Pagado</span>
+                <span v-if="batchMissingComprobante(batch)" class="missing-comprobante-badge" title="Faltan datos del comprobante">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  Sin comprobante
+                </span>
                 <span class="batch-items-count">{{ batch.orders.length }} items</span>
                 <span class="batch-total-compact">{{ batch.currency }} {{ formatNumber(batch.total) }}</span>
               </div>
@@ -336,6 +344,23 @@
                 </div>
 
                 <div class="batch-footer-expanded">
+                  <!-- Alert: Missing comprobante data -->
+                  <div v-if="batchMissingComprobante(batch)" class="comprobante-alert">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="comprobante-alert-icon">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span class="comprobante-alert-text">Faltan datos del comprobante de pago</span>
+                    <button @click.stop="openEditComprobante(batch)" class="btn-edit-comprobante">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                      Completar Comprobante
+                    </button>
+                  </div>
+                  
                   <div class="batch-payment-details-expanded">
                     <div v-if="batch.cdp_type || batch.cdp_serie" class="payment-detail-row-small">
                       <span class="detail-label-small">Comprobante:</span>
@@ -348,6 +373,17 @@
                     <div v-if="batch.payment_proof" class="payment-detail-row-small">
                       <span class="detail-label-small">Archivo:</span>
                       <a :href="`/storage/${batch.payment_proof}`" target="_blank" class="detail-link-small">Descargar</a>
+                    </div>
+                    
+                    <!-- Edit button when comprobante data exists -->
+                    <div v-if="!batchMissingComprobante(batch)" class="comprobante-edit-row">
+                      <button @click.stop="openEditComprobante(batch)" class="btn-edit-comprobante-small">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Editar
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -718,19 +754,19 @@
 
               <form @submit.prevent="confirmPayment" class="payment-form">
                 <div class="form-section">
-                  <h4>Datos del Comprobante</h4>
+                  <h4>Datos del Comprobante (opcional)</h4>
                   <div class="form-row">
                     <div class="form-group">
-                      <label>Tipo CP *</label>
-                      <input v-model="paymentForm.cdp_type" type="text" required placeholder="01, 03" class="input-field" />
+                      <label>Tipo CP</label>
+                      <input v-model="paymentForm.cdp_type" type="text" placeholder="01, 03" class="input-field" />
                     </div>
                     <div class="form-group">
-                      <label>Serie *</label>
-                      <input v-model="paymentForm.cdp_serie" type="text" required placeholder="F001" class="input-field" />
+                      <label>Serie</label>
+                      <input v-model="paymentForm.cdp_serie" type="text" placeholder="F001" class="input-field" />
                     </div>
                     <div class="form-group">
-                      <label>Número *</label>
-                      <input v-model="paymentForm.cdp_number" type="text" required placeholder="00001234" class="input-field" />
+                      <label>Número</label>
+                      <input v-model="paymentForm.cdp_number" type="text" placeholder="00001234" class="input-field" />
                     </div>
                   </div>
                   <div class="form-group">
@@ -747,6 +783,69 @@
                   <button type="button" @click="closePaymentModal" class="btn-cancel">Cancelar</button>
                   <button type="submit" :disabled="confirmingPayment" class="btn-submit">
                     {{ confirmingPayment ? 'Confirmando...' : 'Confirmar Pago' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
+      <!-- Edit Comprobante Modal -->
+      <Teleport to="body">
+        <div v-if="showEditComprobanteModal" class="modal-overlay" @click.self="closeEditComprobante">
+          <div class="modal-content payment-modal edit-comprobante-modal">
+            <div class="modal-header">
+              <h2>EDITAR COMPROBANTE</h2>
+            </div>
+            
+            <div class="modal-body" v-if="editComprobanteBatch">
+              <div class="payment-summary-card">
+                <div class="summary-row">
+                  <span class="summary-label">Lote:</span>
+                  <span class="summary-value">{{ editComprobanteBatch.batch_id }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Proveedor:</span>
+                  <span class="summary-value">{{ editComprobanteBatch.seller_name }}</span>
+                </div>
+                <div class="summary-row total-row">
+                  <span class="summary-label">Total:</span>
+                  <span class="summary-value total-amount">{{ editComprobanteBatch.currency }} {{ formatNumber(editComprobanteBatch.total) }}</span>
+                </div>
+              </div>
+
+              <form @submit.prevent="saveComprobante" class="payment-form">
+                <div class="form-section">
+                  <h4>Datos del Comprobante *</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Tipo CP *</label>
+                      <input v-model="editComprobanteForm.cdp_type" type="text" required placeholder="01, 03" class="input-field" />
+                    </div>
+                    <div class="form-group">
+                      <label>Serie *</label>
+                      <input v-model="editComprobanteForm.cdp_serie" type="text" required placeholder="F001" class="input-field" />
+                    </div>
+                    <div class="form-group">
+                      <label>Número *</label>
+                      <input v-model="editComprobanteForm.cdp_number" type="text" required placeholder="00001234" class="input-field" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Comprobante (archivo)</label>
+                    <input type="file" @change="onEditComprobanteFileChange" accept="image/*,.pdf" class="input-file" />
+                  </div>
+                  <div class="form-group">
+                    <label>Link de comprobante (opcional)</label>
+                    <input v-model="editComprobanteForm.payment_proof_link" type="url" placeholder="https://..." class="input-field" />
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" @click="closeEditComprobante" class="btn-cancel">Cancelar</button>
+                  <button type="submit" :disabled="savingComprobante" class="btn-submit">
+                    {{ savingComprobante ? 'Guardando...' : 'Guardar Comprobante' }}
                   </button>
                 </div>
               </form>
@@ -1133,6 +1232,18 @@ const confirmingPayment = ref(false);
 const paidFilterStartDate = ref('');
 const paidFilterEndDate = ref('');
 const expandedPaidBatches = ref({});
+
+// Edit Comprobante Modal
+const showEditComprobanteModal = ref(false);
+const editComprobanteBatch = ref(null);
+const editComprobanteForm = ref({
+  cdp_type: '',
+  cdp_serie: '',
+  cdp_number: '',
+  payment_proof: null,
+  payment_proof_link: ''
+});
+const savingComprobante = ref(false);
 
 const exportFilter = ref({
   startDate: '',
@@ -2547,15 +2658,6 @@ const onQuickPayApprovalCurrencyChange = () => {
 };
 
 const confirmPayment = async () => {
-  if (!paymentForm.value.cdp_type || !paymentForm.value.cdp_serie || !paymentForm.value.cdp_number) {
-    showToast('Complete todos los campos', 'error');
-    return;
-  }
-  if (!paymentForm.value.payment_proof && !paymentForm.value.payment_proof_link) {
-    showToast('Suba un archivo o ingrese un link de la factura', 'error');
-    return;
-  }
-
   confirmingPayment.value = true;
   try {
     const formData = new FormData();
@@ -2589,6 +2691,73 @@ const confirmPayment = async () => {
     showToast('Error', 'error');
   }
   confirmingPayment.value = false;
+};
+
+// Check if a paid batch is missing comprobante data
+const batchMissingComprobante = (batch) => {
+  return !batch.cdp_type || !batch.cdp_serie || !batch.cdp_number;
+};
+
+// Open edit comprobante modal
+const openEditComprobante = (batch) => {
+  editComprobanteBatch.value = batch;
+  editComprobanteForm.value = {
+    cdp_type: batch.cdp_type || '',
+    cdp_serie: batch.cdp_serie || '',
+    cdp_number: batch.cdp_number || '',
+    payment_proof: null,
+    payment_proof_link: batch.payment_proof_link || ''
+  };
+  showEditComprobanteModal.value = true;
+};
+
+const closeEditComprobante = () => {
+  showEditComprobanteModal.value = false;
+  editComprobanteBatch.value = null;
+};
+
+const onEditComprobanteFileChange = (e) => {
+  editComprobanteForm.value.payment_proof = e.target.files[0] || null;
+};
+
+const saveComprobante = async () => {
+  if (!editComprobanteForm.value.cdp_type || !editComprobanteForm.value.cdp_serie || !editComprobanteForm.value.cdp_number) {
+    showToast('Complete tipo, serie y número de comprobante', 'error');
+    return;
+  }
+
+  savingComprobante.value = true;
+  try {
+    const formData = new FormData();
+    formData.append('batch_id', editComprobanteBatch.value.batch_id);
+    formData.append('cdp_type', editComprobanteForm.value.cdp_type);
+    formData.append('cdp_serie', editComprobanteForm.value.cdp_serie);
+    formData.append('cdp_number', editComprobanteForm.value.cdp_number);
+    if (editComprobanteForm.value.payment_proof_link) {
+      formData.append('payment_proof_link', editComprobanteForm.value.payment_proof_link);
+    }
+    if (editComprobanteForm.value.payment_proof) {
+      formData.append('payment_proof', editComprobanteForm.value.payment_proof);
+    }
+
+    const res = await fetch(`${apiBase.value}/update-comprobante`, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': getCsrfToken() },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('Comprobante actualizado', 'success');
+      closeEditComprobante();
+      await loadPaidBatches();
+    } else {
+      showToast(data.message || 'Error al actualizar', 'error');
+    }
+  } catch (e) {
+    showToast('Error al actualizar comprobante', 'error');
+  }
+  savingComprobante.value = false;
 };
 
 onMounted(() => {

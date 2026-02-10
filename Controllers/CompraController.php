@@ -732,9 +732,9 @@ class CompraController extends Controller
     {
         $request->validate([
             'batch_id' => 'required|string',
-            'cdp_type' => 'required|string|max:10',
-            'cdp_serie' => 'required|string|max:20',
-            'cdp_number' => 'required|string|max:20',
+            'cdp_type' => 'nullable|string|max:10',
+            'cdp_serie' => 'nullable|string|max:20',
+            'cdp_number' => 'nullable|string|max:20',
             'payment_proof_link' => 'nullable|string|max:2048',
         ]);
 
@@ -749,13 +749,6 @@ class CompraController extends Controller
                 $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
             }
 
-            if (!$proofPath && !$proofLink) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Debe subir un archivo o ingresar un link de la factura'
-                ], 400);
-            }
-
             $updated = DB::table($this->ordersTable)
                 ->where('batch_id', $batchId)
                 ->where('status', 'to_pay')
@@ -764,9 +757,9 @@ class CompraController extends Controller
                     'payment_confirmed' => true,
                     'payment_confirmed_at' => now(),
                     'payment_confirmed_by' => auth()->id(),
-                    'cdp_type' => $request->input('cdp_type'),
-                    'cdp_serie' => $request->input('cdp_serie'),
-                    'cdp_number' => $request->input('cdp_number'),
+                    'cdp_type' => $request->input('cdp_type') ?: null,
+                    'cdp_serie' => $request->input('cdp_serie') ?: null,
+                    'cdp_number' => $request->input('cdp_number') ?: null,
                     'payment_proof' => $proofPath,
                     'payment_proof_link' => $proofLink,
                     'updated_at' => now()
@@ -802,6 +795,68 @@ class CompraController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Pago confirmado'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update comprobante data for a paid batch
+     */
+    public function updateComprobante(Request $request)
+    {
+        $request->validate([
+            'batch_id' => 'required|string',
+            'cdp_type' => 'required|string|max:10',
+            'cdp_serie' => 'required|string|max:20',
+            'cdp_number' => 'required|string|max:20',
+            'payment_proof_link' => 'nullable|string|max:2048',
+        ]);
+
+        try {
+            $batchId = $request->input('batch_id');
+            $proofPath = null;
+            $proofLink = $request->input('payment_proof_link');
+
+            if ($request->hasFile('payment_proof')) {
+                $file = $request->file('payment_proof');
+                $filename = 'proof_' . $batchId . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
+            }
+
+            $updateData = [
+                'cdp_type' => $request->input('cdp_type'),
+                'cdp_serie' => $request->input('cdp_serie'),
+                'cdp_number' => $request->input('cdp_number'),
+                'updated_at' => now()
+            ];
+
+            if ($proofPath) {
+                $updateData['payment_proof'] = $proofPath;
+            }
+            if ($proofLink) {
+                $updateData['payment_proof_link'] = $proofLink;
+            }
+
+            $updated = DB::table($this->ordersTable)
+                ->where('batch_id', $batchId)
+                ->where('payment_confirmed', true)
+                ->update($updateData);
+
+            if ($updated === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontraron órdenes para actualizar'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Comprobante actualizado correctamente'
             ]);
         } catch (\Exception $e) {
             return response()->json([

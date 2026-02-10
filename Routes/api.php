@@ -26,6 +26,7 @@ Route::post('/mark-to-pay-bulk', "{$ctrl}@markToPayBulk");
 Route::post('/approve-bulk', "{$ctrl}@approveBulk");
 Route::post('/pay-bulk', "{$ctrl}@payBulk");
 Route::post('/pay-batch', "{$ctrl}@payBatch");
+Route::post('/update-comprobante', "{$ctrl}@updateComprobante");
 Route::post('/quick-pay', "{$ctrl}@quickPay");
 
 // Payment confirmation
