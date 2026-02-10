@@ -171,6 +171,7 @@ class CompraController extends Controller
 
     /**
      * Aprobar múltiples órdenes y enviarlas a Por Pagar como una sola lista
+     * Soporta división de ítems entre inventario y compra nueva (split)
      */
     public function markToPayBulk(Request $request)
     {
@@ -178,7 +179,6 @@ class CompraController extends Controller
             'order_ids' => 'required|array|min:1',
             'order_ids.*' => 'required|integer',
             'prices' => 'required|array',
-            'prices.*' => 'required|numeric|min:0.01',
             'currency' => 'required|in:PEN,USD',
             'seller_name' => 'required|string',
         ]);
@@ -187,6 +187,7 @@ class CompraController extends Controller
             $orderIds = $request->input('order_ids');
             $prices = $request->input('prices');
             $currency = $request->input('currency');
+            $inventorySplits = $request->input('inventory_splits', []); // { orderId: { inventory_item_id, qty_from_inventory, qty_to_buy, reference_price, source_type } }
 
             // Verify all orders are pending
             $pendingCount = DB::table($this->ordersTable)
@@ -220,7 +221,6 @@ class CompraController extends Controller
             $igvRate = floatval($request->input('igv_rate', 18.00));
 
             $sharedData = [
-                'status' => 'to_pay',
                 'approved_by' => auth()->id(),
                 'approved_at' => now(),
                 'batch_id' => $batchId,
@@ -236,19 +236,153 @@ class CompraController extends Controller
                 'updated_at' => now()
             ];
 
+            $inventoryOrderIds = [];
+
             foreach ($orderIds as $orderId) {
+                $split = $inventorySplits[$orderId] ?? null;
+                $sourceType = $split['source_type'] ?? 'external';
+
+                // ---- CASO 1: 100% desde inventario ----
+                if ($sourceType === 'inventory' && (!isset($split['qty_to_buy']) || $split['qty_to_buy'] <= 0)) {
+                    $referencePrice = floatval($split['reference_price'] ?? $prices[$orderId] ?? 0);
+                    $amountPen = $currency === 'USD' && $exchangeRate ? $referencePrice * $exchangeRate : $referencePrice;
+
+                    DB::table($this->ordersTable)
+                        ->where('id', $orderId)
+                        ->update(array_merge($sharedData, [
+                            'status' => 'approved',
+                            'source_type' => 'inventory',
+                            'inventory_item_id' => $split['inventory_item_id'] ?? null,
+                            'reference_price' => $referencePrice,
+                            'amount' => 0,
+                            'amount_pen' => 0,
+                            'igv_amount' => 0,
+                            'total_with_igv' => 0,
+                            'payment_confirmed' => true,
+                            'payment_confirmed_at' => now(),
+                            'payment_confirmed_by' => auth()->id(),
+                            'delivery_confirmed' => true,
+                            'delivery_confirmed_at' => now(),
+                        ]));
+
+                    // Descontar del inventario
+                    $this->deductFromInventory(
+                        $split['inventory_item_id'] ?? null,
+                        $split['qty_from_inventory'] ?? 0,
+                        $orderId
+                    );
+
+                    $inventoryOrderIds[] = $orderId;
+                    continue;
+                }
+
+                // ---- CASO 2: Split parcial (parte inventario + parte compra) ----
+                if ($sourceType === 'split' && isset($split['qty_from_inventory']) && $split['qty_from_inventory'] > 0) {
+                    $originalOrder = DB::table($this->ordersTable)->find($orderId);
+                    if (!$originalOrder) continue;
+
+                    $qtyFromInventory = intval($split['qty_from_inventory']);
+                    $qtyToBuy = intval($split['qty_to_buy'] ?? 0);
+                    $referencePrice = floatval($split['reference_price'] ?? 0);
+                    $purchaseAmount = floatval($prices[$orderId] ?? 0);
+                    $amountPen = $currency === 'USD' && $exchangeRate ? $purchaseAmount * $exchangeRate : $purchaseAmount;
+                    $igvAmount = $igvEnabled ? ($amountPen * ($igvRate / 100)) : 0;
+                    $totalWithIgv = $igvEnabled ? ($amountPen + $igvAmount) : $amountPen;
+
+                    // Actualizar la orden original como compra parcial
+                    $originalMaterials = $originalOrder->materials ? json_decode($originalOrder->materials, true) : [];
+                    // Actualizar cantidad en materials al qty_to_buy
+                    if (!empty($originalMaterials)) {
+                        foreach ($originalMaterials as &$mat) {
+                            $mat['qty'] = $qtyToBuy;
+                            $mat['original_qty'] = $mat['qty'] ?? $qtyToBuy;
+                        }
+                        unset($mat);
+                    }
+
+                    DB::table($this->ordersTable)
+                        ->where('id', $orderId)
+                        ->update(array_merge($sharedData, [
+                            'status' => 'to_pay',
+                            'source_type' => 'external',
+                            'amount' => $purchaseAmount,
+                            'amount_pen' => $amountPen,
+                            'igv_amount' => $igvAmount,
+                            'total_with_igv' => $totalWithIgv,
+                            'materials' => json_encode($originalMaterials),
+                        ]));
+
+                    // Crear una nueva orden para la parte de inventario
+                    $inventoryRefPrice = $referencePrice;
+                    $inventoryAmountPen = $currency === 'USD' && $exchangeRate ? $inventoryRefPrice * $exchangeRate : $inventoryRefPrice;
+
+                    $inventoryMaterials = $originalOrder->materials ? json_decode($originalOrder->materials, true) : [];
+                    if (!empty($inventoryMaterials)) {
+                        foreach ($inventoryMaterials as &$mat) {
+                            $mat['qty'] = $qtyFromInventory;
+                        }
+                        unset($mat);
+                    }
+
+                    $newOrderId = DB::table($this->ordersTable)->insertGetId([
+                        'project_id' => $originalOrder->project_id,
+                        'type' => $originalOrder->type,
+                        'description' => $originalOrder->description . ' [De Inventario]',
+                        'materials' => json_encode($inventoryMaterials),
+                        'unit' => $originalOrder->unit ?? null,
+                        'item_number' => $originalOrder->item_number,
+                        'source_type' => 'inventory',
+                        'inventory_item_id' => $split['inventory_item_id'] ?? null,
+                        'reference_price' => $inventoryRefPrice,
+                        'parent_order_id' => $orderId,
+                        'amount' => 0,
+                        'amount_pen' => 0,
+                        'currency' => $currency,
+                        'exchange_rate' => $exchangeRate,
+                        'igv_amount' => 0,
+                        'total_with_igv' => 0,
+                        'status' => 'approved',
+                        'approved_by' => auth()->id(),
+                        'approved_at' => now(),
+                        'batch_id' => $batchId,
+                        'seller_name' => $request->input('seller_name'),
+                        'seller_document' => $request->input('seller_document'),
+                        'payment_type' => $request->input('payment_type', 'cash'),
+                        'issue_date' => $request->input('issue_date'),
+                        'payment_confirmed' => true,
+                        'payment_confirmed_at' => now(),
+                        'payment_confirmed_by' => auth()->id(),
+                        'delivery_confirmed' => true,
+                        'delivery_confirmed_at' => now(),
+                        'created_by' => $originalOrder->created_by ?? auth()->id(),
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+
+                    // Descontar del inventario
+                    $this->deductFromInventory(
+                        $split['inventory_item_id'] ?? null,
+                        $qtyFromInventory,
+                        $newOrderId
+                    );
+
+                    $inventoryOrderIds[] = $newOrderId;
+                    continue;
+                }
+
+                // ---- CASO 3: Compra normal (100% externa) ----
                 $amount = floatval($prices[$orderId] ?? 0);
                 if ($amount <= 0) continue;
 
-                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
-
-                // Calculate IGV
+                $amountPen = $currency === 'USD' && $exchangeRate ? $amount * $exchangeRate : $amount;
                 $igvAmount = $igvEnabled ? ($amountPen * ($igvRate / 100)) : 0;
                 $totalWithIgv = $igvEnabled ? ($amountPen + $igvAmount) : $amountPen;
 
                 DB::table($this->ordersTable)
                     ->where('id', $orderId)
                     ->update(array_merge($sharedData, [
+                        'status' => 'to_pay',
+                        'source_type' => 'external',
                         'amount' => $amount,
                         'amount_pen' => $amountPen,
                         'igv_amount' => $igvAmount,
@@ -256,36 +390,44 @@ class CompraController extends Controller
                     ]));
             }
 
-            $approvedOrders = DB::table($this->ordersTable)
-                ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
-                ->select('purchase_orders.*', 'projects.name as project_name')
-                ->whereIn('purchase_orders.id', $orderIds)
-                ->get();
+            // Enviar órdenes de COMPRA al inventario (no las que ya son de inventario)
+            $purchaseOrderIds = array_diff($orderIds, $inventoryOrderIds);
+            if (!empty($purchaseOrderIds)) {
+                $approvedOrders = DB::table($this->ordersTable)
+                    ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+                    ->select('purchase_orders.*', 'projects.name as project_name')
+                    ->whereIn('purchase_orders.id', $purchaseOrderIds)
+                    ->where('purchase_orders.source_type', 'external')
+                    ->get();
 
-            foreach ($approvedOrders as $order) {
-                if ($order->type !== 'material') {
-                    continue;
+                foreach ($approvedOrders as $order) {
+                    if ($order->type !== 'material') continue;
+                    $amount = floatval($prices[$order->id] ?? 0);
+                    if ($amount <= 0) continue;
+                    $amountPen = $currency === 'USD' && $exchangeRate ? $amount * $exchangeRate : $amount;
+                    $this->sendOrderToInventory($order, $amount, $currency, $amountPen, $batchId);
                 }
+            }
 
-                $amount = floatval($prices[$order->id] ?? 0);
-                if ($amount <= 0) {
-                    continue;
-                }
+            $totalProcessed = count($orderIds);
+            $inventoryCount = count($inventoryOrderIds);
+            $purchaseCount = $totalProcessed - $inventoryCount;
 
-                $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
-                $this->sendOrderToInventory(
-                    $order,
-                    $amount,
-                    $currency,
-                    $amountPen,
-                    $batchId
-                );
+            $message = $totalProcessed . ' órdenes procesadas';
+            if ($inventoryCount > 0 && $purchaseCount > 0) {
+                $message = "{$purchaseCount} a Por Pagar, {$inventoryCount} de Inventario (entregadas)";
+            } elseif ($inventoryCount > 0) {
+                $message = "{$inventoryCount} órdenes cubiertas con inventario";
+            } else {
+                $message = "{$purchaseCount} órdenes enviadas a Por Pagar";
             }
 
             return response()->json([
                 'success' => true,
-                'message' => count($orderIds) . ' órdenes enviadas a Por Pagar',
-                'batch_id' => $batchId
+                'message' => $message,
+                'batch_id' => $batchId,
+                'inventory_count' => $inventoryCount,
+                'purchase_count' => $purchaseCount
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -1067,6 +1209,46 @@ class CompraController extends Controller
             $batchId,
             $order->project_name
         );
+    }
+
+    /**
+     * Descontar stock del inventario cuando se usa para cumplir un pedido
+     * Crea un registro de salida y descuenta la cantidad
+     */
+    private function deductFromInventory($inventoryItemId, $qty, $orderId)
+    {
+        if (!$inventoryItemId || $qty <= 0) return;
+
+        try {
+            if (!DB::getSchemaBuilder()->hasTable('inventario_productos')) {
+                \Log::warning('Tabla inventario_productos no existe para descontar stock');
+                return;
+            }
+
+            $item = DB::table('inventario_productos')->find($inventoryItemId);
+            if (!$item) {
+                \Log::warning("Item de inventario #{$inventoryItemId} no encontrado para descontar");
+                return;
+            }
+
+            $newQty = max(0, $item->cantidad - $qty);
+
+            DB::table('inventario_productos')
+                ->where('id', $inventoryItemId)
+                ->update([
+                    'cantidad' => $newQty,
+                    'updated_at' => now()
+                ]);
+
+            \Log::info('Stock descontado de inventario', [
+                'inventory_item_id' => $inventoryItemId,
+                'qty_deducted' => $qty,
+                'new_qty' => $newQty,
+                'purchase_order_id' => $orderId
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error al descontar inventario: ' . $e->getMessage());
+        }
     }
 
     /**

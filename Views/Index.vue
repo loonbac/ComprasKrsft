@@ -461,7 +461,7 @@
                 <span v-else class="error">No se pudo obtener tipo de cambio</span>
               </div>
 
-              <!-- Materials Pricing with Inventory Search -->
+              <!-- Materials Pricing with Inventory Search & Split -->
               <div class="form-section">
                 <h4>Precios por Material</h4>
                 <div class="pricing-list">
@@ -471,6 +471,13 @@
                         <span class="pricing-project-pill" :style="{ background: getProjectColor(order.project_id) }">{{ order.project_name }}</span>
                         <span class="pricing-material">{{ getOrderTitle(order) }}</span>
                         <span class="pricing-qty">{{ getOrderQty(order) }}</span>
+                        <!-- Badge automático: coincidencia en inventario -->
+                        <span v-if="!inventoryLoading[order.id] && hasInventoryMatch(order.id) && !inventorySelection[order.id]" class="inventory-badge-auto" title="Se encontraron coincidencias en inventario">
+                          📦 En Inventario
+                        </span>
+                        <span v-if="inventoryLoading[order.id]" class="inventory-badge-loading">
+                          <span class="spinner-mini"></span>
+                        </span>
                       </div>
                       <div class="pricing-actions">
                         <!-- Botón Consulta Almacén -->
@@ -478,7 +485,7 @@
                           @click="searchInventoryForOrder(order)" 
                           :disabled="inventoryLoading[order.id]"
                           class="btn-inventory-search"
-                          :class="{ 'active': inventoryExpanded[order.id] }"
+                          :class="{ 'active': inventoryExpanded[order.id], 'has-match': hasInventoryMatch(order.id) }"
                           title="Consultar Almacén"
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -487,24 +494,27 @@
                           {{ inventoryLoading[order.id] ? 'Buscando...' : 'Almacén' }}
                         </button>
                         
-                        <!-- Input de precio -->
+                        <!-- Input de precio (solo para compras al proveedor) -->
                         <div class="pricing-input">
                           <span class="currency-prefix">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }}</span>
                           <input 
                             v-model.number="approvalPrices[order.id]" 
                             type="number" 
                             step="0.01" 
-                            min="0.01"
+                            min="0"
                             class="input-field price-input" 
-                            :class="{ 'locked': isPriceLocked(order.id) }"
+                            :class="{ 'locked': isPriceLocked(order.id), 'split-price': isSplitActive(order.id) }"
                             :disabled="isPriceLocked(order.id)"
-                            placeholder="0.00"
+                            :placeholder="isPriceLocked(order.id) ? 'De inventario' : isSplitActive(order.id) ? `Precio ${getSplitInfo(order.id)?.qtyToBuy} uds` : '0.00'"
                           />
-                          <!-- Indicador de origen -->
+                          <!-- Indicadores de origen -->
                           <span v-if="inventorySelection[order.id]?.type === 'inventory'" class="price-source inventory">
-                            📦 Inventario
+                            📦 100% Inventario
                           </span>
-                          <span v-if="inventorySelection[order.id]?.type === 'new'" class="price-source new-purchase">
+                          <span v-else-if="inventorySelection[order.id]?.type === 'split'" class="price-source split">
+                            ✂️ Dividido
+                          </span>
+                          <span v-else-if="inventorySelection[order.id]?.type === 'new'" class="price-source new-purchase">
                             🛒 Nueva compra
                           </span>
                           <!-- Botón limpiar selección -->
@@ -515,6 +525,51 @@
                             title="Limpiar selección"
                           >✕</button>
                         </div>
+                      </div>
+                    </div>
+
+                    <!-- Info de Split (cuando se divide el pedido) -->
+                    <div v-if="isSplitActive(order.id)" class="split-info-panel">
+                      <div class="split-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                        <strong>División de Pedido</strong>
+                      </div>
+                      <div class="split-rows">
+                        <div class="split-row split-row-inventory">
+                          <span class="split-label">📦 De Inventario:</span>
+                          <span class="split-value">{{ getSplitInfo(order.id)?.qtyFromInventory }} uds</span>
+                          <span class="split-detail">({{ getSplitInfo(order.id)?.itemName }})</span>
+                          <span class="split-badge badge-inventory">Entrega Inmediata</span>
+                        </div>
+                        <div class="split-row split-row-purchase">
+                          <span class="split-label">🛒 A Comprar:</span>
+                          <span class="split-value">{{ getSplitInfo(order.id)?.qtyToBuy }} uds</span>
+                          <span class="split-detail">→ Ingresar precio abajo</span>
+                          <span class="split-badge badge-purchase">Por Pagar</span>
+                        </div>
+                      </div>
+                      <div class="split-budget-info">
+                        <span class="budget-label">Costo ref. inventario:</span>
+                        <span class="budget-value">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(getSplitInfo(order.id)?.referencePrice || 0) }}</span>
+                        <span class="budget-hint">(Imputado al presupuesto del proyecto)</span>
+                      </div>
+                    </div>
+
+                    <!-- Info 100% Inventario -->
+                    <div v-if="inventorySelection[order.id]?.type === 'inventory'" class="inventory-full-panel">
+                      <div class="inventory-full-row">
+                        <span class="inventory-full-icon">✅</span>
+                        <span class="inventory-full-text">
+                          {{ inventorySelection[order.id]?.qtyUsed }} uds cubiertas desde <strong>{{ inventorySelection[order.id]?.itemName }}</strong>
+                        </span>
+                        <span class="inventory-full-badge">Sin Costo Real</span>
+                      </div>
+                      <div class="inventory-full-ref">
+                        <span>Costo de referencia (presupuesto):</span>
+                        <strong>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(inventorySelection[order.id]?.totalPrice || 0) }}</strong>
                       </div>
                     </div>
                     
@@ -532,9 +587,9 @@
                         >
                           <div class="item-info">
                             <span class="item-name">🛒 Sin inventario - Nueva compra</span>
-                            <span class="item-desc">Comprar nuevos materiales para este proyecto</span>
+                            <span class="item-desc">Comprar todas las unidades al proveedor</span>
                           </div>
-                          <span class="item-status available">Disponible</span>
+                          <span class="item-status available">Seleccionar</span>
                         </div>
                         
                         <!-- Items del inventario -->
@@ -560,12 +615,19 @@
                               Stock: {{ item.cantidad_disponible }} {{ item.unidad }} | 
                               Costo unit: {{ item.moneda === 'USD' ? '$' : 'S/' }}{{ item.costo_unitario.toFixed(2) }}
                             </span>
+                            <!-- Indicar si alcanza o si será split -->
+                            <span v-if="item.cantidad_disponible >= getOrderQtyNum(order)" class="item-coverage full">
+                              ✅ Cubre todo el pedido
+                            </span>
+                            <span v-else class="item-coverage partial">
+                              ⚠️ Cubre {{ item.cantidad_disponible }} de {{ getOrderQtyNum(order) }} — se dividirá
+                            </span>
                           </div>
                           <div class="item-status-container">
                             <span v-if="item.apartado" class="item-status reserved">
                               Apartado: {{ item.nombre_proyecto }}
                             </span>
-                            <span v-else class="item-status available">Disponible</span>
+                            <span v-else class="item-status available">Usar Stock</span>
                           </div>
                         </div>
                       </div>
@@ -580,15 +642,35 @@
                 </div>
               </div>
 
-              <!-- Totals -->
+              <!-- Totals - Precios Duales -->
               <div class="totals-section">
-                <div v-if="approvalForm.igv_enabled" class="total-row">
+                <!-- Gasto Real (Cashflow) -->
+                <div class="total-row cashflow-row">
+                  <span class="total-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    Gasto Real (Pago a proveedor):
+                  </span>
+                  <span class="total-amount">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalCashflowTotal) }}</span>
+                </div>
+                <div v-if="approvalForm.igv_enabled && approvalCashflowTotal > 0" class="total-row">
                   <span>IGV ({{ approvalForm.igv_rate }}%):</span>
                   <span>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalIgv) }}</span>
                 </div>
-                <div class="total-row total-final">
-                  <span>TOTAL:</span>
+                <div v-if="approvalForm.igv_enabled && approvalCashflowTotal > 0" class="total-row total-final">
+                  <span>Total con IGV:</span>
                   <span>{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalTotal) }}</span>
+                </div>
+                <!-- Costo del Proyecto (Budget) - Solo si difiere -->
+                <div v-if="approvalBudgetTotal !== approvalCashflowTotal" class="total-row budget-row">
+                  <span class="total-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                    </svg>
+                    Costo Imputado al Proyecto:
+                  </span>
+                  <span class="total-amount budget-amount">{{ approvalForm.currency === 'USD' ? '$' : 'S/' }} {{ formatNumber(approvalBudgetTotal) }}</span>
                 </div>
               </div>
             </div>
@@ -596,7 +678,7 @@
             <div class="modal-footer">
               <button @click="closeApprovalModal" class="btn-cancel">Cancelar</button>
               <button @click="submitApprovalPending" :disabled="!canSubmitApproval || approvingPending" class="btn-submit">
-                {{ approvingPending ? 'Aprobando...' : `Enviar ${selectedApprovalOrdersData.length} a Por Pagar` }}
+                {{ approvingPending ? 'Procesando...' : `Enviar ${selectedApprovalOrdersData.length} a Por Pagar` }}
               </button>
             </div>
           </div>
@@ -1197,9 +1279,11 @@ const dismissedPaymentAlerts = ref({});
 const inventorySearchResults = ref({}); // { orderId: [items...] }
 const inventoryLoading = ref({}); // { orderId: true/false }
 const inventoryExpanded = ref({}); // { orderId: true/false }
-const inventorySelection = ref({}); // { orderId: { type: 'inventory'|'new', itemId: number, qty: number } }
+const inventorySelection = ref({}); // { orderId: { type: 'inventory'|'new'|'split', itemId, qty, ... } }
+const inventoryAutoSearched = ref({}); // { orderId: true } - track auto-searched items
+const inventorySplitData = ref({}); // { orderId: { qty_from_inventory, qty_to_buy, reference_price, inventory_item_id } }
 
-console.log('ComprasKrsft v4.8.0 loaded successfully');
+console.log('ComprasKrsft v5.14.0 loaded successfully');
 
 const perPagePending = 20;
 
@@ -1601,7 +1685,12 @@ const approvalTotal = computed(() => approvalSubtotal.value + approvalIgv.value)
 
 const canSubmitApproval = computed(() => {
   if (!approvalForm.value.seller_name) return false;
-  if (approvalSubtotal.value <= 0) return false;
+  // Permitir subtotal 0 si todos los items son de inventario
+  const allFromInventory = selectedPendingIds.value.every(id => {
+    const sel = inventorySelection.value[id];
+    return sel && sel.type === 'inventory';
+  });
+  if (!allFromInventory && approvalSubtotal.value <= 0) return false;
   if (approvalForm.value.currency === 'USD' && currentExchangeRate.value <= 0) return false;
   return true;
 });
@@ -1816,6 +1905,40 @@ const openApprovalModal = () => {
     }
   }
   showApprovalModal.value = true;
+
+  // Auto-buscar inventario para todas las órdenes seleccionadas
+  autoSearchInventoryForAll();
+};
+
+// Buscar inventario automáticamente para todas las órdenes al abrir el modal
+const autoSearchInventoryForAll = async () => {
+  const orders = selectedApprovalIds.value
+    .map(id => pendingOrders.value.find(o => o.id === id))
+    .filter(Boolean);
+  
+  // Buscar en paralelo para todas las órdenes de tipo material
+  const promises = orders
+    .filter(o => o.type === 'material')
+    .map(async (order) => {
+      if (inventoryAutoSearched.value[order.id]) return; // Ya se buscó
+      inventoryAutoSearched.value[order.id] = true;
+      inventoryLoading.value[order.id] = true;
+      try {
+        const searchTerm = order.description || getOrderTitle(order);
+        const res = await fetch(`${apiBase.value}/search-inventory?search=${encodeURIComponent(searchTerm)}&project_id=${order.project_id}`);
+        const data = await res.json();
+        if (data.success) {
+          inventorySearchResults.value[order.id] = data.items || [];
+        } else {
+          inventorySearchResults.value[order.id] = [];
+        }
+      } catch (e) {
+        inventorySearchResults.value[order.id] = [];
+      }
+      inventoryLoading.value[order.id] = false;
+    });
+  
+  await Promise.all(promises);
 };
 
 const closeApprovalModal = () => {
@@ -1825,6 +1948,8 @@ const closeApprovalModal = () => {
   inventoryLoading.value = {};
   inventoryExpanded.value = {};
   inventorySelection.value = {};
+  inventoryAutoSearched.value = {};
+  inventorySplitData.value = {};
 };
 
 // ============= FUNCIONES DE CONSULTA DE INVENTARIO =============
@@ -1836,9 +1961,7 @@ const searchInventoryForOrder = async (order) => {
   inventoryExpanded.value[orderId] = true;
   
   try {
-    // Construir término de búsqueda basado en la descripción del material
     const searchTerm = order.description || getOrderTitle(order);
-    
     const res = await fetch(`${apiBase.value}/search-inventory?search=${encodeURIComponent(searchTerm)}&project_id=${order.project_id}`);
     const data = await res.json();
     
@@ -1857,33 +1980,84 @@ const searchInventoryForOrder = async (order) => {
   inventoryLoading.value[orderId] = false;
 };
 
-// Seleccionar item de inventario para un pedido
+// Verificar si un material tiene coincidencias en inventario (para badge automático)
+const hasInventoryMatch = (orderId) => {
+  const results = inventorySearchResults.value[orderId];
+  return results && results.length > 0 && results.some(i => i.disponible);
+};
+
+// Obtener la mejor coincidencia de inventario para un material
+const getBestInventoryMatch = (orderId) => {
+  const results = inventorySearchResults.value[orderId];
+  if (!results || results.length === 0) return null;
+  return results.find(i => i.disponible) || null;
+};
+
+// Seleccionar item de inventario COMPLETO (100% desde inventario)
 const selectInventoryItem = (orderId, item, orderQty) => {
   const qtyNeeded = parseInt(orderQty) || 1;
   const qtyAvailable = item.cantidad_disponible;
-  const qtyToUse = Math.min(qtyNeeded, qtyAvailable);
   
-  // Calcular precio basado en costo unitario
-  const totalPrice = item.costo_unitario * qtyToUse;
-  
-  inventorySelection.value[orderId] = {
-    type: 'inventory',
-    itemId: item.id,
-    itemName: item.nombre,
-    qtyUsed: qtyToUse,
-    qtyNeeded: qtyNeeded,
-    unitCost: item.costo_unitario,
-    totalPrice: totalPrice,
-    moneda: item.moneda
-  };
-  
-  // Establecer precio automáticamente y bloquearlo
-  approvalPrices.value[orderId] = parseFloat(totalPrice.toFixed(2));
-  
-  // Cerrar el dropdown
-  inventoryExpanded.value[orderId] = false;
-  
-  showToast(`Usando ${qtyToUse} unidades de inventario`, 'success');
+  if (qtyAvailable >= qtyNeeded) {
+    // Stock suficiente: 100% de inventario
+    const totalPrice = item.costo_unitario * qtyNeeded;
+    
+    inventorySelection.value[orderId] = {
+      type: 'inventory',
+      itemId: item.id,
+      itemName: item.nombre,
+      qtyUsed: qtyNeeded,
+      qtyNeeded: qtyNeeded,
+      unitCost: item.costo_unitario,
+      totalPrice: totalPrice,
+      moneda: item.moneda,
+      stockAvailable: qtyAvailable
+    };
+    
+    // Precio a 0 (no se paga al proveedor) pero guardar referencia
+    approvalPrices.value[orderId] = 0;
+    inventorySplitData.value[orderId] = {
+      inventory_item_id: item.id,
+      qty_from_inventory: qtyNeeded,
+      qty_to_buy: 0,
+      reference_price: parseFloat(totalPrice.toFixed(2)),
+      source_type: 'inventory'
+    };
+    
+    inventoryExpanded.value[orderId] = false;
+    showToast(`✅ ${qtyNeeded} unidades cubiertas con inventario`, 'success');
+  } else {
+    // Stock insuficiente: proponer SPLIT
+    const qtyFromInventory = qtyAvailable;
+    const qtyToBuy = qtyNeeded - qtyAvailable;
+    const inventoryRefPrice = item.costo_unitario * qtyFromInventory;
+    
+    inventorySelection.value[orderId] = {
+      type: 'split',
+      itemId: item.id,
+      itemName: item.nombre,
+      qtyUsed: qtyFromInventory,
+      qtyNeeded: qtyNeeded,
+      qtyToBuy: qtyToBuy,
+      unitCost: item.costo_unitario,
+      referencePrice: inventoryRefPrice,
+      moneda: item.moneda,
+      stockAvailable: qtyAvailable
+    };
+    
+    // Precio = solo lo que se compra (el usuario debe definirlo)
+    approvalPrices.value[orderId] = 0;
+    inventorySplitData.value[orderId] = {
+      inventory_item_id: item.id,
+      qty_from_inventory: qtyFromInventory,
+      qty_to_buy: qtyToBuy,
+      reference_price: parseFloat(inventoryRefPrice.toFixed(2)),
+      source_type: 'split'
+    };
+    
+    inventoryExpanded.value[orderId] = false;
+    showToast(`📦 ${qtyFromInventory} de inventario + ${qtyToBuy} a comprar`, 'success');
+  }
 };
 
 // Seleccionar opción "Sin inventario" (nueva compra)
@@ -1895,14 +2069,15 @@ const selectNewPurchase = (orderId) => {
   
   // Permitir editar precio manualmente
   approvalPrices.value[orderId] = 0;
+  delete inventorySplitData.value[orderId];
   
-  // Cerrar el dropdown
   inventoryExpanded.value[orderId] = false;
 };
 
 // Limpiar selección de inventario
 const clearInventorySelection = (orderId) => {
   delete inventorySelection.value[orderId];
+  delete inventorySplitData.value[orderId];
   approvalPrices.value[orderId] = 0;
   inventoryExpanded.value[orderId] = false;
 };
@@ -1910,7 +2085,7 @@ const clearInventorySelection = (orderId) => {
 // Verificar si un item de inventario está seleccionado para un pedido
 const isInventoryItemSelected = (orderId, itemId) => {
   const sel = inventorySelection.value[orderId];
-  return sel && sel.type === 'inventory' && sel.itemId === itemId;
+  return sel && (sel.type === 'inventory' || sel.type === 'split') && sel.itemId === itemId;
 };
 
 // Verificar si "nueva compra" está seleccionada
@@ -1919,11 +2094,58 @@ const isNewPurchaseSelected = (orderId) => {
   return sel && sel.type === 'new';
 };
 
-// Verificar si el precio está bloqueado (viene de inventario)
+// Verificar si el precio está bloqueado (100% inventario, no hay nada que pagar)
 const isPriceLocked = (orderId) => {
   const sel = inventorySelection.value[orderId];
   return sel && sel.type === 'inventory';
 };
+
+// Verificar si hay un split activo
+const isSplitActive = (orderId) => {
+  const sel = inventorySelection.value[orderId];
+  return sel && sel.type === 'split';
+};
+
+// Obtener datos del split para mostrar en UI
+const getSplitInfo = (orderId) => {
+  const sel = inventorySelection.value[orderId];
+  if (!sel || sel.type !== 'split') return null;
+  return {
+    qtyFromInventory: sel.qtyUsed,
+    qtyToBuy: sel.qtyToBuy,
+    totalNeeded: sel.qtyNeeded,
+    unitCost: sel.unitCost,
+    referencePrice: sel.referencePrice,
+    itemName: sel.itemName
+  };
+};
+
+// Calcular costo imputado al proyecto (Budget) para un pedido
+const getProjectBudgetCost = (orderId) => {
+  const sel = inventorySelection.value[orderId];
+  const purchasePrice = parseFloat(approvalPrices.value[orderId]) || 0;
+  
+  if (!sel) return purchasePrice;
+  
+  if (sel.type === 'inventory') {
+    // 100% inventario: solo el precio de referencia
+    return sel.totalPrice || 0;
+  }
+  if (sel.type === 'split') {
+    // Split: precio compra + precio referencia inventario
+    return purchasePrice + (sel.referencePrice || 0);
+  }
+  return purchasePrice;
+};
+
+// Calcular totales duales
+const approvalBudgetTotal = computed(() => {
+  return selectedPendingIds.value.reduce((sum, id) => sum + getProjectBudgetCost(id), 0);
+});
+
+const approvalCashflowTotal = computed(() => {
+  return selectedPendingIds.value.reduce((sum, id) => sum + (parseFloat(approvalPrices.value[id]) || 0), 0);
+});
 
 const onApprovalCurrencyChange = () => {
   if (approvalForm.value.currency === 'USD') {
@@ -1935,9 +2157,19 @@ const submitApprovalPending = async () => {
   if (!canSubmitApproval.value) return;
   approvingPending.value = true;
   try {
+    // Construir datos de splits de inventario
+    const inventorySplitsPayload = {};
+    for (const orderId of selectedApprovalIds.value) {
+      const splitData = inventorySplitData.value[orderId];
+      if (splitData) {
+        inventorySplitsPayload[orderId] = splitData;
+      }
+    }
+
     const payload = {
       order_ids: selectedApprovalIds.value,
       prices: approvalPrices.value,
+      inventory_splits: inventorySplitsPayload,
       currency: approvalForm.value.currency,
       seller_name: approvalForm.value.seller_name,
       seller_document: approvalForm.value.seller_document,
@@ -1956,7 +2188,11 @@ const submitApprovalPending = async () => {
     const data = await res.json();
 
     if (data.success) {
-      showToast(data.message || 'Órdenes enviadas a Por Pagar', 'success');
+      let msg = data.message || 'Órdenes procesadas';
+      if (data.inventory_count > 0) {
+        msg += ` (${data.inventory_count} de inventario)`;
+      }
+      showToast(msg, 'success');
       closeApprovalModal();
       selectedPendingIds.value = [];
       approvalPrices.value = {};
