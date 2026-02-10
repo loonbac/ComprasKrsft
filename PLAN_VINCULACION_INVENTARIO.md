@@ -46,11 +46,22 @@ El modal donde se definen precios antes de pasar a "Por Pagar" será el punto de
     - Al hacer clic, se abre un pequeño popover o fila expandida.
     - **Input:** Cantidad a tomar de inventario (Máx: Stock disponible o Cantidad requerida).
 
-### Lógica de División
-Si el usuario decide usar stock (ej. Pedido: 30, Inventory: 20):
-- La fila original se divide en dos:
-    - **Fila A (Compra):** Cantidad 10. Precio editable (el usuario debe poner precio). Estado: `pending_payment`.
-    - **Fila B (Inventario):** Cantidad 20. Precio 0 (bloqueado). Badge "De Inventario". Estado interno: `inventory_sourced`.
+### Lógica de División y Precios Duales
+Si el usuario decide usar stock (ej. Pedido: 30 Tubos, Inventory: 20):
+
+1.  **División de la Fila:**
+    - **Fila A (Compra Real):** Cantidad 10. Precio Unitario a definir (ej. 10 soles). Total a Pagar: 100 soles.
+    - **Fila B (Inventario):** Cantidad 20. Badge "De Inventario".
+
+2.  **Manejo de Costos (Precios Duales):**
+    Para imputar correctamente el gasto al Proyecto sin inflar el flujo de caja real:
+    - **Precio Real (Cashflow):** 100 soles (Solo lo que se paga al proveedor).
+    - **Costo del Proyecto (Budget):** El usuario debe poder ingresar un "Precio de Referencia" para los ítems de inventario, o usar el mismo precio unitario de la compra.
+        - Ejemplo: Si el tubo cuesta 10 soles.
+        - Gasto Real: 10 * 10 = 100 soles.
+        - Costo Imputado al Proyecto: (10 compra * 10) + (20 inventario * 10 precio_ref) = 300 soles.
+
+    Esto garantiza que el reporte financiero del proyecto refleje el valor real de los recursos consumidos (300), aunque el desembolso de caja sea menor (100).
 
 ---
 
