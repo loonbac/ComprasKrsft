@@ -201,11 +201,6 @@ body.dark-mode .quick-pay-step label {
   max-width: 100%;
 }
 
-body.dark-mode .quick-pay-box {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
 .quick-pay-review-grid {
   display: grid;
   grid-template-columns: 45% 55%;
@@ -243,11 +238,6 @@ body.dark-mode .quick-pay-box {
   background: var(--compras-bg-light);
   border: 2px solid var(--compras-border);
   border-radius: var(--compras-radius-md);
-}
-
-body.dark-mode .quick-pay-section {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .btn-quick-pay {
@@ -289,11 +279,6 @@ body.dark-mode .quick-pay-section {
   margin-bottom: 16px;
 }
 
-body.dark-mode .to-pay-filters-bar {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
 .search-filter-group {
   display: flex;
   align-items: center;
@@ -320,16 +305,6 @@ body.dark-mode .to-pay-filters-bar {
   box-shadow: 0 0 0 2px rgba(10, 164, 164, 0.1);
 }
 
-body.dark-mode .search-input-topay {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: var(--compras-text-light);
-}
-
-body.dark-mode .search-input-topay::placeholder {
-  color: rgba(255, 255, 255, 0.4);
-}
-
 .filter-select {
   padding: 6px 10px;
   border: 1px solid var(--compras-border);
@@ -345,17 +320,6 @@ body.dark-mode .search-input-topay::placeholder {
 .filter-select:focus {
   outline: none;
   border-color: var(--compras-primary);
-}
-
-body.dark-mode .filter-select {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: var(--compras-text-light);
-}
-
-body.dark-mode .filter-select option {
-  background: #1e293b;
-  color: #e2e8f0;
 }
 
 .quick-pay-step {
@@ -694,12 +658,6 @@ body.dark-mode .price-label {
   min-width: 80px;
 }
 
-body.dark-mode .input-price {
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--compras-text-white);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
 .input-price:focus {
   outline: none;
   border-color: var(--compras-primary);
@@ -768,43 +726,4 @@ body.dark-mode .input-price {
 /* Modal adjustments for quick pay */
 .modal-lg {
   max-width: 900px;
-}
-
-body.dark-mode .project-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .project-card.clickable:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--compras-primary);
-}
-
-body.dark-mode .project-list-item {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .project-list-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--compras-primary);
-}
-
-body.dark-mode .project-list-name {
-  color: var(--compras-text-light);
-}
-
-body.dark-mode .project-list-currency {
-  color: var(--compras-text-muted);
-}
-
-body.dark-mode .input-price {
-  background: rgba(255, 255, 255, 0.05);
-  color: #e0e0e0;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .input-price:focus {
-  border-color: var(--compras-primary);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }

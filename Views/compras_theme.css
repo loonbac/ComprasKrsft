@@ -50,6 +50,8 @@
     --compras-bg-light: #f8fafc;
     --compras-bg-input: #ffffff;
     --compras-bg-white: #ffffff;
+    --compras-bg-secondary: #f1f5f9;
+    --compras-bg-hover: #e2e8f0;
 
     /* Textos - Modo Claro */
     --compras-text-dark: #1e293b;
@@ -151,6 +153,8 @@ body.dark-mode {
     --compras-bg-light: #334155;
     --compras-bg-input: #1e293b;
     --compras-bg-white: #1e293b;
+    --compras-bg-secondary: #1e293b;
+    --compras-bg-hover: #334155;
     --compras-modal-overlay-color: rgba(0, 0, 0, 0.5);
 
     /* Textos - Modo Oscuro */
