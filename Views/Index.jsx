@@ -2010,18 +2010,6 @@ export default function ComprasIndex() {
       showToast('Complete proveedor y RUC', 'error');
       return;
     }
-    if (
-      !quickPayPaymentForm.cdp_type ||
-      !quickPayPaymentForm.cdp_serie ||
-      !quickPayPaymentForm.cdp_number
-    ) {
-      showToast('Complete tipo, serie y número de comprobante', 'error');
-      return;
-    }
-    if (!quickPayPaymentForm.payment_proof && !quickPayPaymentForm.payment_proof_link) {
-      showToast('Suba un archivo o ingrese link de factura', 'error');
-      return;
-    }
 
     setQuickPayLoading(true);
     try {
@@ -2035,9 +2023,10 @@ export default function ComprasIndex() {
       if (quickPayApprovalForm.payment_type === 'loan') {
         formData.append('due_date', quickPayApprovalForm.due_date);
       }
-      formData.append('cdp_type', quickPayPaymentForm.cdp_type);
-      formData.append('cdp_serie', quickPayPaymentForm.cdp_serie);
-      formData.append('cdp_number', quickPayPaymentForm.cdp_number);
+      // Optional cdp fields
+      formData.append('cdp_type', quickPayPaymentForm.cdp_type || '');
+      formData.append('cdp_serie', quickPayPaymentForm.cdp_serie || '');
+      formData.append('cdp_number', quickPayPaymentForm.cdp_number || '');
       if (quickPayPaymentForm.payment_proof_link) {
         formData.append('payment_proof_link', quickPayPaymentForm.payment_proof_link);
       }
@@ -3395,40 +3384,35 @@ export default function ComprasIndex() {
                         </div>
                       </div>
 
-                      {/* Comprobante section hidden - can be added later in "Pagadas" tab */}
-                      {false && (
-                        <>
-                          <div className="section-header-with-pill">
-                            <h5 className="quick-pay-section-title with-top">Comprobante de Pago</h5>
-                            <span className="optional-pill">
-                              {AlertIcon}
-                              NO OBLIGATORIO
-                            </span>
-                          </div>
-                          <div className="form-section quick-pay-form-section">
-                            <div className="form-group quick-pay-inline-group">
-                              <label>Tipo *</label>
-                              <input value={quickPayPaymentForm.cdp_type} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} type="text" className="input-field" placeholder="01, 03" />
-                            </div>
-                            <div className="form-group quick-pay-inline-group">
-                              <label>Serie *</label>
-                              <input value={quickPayPaymentForm.cdp_serie} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} type="text" className="input-field" placeholder="F001" />
-                            </div>
-                            <div className="form-group quick-pay-inline-group">
-                              <label>Número *</label>
-                              <input value={quickPayPaymentForm.cdp_number} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_number: e.target.value }))} type="text" className="input-field" placeholder="00001234" />
-                            </div>
-                            <div className="form-group quick-pay-inline-group">
-                              <label>Comprobante (archivo)</label>
-                              <input type="file" onChange={onQuickPayProofChange} accept="image/*,.pdf" className="input-file" />
-                            </div>
-                            <div className="form-group quick-pay-inline-group">
-                              <label>Comprobante (link)</label>
-                              <input value={quickPayPaymentForm.payment_proof_link} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, payment_proof_link: e.target.value }))} type="url" placeholder="https://..." className="input-field" />
-                            </div>
-                          </div>
-                        </>
-                      )}
+                      {/* Comprobante section - Optional */}
+                      <div className="section-header-with-pill" style={{ marginTop: '1.5rem' }}>
+                        <h5 className="quick-pay-section-title">Comprobante de Pago</h5>
+                        <span className="optional-pill" style={{ background: '#e0e7ff', color: '#4338ca', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          NO OBLIGATORIO
+                        </span>
+                      </div>
+                      <div className="form-section quick-pay-form-section">
+                        <div className="form-group quick-pay-inline-group">
+                          <label>Tipo</label>
+                          <input value={quickPayPaymentForm.cdp_type} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} type="text" className="input-field" placeholder="01, 03" />
+                        </div>
+                        <div className="form-group quick-pay-inline-group">
+                          <label>Serie</label>
+                          <input value={quickPayPaymentForm.cdp_serie} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} type="text" className="input-field" placeholder="F001" />
+                        </div>
+                        <div className="form-group quick-pay-inline-group">
+                          <label>Número</label>
+                          <input value={quickPayPaymentForm.cdp_number} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_number: e.target.value }))} type="text" className="input-field" placeholder="00001234" />
+                        </div>
+                        <div className="form-group quick-pay-inline-group">
+                          <label>Comprobante (archivo)</label>
+                          <input type="file" onChange={onQuickPayProofChange} accept="image/*,.pdf" className="input-file" />
+                        </div>
+                        <div className="form-group quick-pay-inline-group">
+                          <label>Comprobante (link)</label>
+                          <input value={quickPayPaymentForm.payment_proof_link} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, payment_proof_link: e.target.value }))} type="url" placeholder="https://..." className="input-field" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

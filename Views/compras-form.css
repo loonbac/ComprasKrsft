@@ -231,26 +231,29 @@ body.dark-mode .totals-section {
 }
 
 .summary-row.total-row {
-  padding-top: 10px;
-  border-top: 2px solid var(--compras-border);
-  border-bottom: none;
+  padding: 8px 12px;
+  margin-top: 10px;
+  border-top: none;
+  background: #0ca5a5; /* Teal color matching screenshot */
+  border-radius: var(--compras-radius-sm);
+  color: white;
 }
 
-.summary-label {
+.summary-row.total-row .summary-label {
   font-size: 0.9rem;
-  color: var(--compras-text-gray);
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
 }
 
-.summary-value {
+.summary-row.total-row .summary-value {
   font-size: 0.95rem;
-  color: var(--compras-text-dark);
+  color: white;
   font-weight: 600;
 }
 
 .summary-value.total-amount {
   font-size: 1.1rem;
-  color: #0ca5a5;
+  color: white;
   font-weight: 700;
 }
 
@@ -315,4 +318,18 @@ body.dark-mode .btn-cancel:hover {
 .btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Edit Comprobante Modal Specifics */
+.edit-comprobante-modal .modal-footer {
+  justify-content: flex-end !important;
+  gap: 12px;
+}
+
+.edit-comprobante-modal .btn-cancel,
+.edit-comprobante-modal .btn-submit {
+  width: auto !important;
+  min-width: unset;
+  padding: 8px 16px; /* Slightly smaller padding */
+  flex: 0 0 auto;
 }
