@@ -1,0 +1,810 @@
+/* COMPRAS - QUICK PAY & TO-PAY FILTERS */
+
+/* Quick Pay Styles */
+.quick-pay-section {
+  padding: 15px 24px;
+  background: var(--compras-quickpay-bg);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.quick-pay-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-pay-title-simple {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--compras-text-dark);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-pay-title-icon {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+body.dark-mode .quick-pay-title-simple {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-description {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--compras-text-gray);
+  font-weight: 400;
+}
+
+body.dark-mode .quick-pay-description {
+  color: #a0aec0;
+}
+
+.quick-pay-title {
+  margin: 0;
+}
+
+.quick-pay-title-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--compras-quickpay-btn-bg);
+  color: var(--compras-quickpay-btn-text);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.2px;
+}
+
+.quick-pay-subtitle {
+  margin-bottom: 16px;
+  color: var(--compras-text-dark);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+body.dark-mode .quick-pay-subtitle {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-label {
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+  color: var(--compras-text-dark);
+}
+
+body.dark-mode .quick-pay-label {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--compras-text-dark);
+  margin: 0 0 10px 0;
+}
+
+.quick-pay-section-title.with-top {
+  margin-top: 8px;
+}
+
+body.dark-mode .quick-pay-section-title {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-form-section {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.quick-pay-form-section .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.quick-pay-inline-group {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-pay-inline-group label {
+  min-width: 110px;
+  max-width: 160px;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.quick-pay-inline-group .input-field,
+.quick-pay-inline-group .input-file {
+  flex: 1;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.quick-pay-dates-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.quick-pay-dates-row .form-group {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: calc(50% - 6px);
+}
+
+@media (max-width: 768px) {
+  .quick-pay-dates-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quick-pay-step label {
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--compras-text-dark);
+}
+
+body.dark-mode .quick-pay-step label {
+  color: var(--compras-text-white);
+}
+
+.quick-pay-box {
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+body.dark-mode .quick-pay-box {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.quick-pay-review-grid {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-pay-review-grid > div {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .quick-pay-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quick-pay-items-table {
+  margin-bottom: 8px;
+  flex: 1;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.quick-pay-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--compras-bg-light);
+  border: 2px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+}
+
+body.dark-mode .quick-pay-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.btn-quick-pay {
+  background: #8b5cf6;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-quick-pay:hover {
+  transform: translateY(-2px);
+  background: #7c3aed;
+  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.35);
+}
+
+.btn-quick-pay svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* To Pay Filters Bar */
+.to-pay-filters-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--compras-bg-light);
+  border: 2px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+  margin-bottom: 16px;
+}
+
+body.dark-mode .to-pay-filters-bar {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.search-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.search-input-topay {
+  padding: 6px 12px;
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  background: var(--compras-bg-input);
+  color: var(--compras-text-dark);
+  font-size: 0.85rem;
+  min-width: 200px;
+  flex: 1;
+  max-width: 300px;
+  transition: var(--compras-transition-fast);
+}
+
+.search-input-topay:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 2px rgba(10, 164, 164, 0.1);
+}
+
+body.dark-mode .search-input-topay {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--compras-text-light);
+}
+
+body.dark-mode .search-input-topay::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.filter-select {
+  padding: 6px 10px;
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  background: var(--compras-bg-input);
+  color: var(--compras-text-dark);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+  min-width: 120px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+}
+
+body.dark-mode .filter-select {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--compras-text-light);
+}
+
+body.dark-mode .filter-select option {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.quick-pay-step {
+  padding: 12px 0;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.project-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  background: var(--compras-bg-secondary);
+  border: 1px solid var(--compras-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.project-list-item:hover {
+  border-color: var(--compras-primary);
+  background: var(--compras-bg-hover);
+  transform: translateY(-1px);
+}
+
+.project-list-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.project-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.project-list-name {
+  font-weight: 700;
+  color: var(--compras-text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-list-currency {
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--compras-text-muted);
+  background: var(--compras-bg-hover);
+  padding: 4px 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.project-card {
+  padding: 20px;
+  background: var(--compras-bg-secondary);
+  border: 2px solid var(--compras-border);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.project-card.clickable {
+  cursor: pointer;
+  border-left: 4px solid var(--project-color, var(--compras-primary));
+}
+
+.project-card.clickable:hover {
+  border-color: var(--project-color, var(--compras-primary));
+  background: var(--compras-bg-hover);
+  transform: translateY(-4px);
+}
+
+.project-card.clickable .project-name {
+  color: var(--project-color, var(--compras-text-dark));
+}
+
+.project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--project-color, var(--compras-primary));
+  color: var(--compras-text-white);
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.quick-pay-project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  color: var(--compras-text-white);
+  font-weight: 700;
+  margin-left: 8px;
+  font-size: 0.92rem;
+}
+
+.btn-quick-pay-add {
+  background: var(--compras-quickpay-btn-bg);
+  color: var(--compras-quickpay-btn-text);
+  border: none;
+  padding: 10px 16px;
+  border-radius: var(--compras-radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-quick-pay-add:hover {
+  background: var(--compras-quickpay-btn-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--compras-quickpay-shadow);
+}
+
+.btn-quick-back {
+  background: #556575;
+  color: var(--compras-text-white);
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--compras-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-quick-back:hover {
+  background: #3e4a57;
+  transform: translateY(-1px);
+}
+
+.project-name {
+  font-weight: 600;
+  color: var(--compras-text-dark);
+  margin-bottom: 8px;
+}
+
+.project-currency {
+  font-size: 0.85rem;
+  color: var(--compras-text-gray);
+}
+
+.items-summary {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--compras-bg-light);
+  border-radius: 8px;
+  border: 1px solid var(--compras-border);
+}
+
+body.dark-mode .items-summary {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.items-summary h5 {
+  margin: 0 0 10px 0;
+  color: var(--compras-text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+body.dark-mode .items-summary h5 {
+  color: var(--compras-text-white);
+}
+
+.items-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.items-table .item-info {
+  color: var(--compras-text-dark);
+  font-weight: 500;
+}
+
+body.dark-mode .items-table .item-info {
+  color: var(--compras-text-white);
+}
+
+.items-summary-table {
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.item-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--compras-bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--compras-border);
+  border-left: 3px solid var(--compras-primary);
+}
+
+body.dark-mode .item-summary-row {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.item-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.item-summary-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--compras-text-dark);
+}
+
+body.dark-mode .item-summary-title {
+  color: var(--compras-text-white);
+}
+
+.item-summary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 0.85rem;
+  color: var(--compras-text-gray);
+}
+
+body.dark-mode .item-summary-meta {
+  color: var(--compras-text-light);
+}
+
+.item-summary-label {
+  font-weight: 700;
+  color: var(--compras-text-muted);
+  margin-right: 4px;
+}
+
+body.dark-mode .item-summary-label {
+  color: var(--compras-text-white);
+}
+
+.item-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--compras-bg-card);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  border: 1px solid var(--compras-border);
+  border-left: 3px solid var(--compras-primary);
+}
+
+.item-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--compras-text-dark);
+}
+
+body.dark-mode .item-name {
+  color: var(--compras-text-white);
+}
+
+.item-qty-unit {
+  font-size: 0.85rem;
+  color: var(--compras-text-gray);
+  display: flex;
+  gap: 16px;
+}
+
+body.dark-mode .item-qty-unit {
+  color: var(--compras-text-light);
+}
+
+.item-label {
+  font-weight: 600;
+  color: var(--compras-text-muted);
+}
+
+body.dark-mode .item-label {
+  color: var(--compras-text-light);
+}
+
+.item-price-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--compras-text-muted);
+  flex-shrink: 0;
+}
+
+body.dark-mode .price-label {
+  color: var(--compras-text-light);
+}
+
+.input-price {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--compras-border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: var(--compras-bg-input);
+  color: var(--compras-text-dark);
+  min-width: 80px;
+}
+
+body.dark-mode .input-price {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--compras-text-white);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.input-price:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.1);
+}
+
+.item-subtotal {
+  font-weight: 600;
+  color: var(--compras-primary);
+  flex-shrink: 0;
+}
+
+.item-subtotal {
+  flex: 0 0 100px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--compras-primary);
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: var(--compras-primary);
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.btn-remove {
+  background: #ff4757;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.items-summary .btn-remove {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.btn-remove-square {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex: 0 0 30px;
+}
+
+.btn-remove:hover {
+  background: #ff3838;
+  transform: scale(1.05);
+}
+
+/* Modal adjustments for quick pay */
+.modal-lg {
+  max-width: 900px;
+}
+
+body.dark-mode .project-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .project-card.clickable:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--compras-primary);
+}
+
+body.dark-mode .project-list-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .project-list-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--compras-primary);
+}
+
+body.dark-mode .project-list-name {
+  color: var(--compras-text-light);
+}
+
+body.dark-mode .project-list-currency {
+  color: var(--compras-text-muted);
+}
+
+body.dark-mode .input-price {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .input-price:focus {
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}

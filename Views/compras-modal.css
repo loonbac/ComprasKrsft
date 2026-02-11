@@ -1,0 +1,279 @@
+/* COMPRAS - MODALS */
+
+/* Modal - Structure only, colors in theme */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--compras-modal-overlay-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: var(--compras-modal-bg);
+  border-radius: var(--compras-radius-xl);
+  width: min(1800px, 95vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--compras-shadow-lg);
+}
+
+.modal-lg {
+  width: min(1800px, 95vw);
+  max-width: 1800px;
+}
+
+.payment-modal {
+  width: min(700px, 90vw);
+  max-width: 700px;
+}
+
+.payment-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
+.payment-modal .modal-header {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.payment-modal .header-igv {
+  margin-left: 8px;
+}
+
+.payment-modal .summary-row.total-row .summary-label,
+.payment-modal .summary-row.total-row .summary-value,
+.payment-modal .summary-value.total-amount {
+  color: #ffffff;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--compras-border);
+}
+
+.modal-header h2 {
+  font-size: 1.2rem;
+  color: var(--compras-text-dark);
+  margin: 0;
+}
+
+.bulk-approve-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  background: var(--compras-bg-light);
+  border: none;
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-close:hover {
+  background: var(--compras-border);
+}
+
+.bulk-approve-modal .btn-close {
+  display: none !important;
+}
+
+.bulk-approve-modal .totals-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.bulk-approve-modal .total-row,
+.bulk-approve-modal .total-final {
+  color: var(--compras-primary);
+  font-weight: 700;
+}
+
+.bulk-approve-modal .total-row span,
+.bulk-approve-modal .total-final span {
+  color: var(--compras-primary);
+}
+
+.modal-body {
+  padding: 12px;
+  box-sizing: border-box;
+  overflow-y: hidden;
+  flex: 1;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--compras-border);
+}
+
+.bulk-approve-modal .btn-submit {
+  background: var(--compras-primary);
+  color: var(--compras-text-white);
+  border: none;
+  box-shadow: 0 8px 16px rgba(10, 164, 164, 0.25);
+}
+
+.bulk-approve-modal .btn-submit:hover:not(:disabled) {
+  background: var(--compras-primary-dark);
+}
+
+.bulk-approve-modal .btn-cancel {
+  background: var(--compras-danger);
+  color: var(--compras-text-white);
+  border: none;
+}
+
+.bulk-approve-modal .btn-cancel:hover {
+  background: var(--compras-danger-dark);
+}
+
+.approval-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
+.approval-modal .btn-close {
+  display: none !important;
+}
+
+.approval-modal .totals-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.approval-modal .total-row,
+.approval-modal .total-final {
+  color: var(--compras-primary);
+  font-weight: 700;
+  background: transparent !important;
+  padding: 0;
+  border-radius: 0;
+  margin: 0;
+}
+
+.approval-modal .total-row span,
+.approval-modal .total-final span {
+  color: var(--compras-primary);
+}
+
+.approval-modal .total-final {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.approval-modal .btn-submit {
+  background: var(--compras-primary);
+  color: var(--compras-text-white);
+  border: none;
+  box-shadow: 0 8px 16px rgba(10, 164, 164, 0.25);
+}
+
+.approval-modal .btn-submit:hover:not(:disabled) {
+  background: var(--compras-primary-dark);
+}
+
+.approval-modal .btn-cancel {
+  background: var(--compras-danger);
+  color: var(--compras-text-white);
+  border: none;
+}
+
+.approval-modal .btn-cancel:hover {
+  background: var(--compras-danger-dark);
+}
+
+/* Export Modal Styles */
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-group label {
+  font-weight: 600;
+  color: var(--compras-text-dark);
+  font-size: 0.95rem;
+}
+
+.preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.preset-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 10px 12px;
+  border: 2px solid var(--compras-border);
+  background: var(--compras-bg-light);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-gray);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.preset-btn:hover {
+  border-color: var(--compras-info);
+  background: var(--compras-bg-white);
+}
+
+.preset-btn.active {
+  border-color: var(--compras-info);
+  background: var(--compras-info);
+  color: var(--compras-text-white);
+}
+
+.custom-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.custom-dates label {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+}
+
+.custom-dates .input-date {
+  grid-column: span 1;
+}
+
+.input-date {
+  padding: 10px 12px;
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  background: var(--compras-bg-white);
+  color: var(--compras-text-dark);
+  font-size: 0.9rem;
+}
+
+.input-date:focus {
+  outline: none;
+  border-color: var(--compras-info);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}

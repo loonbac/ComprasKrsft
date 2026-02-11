@@ -1,0 +1,225 @@
+/* COMPRAS - TABLE & PAGINATION */
+
+/* Table - Updated for white container */
+.table-container {
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.orders-table {
+  width: 100%;
+  min-width: 1080px;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--compras-border);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.orders-table th {
+  background: var(--compras-bg-light);
+  color: var(--compras-text-gray);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.orders-table tbody tr {
+  transition: background 0.15s;
+  /* Rule 6.2: Defer off-screen rendering */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 48px;
+}
+
+.orders-table tbody tr:hover {
+  background: var(--compras-bg-light);
+}
+
+.orders-table tbody tr.selected {
+  background: var(--compras-row-selected-bg);
+}
+
+.col-check {
+  width: 40px;
+  text-align: center;
+}
+
+.col-check input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--compras-primary);
+}
+
+.col-item {
+  width: 50px;
+  text-align: center;
+  color: var(--compras-text-gray);
+  font-weight: 600;
+}
+
+.col-project {
+  min-width: 160px;
+  max-width: 260px;
+  color: var(--compras-text-dark);
+  font-weight: 600;
+}
+
+.col-type {
+  width: 100px;
+}
+
+.col-description {
+  min-width: 260px;
+}
+
+.col-actions {
+  min-width: 160px;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--compras-radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.type-badge.material {
+  background: var(--compras-badge-info-bg);
+  color: var(--compras-badge-info-text);
+}
+
+.type-badge.service {
+  background: var(--compras-badge-service-bg);
+  color: var(--compras-badge-service-text);
+}
+
+.col-description {
+  color: var(--compras-text-dark);
+}
+
+.material-name {
+  font-weight: 500;
+}
+
+.material-count {
+  font-size: 0.8rem;
+  color: var(--compras-text-gray);
+}
+
+.col-qty {
+  width: 60px;
+  text-align: center;
+  color: var(--compras-text-dark);
+}
+
+.col-und {
+  width: 70px;
+  text-align: center;
+  color: var(--compras-text-gray);
+  font-size: 0.85rem;
+}
+
+.col-diam {
+  width: 90px;
+  text-align: center;
+  color: var(--compras-text-dark);
+}
+
+.col-serie {
+  width: 90px;
+  text-align: center;
+  color: var(--compras-text-dark);
+}
+
+.col-mat {
+  width: 110px;
+  color: var(--compras-text-dark);
+}
+
+.col-date {
+  width: 100px;
+  color: var(--compras-text-gray);
+  font-size: 0.85rem;
+}
+
+.col-actions {
+  width: 180px;
+  text-align: center;
+}
+
+.col-actions .action-buttons {
+  display: inline-flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  border: none;
+  border-radius: var(--compras-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+
+.btn-sm:hover {
+  opacity: 0.9;
+}
+
+.btn-approve {
+  background: var(--compras-primary);
+  color: var(--compras-text-white);
+}
+
+.btn-reject {
+  background: var(--compras-danger);
+  color: var(--compras-text-white);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  border-top: 1px solid var(--compras-border);
+}
+
+.btn-page {
+  padding: 8px 16px;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-page:hover:not(:disabled) {
+  background: var(--compras-border);
+}
+
+.btn-page:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: var(--compras-text-gray);
+  font-size: 0.9rem;
+}

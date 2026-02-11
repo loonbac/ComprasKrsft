@@ -1,0 +1,187 @@
+/* COMPRAS - FILTERS & EXPORT BAR */
+
+/* Filters Bar - Updated for white container */
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-group label {
+  color: var(--compras-text-gray);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
+  font-size: 0.85rem;
+  min-width: 140px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+}
+
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  color: var(--compras-warning);
+  font-weight: 600;
+}
+
+.btn-approve-selected {
+  padding: 8px 16px;
+  background: var(--compras-primary);
+  border: none;
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-approve-selected:hover {
+  background: var(--compras-primary-dark);
+}
+
+/* Export bar in Pagadas */
+.export-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 16px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-md);
+}
+
+.date-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-filter-group label {
+  color: var(--compras-text-gray);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.input-date {
+  padding: 6px 8px;
+  background: var(--compras-bg-card);
+  border: 2px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
+  font-size: 0.8rem;
+  height: 32px;
+}
+
+.input-date:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.1);
+}
+
+body.dark-mode .input-date {
+  border-color: #475569;
+  color-scheme: dark;
+}
+
+body.dark-mode .input-date::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  cursor: pointer;
+}
+
+.input-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* Quick pay date inputs - ensure calendar icon is white in dark mode */
+body.dark-mode .quick-pay-inline-group input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+
+body.dark-mode .input-field[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+
+.btn-reset-filter {
+  padding: 6px 12px;
+  background: #ef4444;
+  border: none;
+  border-radius: var(--compras-radius-sm);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+  height: 32px;
+}
+
+.btn-reset-filter:hover {
+  background: #dc2626;
+}
+
+.btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--compras-btn-export-bg);
+  color: #fff;
+  border: none;
+  border-radius: var(--compras-radius-md);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.2px;
+  box-shadow: var(--compras-shadow-sm);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+  height: 32px;
+  white-space: nowrap;
+}
+
+.btn-export svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--compras-shadow-lg);
+  background: var(--compras-btn-export-hover);
+}
+
+.btn-export:active {
+  transform: translateY(0);
+  opacity: 0.92;
+}

@@ -1,0 +1,149 @@
+/* ============================================
+   COMPRAS - VARIABLES (maps to global Bytewave theme)
+   Core deps: Bytewave-theme.css
+   ============================================ */
+
+:root {
+    /* Map to global Bytewave theme */
+    --compras-primary: var(--color-primary);
+    --compras-primary-dark: var(--color-primary-dark);
+    --compras-primary-light: var(--color-primary-light);
+    --compras-secondary: var(--color-secondary);
+    --compras-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 50%, var(--color-secondary) 100%);
+    --compras-success: var(--color-success);
+    --compras-success-dark: var(--color-success-dark);
+    --compras-danger: var(--color-danger);
+    --compras-danger-dark: var(--color-danger-dark);
+    --compras-warning: var(--color-warning);
+    --compras-info: var(--color-info);
+
+    /* Backgrounds */
+    --compras-bg-page: var(--compras-gradient);
+    --compras-bg-container: rgba(255, 255, 255, 0.95);
+    --compras-bg-card: var(--bg-white);
+    --compras-bg-light: var(--bg-light);
+    --compras-bg-input: var(--bg-white);
+    --compras-bg-color-1: var(--color-primary);
+    --compras-bg-color-2: var(--color-secondary);
+
+    /* Text */
+    --compras-text-dark: var(--text-dark);
+    --compras-text-gray: var(--text-gray);
+    --compras-text-light: var(--text-light);
+    --compras-text-muted: var(--text-muted);
+    --compras-text-white: var(--text-white);
+
+    /* Borders */
+    --compras-border: var(--border-color);
+    --compras-border-light: #f1f5f9;
+    --compras-toggle-border: #94a3b8;
+
+    /* Shadows */
+    --compras-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.08);
+    --compras-shadow-md: 0 8px 25px rgba(0, 0, 0, 0.12);
+    --compras-shadow-lg: var(--shadow-lg);
+    --compras-shadow-primary: var(--shadow-primary);
+
+    /* Radii */
+    --compras-radius-sm: 6px;
+    --compras-radius-md: 8px;
+    --compras-radius-lg: 12px;
+    --compras-radius-xl: 16px;
+    --compras-radius-2xl: 20px;
+    --compras-radius-full: var(--radius-full);
+
+    /* Transitions */
+    --compras-transition: var(--transition);
+    --compras-transition-fast: var(--transition-fast);
+
+    /* Modal */
+    --compras-modal-bg: var(--modal-bg);
+    --compras-modal-overlay-color: var(--modal-overlay);
+
+    /* Selected rows */
+    --compras-row-selected-bg: rgba(6, 182, 212, 0.12);
+    --compras-row-selected-bg-hover: rgba(6, 182, 212, 0.18);
+
+    /* Badges */
+    --compras-badge-success-bg: var(--color-success);
+    --compras-badge-success-text: #ffffff;
+    --compras-badge-danger-bg: var(--color-danger);
+    --compras-badge-danger-text: #ffffff;
+    --compras-badge-warning-bg: var(--color-warning);
+    --compras-badge-warning-text: #ffffff;
+    --compras-badge-info-bg: var(--color-info);
+    --compras-badge-info-text: #ffffff;
+    --compras-badge-default-bg: #f1f5f9;
+    --compras-badge-default-text: #64748b;
+    --compras-badge-service-bg: #8b5cf6;
+    --compras-badge-service-text: #ffffff;
+
+    /* Buttons */
+    --compras-btn-approve-bg: var(--color-success);
+    --compras-btn-approve-hover: var(--color-success-dark);
+    --compras-btn-reject-bg: rgba(239, 68, 68, 0.1);
+    --compras-btn-reject-text: var(--color-danger);
+    --compras-btn-reject-hover: rgba(239, 68, 68, 0.2);
+    --compras-btn-confirm-bg: var(--color-info);
+    --compras-btn-confirm-hover: #2563eb;
+    --compras-btn-export-bg: #2563eb;
+    --compras-btn-export-hover: #1d4ed8;
+    --compras-stat-pending-bg: var(--color-warning);
+    --compras-stat-approved-bg: var(--color-success);
+    --compras-stat-projects-bg: var(--color-info);
+
+    /* Quick Pay */
+    --compras-quickpay-bg: var(--color-primary);
+    --compras-quickpay-btn-bg: #8b5cf6;
+    --compras-quickpay-btn-hover: #7c3aed;
+    --compras-quickpay-btn-text: #ffffff;
+    --compras-quickpay-shadow: 0 8px 16px rgba(124, 58, 237, 0.35);
+
+    /* Payment Alerts */
+    --compras-alert-overdue-bg: rgba(124, 45, 18, 0.15);
+    --compras-alert-overdue-text: #7c2d12;
+    --compras-alert-overdue-border: #92400e;
+    --compras-alert-today-bg: rgba(234, 88, 12, 0.15);
+    --compras-alert-today-text: #92400e;
+    --compras-alert-today-border: #ea580c;
+    --compras-alert-urgent-bg: rgba(220, 38, 38, 0.12);
+    --compras-alert-urgent-text: #991b1b;
+    --compras-alert-urgent-border: #dc2626;
+    --compras-alert-warning-bg: rgba(202, 138, 4, 0.15);
+    --compras-alert-warning-text: #854d0e;
+    --compras-alert-warning-border: #ca8a04;
+
+    /* Toast */
+    --compras-toast-success: var(--color-success);
+    --compras-toast-error: var(--color-danger);
+}
+
+body.dark-mode {
+    --compras-bg-page: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    --compras-bg-container: rgba(30, 41, 59, 0.95);
+    --compras-border-light: #1e293b;
+    --compras-bg-color-1: #0f172a;
+    --compras-bg-color-2: #1e293b;
+    --compras-toggle-border: var(--color-primary);
+    --compras-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
+    --compras-shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
+
+    /* Quick Pay Dark */
+    --compras-quickpay-btn-bg: #7c3aed;
+    --compras-quickpay-btn-hover: #6d28d9;
+    --compras-quickpay-shadow: 0 8px 16px rgba(124, 58, 237, 0.45);
+
+    /* Payment Alerts Dark */
+    --compras-alert-overdue-bg: rgba(124, 45, 18, 0.25);
+    --compras-alert-overdue-text: #fdba74;
+    --compras-alert-overdue-border: #f97316;
+    --compras-alert-today-bg: rgba(234, 88, 12, 0.2);
+    --compras-alert-today-text: #fbbd1c;
+    --compras-alert-today-border: #f97316;
+    --compras-alert-urgent-bg: rgba(220, 38, 38, 0.2);
+    --compras-alert-urgent-text: #fca5a5;
+    --compras-alert-urgent-border: #ef4444;
+    --compras-alert-warning-bg: rgba(202, 138, 4, 0.2);
+    --compras-alert-warning-text: #fcd34d;
+    --compras-alert-warning-border: #eab308;
+}

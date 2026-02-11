@@ -1,0 +1,318 @@
+/* COMPRAS - FORMS, PRICING & BUTTONS */
+
+/* Form Styles */
+.form-section {
+  margin-bottom: 16px;
+}
+
+.form-section h4 {
+  font-size: 0.95rem;
+  color: var(--compras-text-dark);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--compras-border);
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.quick-pay-inline-group {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-form .form-row .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-group.flex-1 {
+  flex: 1;
+}
+
+.form-group.flex-2 {
+  flex: 2;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  color: var(--compras-text-gray);
+}
+
+.input-field {
+  padding: 10px 12px;
+  background: var(--compras-bg-input);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
+  font-size: 0.9rem;
+  transition: var(--compras-transition-fast);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+}
+
+.input-file {
+  padding: 10px;
+  background: var(--compras-bg-light);
+  border: 1px dashed var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--compras-text-dark);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  width: 18px;
+  height: 18px;
+}
+
+/* Exchange Info */
+.exchange-info {
+  padding: 12px;
+  background: var(--compras-badge-info-bg);
+  border-radius: var(--compras-radius-sm);
+  margin-bottom: 16px;
+  color: var(--compras-badge-info-text);
+  font-size: 0.9rem;
+}
+
+.exchange-info .error {
+  color: var(--compras-danger);
+}
+
+/* Pricing List */
+.pricing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.pricing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background: var(--compras-bg-light);
+  border-radius: var(--compras-radius-sm);
+}
+
+.pricing-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pricing-project {
+  font-size: 0.75rem;
+  color: var(--compras-text-gray);
+}
+
+.pricing-project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--compras-radius-full);
+  color: var(--compras-text-white);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pricing-material {
+  color: var(--compras-text-dark);
+  font-weight: 500;
+}
+
+.pricing-qty {
+  font-size: 0.8rem;
+  color: var(--compras-text-gray);
+}
+
+.pricing-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.currency-prefix {
+  color: var(--compras-text-gray);
+  font-weight: 600;
+}
+
+.price-input {
+  width: 100px;
+  text-align: right;
+}
+
+/* Totals Section */
+.totals-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+}
+
+body.dark-mode .totals-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.totals-section .total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.totals-section .total-final {
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid var(--compras-border);
+}
+
+.pen-equivalent {
+  color: var(--compras-text-gray);
+  font-size: 0.85rem;
+}
+
+/* Batch Summary */
+/* Payment Summary Card */
+.payment-summary-card {
+  background: transparent;
+  border: none;
+  border-radius: var(--compras-radius-md);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.summary-row:not(:last-child) {
+  border-bottom: 1px solid var(--compras-border);
+}
+
+.summary-row.total-row {
+  padding-top: 10px;
+  border-top: 2px solid var(--compras-border);
+  border-bottom: none;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  color: var(--compras-text-gray);
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 0.95rem;
+  color: var(--compras-text-dark);
+  font-weight: 600;
+}
+
+.summary-value.total-amount {
+  font-size: 1.1rem;
+  color: #0ca5a5;
+  font-weight: 700;
+}
+
+/* Buttons */
+.btn-cancel {
+  padding: 10px 20px;
+  background: #ff4444;
+  border: none;
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-cancel:hover {
+  background: #cc0000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
+body.dark-mode .btn-cancel {
+  background: #ff4444;
+  color: #ffffff;
+}
+
+body.dark-mode .btn-cancel:hover {
+  background: #cc0000;
+}
+
+.btn-cancel-red {
+  padding: 10px 20px;
+  background: var(--compras-danger);
+  border: none;
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-cancel-red:hover {
+  background: var(--compras-danger-dark);
+  transform: translateY(-1px);
+}
+
+.btn-submit {
+  padding: 10px 24px;
+  background: var(--compras-primary);
+  border: none;
+  border-radius: var(--compras-radius-md);
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: var(--compras-primary-dark);
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,0 +1,307 @@
+/* COMPRAS - LAYOUT. Core deps: Bytewave-theme.css, modules-layout.css */
+
+/* Layout */
+.compras-layout {
+  min-height: 100vh;
+  position: relative;
+}
+
+.compras-bg {
+  position: fixed;
+  inset: 0;
+  background: var(--compras-bg-page);
+  z-index: -1;
+}
+
+.compras-container {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  background: var(--compras-bg-container);
+  backdrop-filter: blur(20px);
+  border-radius: var(--compras-radius-xl);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  overflow: hidden;
+  box-shadow: var(--compras-shadow-lg);
+}
+
+/* Header - Fixed at top of container */
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--compras-bg-container);
+  border-radius: var(--compras-radius-lg) var(--compras-radius-lg) 0 0;
+  border-bottom: 2px solid var(--compras-border);
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--compras-text-dark);
+  margin: 0;
+}
+
+.title-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--compras-radius-full);
+  border: 2px solid var(--compras-border);
+  background: var(--compras-bg-light);
+  color: var(--compras-text-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--compras-transition-fast);
+}
+
+.theme-toggle:hover {
+  background: var(--compras-border);
+  transform: scale(1.05);
+}
+
+.theme-toggle svg {
+  width: 22px;
+  height: 22px;
+}
+
+.theme-toggle .sun-icon {
+  display: block;
+}
+
+.theme-toggle .moon-icon {
+  display: none;
+}
+
+body.dark-mode .theme-toggle .sun-icon {
+  display: none;
+}
+
+body.dark-mode .theme-toggle .moon-icon {
+  display: block;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--compras-bg-light);
+  border: 1px solid var(--compras-border);
+  border-radius: var(--compras-radius-sm);
+  color: var(--compras-text-dark);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--compras-transition-fast);
+}
+
+.btn-back:hover {
+  background: var(--compras-border);
+}
+
+.btn-back svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Main Content - Scrollable area */
+.module-content {
+  flex: 1;
+  background: var(--compras-bg-container);
+  border-radius: 0 0 var(--compras-radius-lg) var(--compras-radius-lg);
+  padding: 24px;
+  box-shadow: var(--compras-shadow-md);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Tabs - Updated for white container */
+.main-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--compras-bg-light);
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--compras-border);
+}
+
+.main-tab {
+  flex: 1;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--compras-text-gray);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--compras-transition-fast);
+}
+
+.main-tab:hover {
+  background: var(--compras-border);
+  color: var(--compras-text-dark);
+}
+
+.main-tab.active {
+  background: var(--compras-primary);
+  color: var(--compras-text-white);
+  box-shadow: var(--compras-shadow-primary);
+}
+
+.tab-badge {
+  padding: 4px 12px;
+  border-radius: var(--compras-radius-full);
+  font-size: 0.85rem;
+  font-weight: 700;
+  min-width: 28px;
+  text-align: center;
+}
+
+.pending-badge {
+  background: var(--compras-badge-warning-bg);
+  color: var(--compras-badge-warning-text);
+}
+
+.unpaid-badge {
+  background: var(--compras-badge-info-bg);
+  color: var(--compras-badge-info-text);
+}
+
+/* Loading & Empty - Updated for white container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: var(--compras-text-gray);
+  gap: 12px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--compras-border);
+  border-top-color: var(--compras-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  color: var(--compras-text-gray);
+}
+
+.empty-state h3 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+  color: var(--compras-text-dark);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 24px;
+  border-radius: var(--compras-radius-lg);
+  color: var(--compras-text-white);
+  font-weight: 500;
+  z-index: 2000;
+  animation: slideIn 0.3s ease;
+}
+
+.toast.success {
+  background: var(--compras-toast-success);
+}
+
+.toast.error {
+  background: var(--compras-toast-error);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+
+  .orders-table th,
+  .orders-table td {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .col-project {
+    max-width: 120px;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .selection-info {
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .modal-content {
+    margin: 10px;
+  }
+}
