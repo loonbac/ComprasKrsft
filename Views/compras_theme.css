@@ -49,6 +49,7 @@
     --compras-bg-card: #ffffff;
     --compras-bg-light: #f8fafc;
     --compras-bg-input: #ffffff;
+    --compras-bg-white: #ffffff;
 
     /* Textos - Modo Claro */
     --compras-text-dark: #1e293b;
@@ -149,6 +150,7 @@ body.dark-mode {
     --compras-bg-card: #1e293b;
     --compras-bg-light: #334155;
     --compras-bg-input: #1e293b;
+    --compras-bg-white: #1e293b;
     --compras-modal-overlay-color: rgba(0, 0, 0, 0.5);
 
     /* Textos - Modo Oscuro */

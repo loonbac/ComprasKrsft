@@ -110,6 +110,19 @@ body.dark-mode .theme-toggle .moon-icon {
   display: block;
 }
 
+/* Dark mode specific styling for better contrast */
+body.dark-mode .theme-toggle {
+  background: var(--compras-bg-card);
+  border-color: var(--compras-primary);
+  color: var(--compras-primary);
+}
+
+body.dark-mode .theme-toggle:hover {
+  background: var(--compras-primary);
+  color: var(--compras-text-white);
+  border-color: var(--compras-primary);
+}
+
 .btn-back {
   display: flex;
   align-items: center;
