@@ -786,7 +786,7 @@ body.dark-mode .missing-comprobante-badge {
   gap: 4px;
   padding: 4px 10px;
   margin-left: 12px;
-  border: 1px solid var(--compras-border);
+  border: 1px solid var(--compras-primary);
   border-radius: var(--compras-radius-sm);
   background: transparent;
   color: var(--compras-primary);
@@ -798,7 +798,7 @@ body.dark-mode .missing-comprobante-badge {
 }
 
 body.dark-mode .btn-edit-comprobante-header {
-  border-color: var(--compras-border-light);
+  border-color: var(--compras-primary-light);
   color: var(--compras-primary-light);
 }
 
