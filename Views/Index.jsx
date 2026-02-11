@@ -6,7 +6,8 @@ import '../../../resources/css/Bytewave-theme.css';
 import '../../../resources/css/modules-layout.css';
 import '../../../resources/css/modules-modal.css';
 
-/* Module-specific styles */
+/* Module-specific styles - Theme MUST be first for CSS variables */
+import './compras_theme.css';
 import './compras-variables.css';
 import './compras-layout.css';
 import './compras-table.css';
