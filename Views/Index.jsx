@@ -168,12 +168,6 @@ export default function ComprasIndex() {
   const [expandedLists, setExpandedLists] = useState({});
   const [dismissedPaymentAlerts, setDismissedPaymentAlerts] = useState({});
 
-  const [inventorySearchResults, setInventorySearchResults] = useState({});
-  const [inventoryLoading, setInventoryLoading] = useState({});
-  const [inventoryExpanded, setInventoryExpanded] = useState({});
-  const [inventorySelection, setInventorySelection] = useState({});
-  const [inventoryAutoSearched, setInventoryAutoSearched] = useState({});
-  const [inventorySplitData, setInventorySplitData] = useState({});
 
   const perPagePending = 20;
   const [filterProject, setFilterProject] = useState('');
@@ -582,21 +576,10 @@ export default function ComprasIndex() {
 
   const canSubmitApproval = useMemo(() => {
     if (!approvalForm.seller_name) return false;
-    const allFromInventory = selectedPendingIds.every((id) => {
-      const selection = inventorySelection[id];
-      return selection && selection.type === 'inventory';
-    });
-    if (!allFromInventory && approvalSubtotal <= 0) return false;
+    if (approvalSubtotal <= 0) return false;
     if (approvalForm.currency === 'USD' && currentExchangeRate <= 0) return false;
     return true;
-  }, [
-    approvalForm.seller_name,
-    approvalForm.currency,
-    approvalSubtotal,
-    currentExchangeRate,
-    inventorySelection,
-    selectedPendingIds,
-  ]);
+  }, [approvalForm.seller_name, approvalForm.currency, approvalSubtotal, currentExchangeRate]);
 
   const canSubmitBulk = useMemo(() => {
     if (!bulkForm.seller_name) return false;
@@ -750,48 +733,6 @@ export default function ComprasIndex() {
     return ids.length > 0 && ids.every((id) => selectedPendingIdSet.has(id));
   }, [pendingOrders, selectedPendingProjectId, selectedPendingIdSet]);
 
-  const autoSearchInventoryForAll = useCallback(async () => {
-    const ordersToSearch = selectedApprovalIds
-      .map((id) => pendingOrders.find((order) => order.id === id))
-      .filter(Boolean);
-
-    const promises = ordersToSearch
-      .filter((order) => order.type === 'material')
-      .map(async (order) => {
-        if (inventoryAutoSearched[order.id]) return;
-        setInventoryAutoSearched((prev) => ({ ...prev, [order.id]: true }));
-        setInventoryLoading((prev) => ({ ...prev, [order.id]: true }));
-        try {
-          const searchTerm = order.description || getOrderTitle(order);
-          const res = await fetch(
-            `${apiBase}/search-inventory?search=${encodeURIComponent(
-              searchTerm
-            )}&project_id=${order.project_id}`
-          );
-          const data = await res.json();
-          if (data.success) {
-            setInventorySearchResults((prev) => ({
-              ...prev,
-              [order.id]: data.items || [],
-            }));
-          } else {
-            setInventorySearchResults((prev) => ({ ...prev, [order.id]: [] }));
-          }
-        } catch (e) {
-          setInventorySearchResults((prev) => ({ ...prev, [order.id]: [] }));
-        }
-        setInventoryLoading((prev) => ({ ...prev, [order.id]: false }));
-      });
-
-    await Promise.all(promises);
-  }, [
-    apiBase,
-    getOrderTitle,
-    inventoryAutoSearched,
-    pendingOrders,
-    selectedApprovalIds,
-  ]);
-
   const openApprovalModal = useCallback(() => {
     setSelectedApprovalIds([...selectedPendingIds]);
     setApprovalPrices(() => {
@@ -854,341 +795,11 @@ export default function ComprasIndex() {
     }
 
     setShowApprovalModal(true);
-    autoSearchInventoryForAll();
-  }, [
-    autoSearchInventoryForAll,
-    pendingOrders,
-    selectedPendingIds,
-  ]);
+  }, [pendingOrders, selectedPendingIds]);
 
   const closeApprovalModal = useCallback(() => {
     setShowApprovalModal(false);
-    setInventorySearchResults({});
-    setInventoryLoading({});
-    setInventoryExpanded({});
-    setInventorySelection({});
-    setInventoryAutoSearched({});
-    setInventorySplitData({});
   }, []);
-
-  const searchInventoryForOrder = useCallback(
-    async (order) => {
-      const orderId = order.id;
-      setInventoryLoading((prev) => ({ ...prev, [orderId]: true }));
-      setInventoryExpanded((prev) => ({ ...prev, [orderId]: true }));
-
-      try {
-        const searchTerm = order.description || getOrderTitle(order);
-        const res = await fetch(
-          `${apiBase}/search-inventory?search=${encodeURIComponent(
-            searchTerm
-          )}&project_id=${order.project_id}`
-        );
-        const data = await res.json();
-
-        if (data.success) {
-          setInventorySearchResults((prev) => ({
-            ...prev,
-            [orderId]: data.items || [],
-          }));
-        } else {
-          setInventorySearchResults((prev) => ({ ...prev, [orderId]: [] }));
-          showToast(data.message || 'Error al buscar en inventario', 'error');
-        }
-      } catch (e) {
-        console.error('Error searching inventory:', e);
-        setInventorySearchResults((prev) => ({ ...prev, [orderId]: [] }));
-        showToast('Error al consultar inventario', 'error');
-      }
-
-      setInventoryLoading((prev) => ({ ...prev, [orderId]: false }));
-    },
-    [apiBase, getOrderTitle, showToast]
-  );
-
-  const hasInventoryMatch = useCallback(
-    (orderId) => {
-      const results = inventorySearchResults[orderId];
-      return results && results.length > 0 && results.some((item) => item.disponible);
-    },
-    [inventorySearchResults]
-  );
-
-  const getBestInventoryMatch = useCallback(
-    (orderId) => {
-      const results = inventorySearchResults[orderId];
-      if (!results || results.length === 0) return null;
-      return results.find((item) => item.disponible) || null;
-    },
-    [inventorySearchResults]
-  );
-
-  const selectInventoryItem = useCallback(
-    (orderId, item, orderQty) => {
-      const qtyNeeded = parseInt(orderQty, 10) || 1;
-      const qtyAvailable = item.cantidad_disponible;
-
-      if (qtyAvailable >= qtyNeeded) {
-        const totalPrice = item.costo_unitario * qtyNeeded;
-
-        setInventorySelection((prev) => ({
-          ...prev,
-          [orderId]: {
-            type: 'inventory',
-            itemId: item.id,
-            itemName: item.nombre,
-            qtyUsed: qtyNeeded,
-            qtyNeeded,
-            unitCost: item.costo_unitario,
-            totalPrice,
-            moneda: item.moneda,
-            stockAvailable: qtyAvailable,
-          },
-        }));
-
-        setApprovalPrices((prev) => ({ ...prev, [orderId]: 0 }));
-        setInventorySplitData((prev) => ({
-          ...prev,
-          [orderId]: {
-            inventory_item_id: item.id,
-            qty_from_inventory: qtyNeeded,
-            qty_to_buy: 0,
-            reference_price: parseFloat(totalPrice.toFixed(2)),
-            source_type: 'inventory',
-          },
-        }));
-
-        setInventoryExpanded((prev) => ({ ...prev, [orderId]: false }));
-        showToast(`✅ ${qtyNeeded} unidades cubiertas con inventario`, 'success');
-      } else {
-        const qtyFromInventory = qtyAvailable;
-        const qtyToBuy = qtyNeeded - qtyAvailable;
-        const inventoryRefPrice = item.costo_unitario * qtyFromInventory;
-
-        setInventorySelection((prev) => ({
-          ...prev,
-          [orderId]: {
-            type: 'split',
-            itemId: item.id,
-            itemName: item.nombre,
-            qtyUsed: qtyFromInventory,
-            qtyNeeded,
-            qtyToBuy,
-            unitCost: item.costo_unitario,
-            referencePrice: inventoryRefPrice,
-            budgetTotalInput: parseFloat(
-              (item.costo_unitario * qtyNeeded).toFixed(2)
-            ),
-            moneda: item.moneda,
-            stockAvailable: qtyAvailable,
-          },
-        }));
-
-        setApprovalPrices((prev) => ({ ...prev, [orderId]: 0 }));
-        setInventorySplitData((prev) => ({
-          ...prev,
-          [orderId]: {
-            inventory_item_id: item.id,
-            qty_from_inventory: qtyFromInventory,
-            qty_to_buy: qtyToBuy,
-            reference_price: parseFloat(inventoryRefPrice.toFixed(2)),
-            source_type: 'split',
-          },
-        }));
-
-        setInventoryExpanded((prev) => ({ ...prev, [orderId]: false }));
-        showToast(`📦 ${qtyFromInventory} de inventario + ${qtyToBuy} a comprar`, 'success');
-      }
-    },
-    [showToast]
-  );
-
-  const updateInventoryUsage = useCallback(
-    (orderId) => {
-      const selection = inventorySelection[orderId];
-      if (!selection) return;
-
-      const order = pendingOrders.find((candidate) => candidate.id === orderId);
-      if (!order) return;
-
-      const qtyNeeded = getOrderQtyNum(order);
-      let requestedQty = parseFloat(selection.qtyUsed);
-
-      if (Number.isNaN(requestedQty)) requestedQty = 0;
-
-      const maxStock = selection.stockAvailable;
-      if (requestedQty > maxStock) requestedQty = maxStock;
-      if (requestedQty > qtyNeeded) requestedQty = qtyNeeded;
-      if (requestedQty < 0) requestedQty = 0;
-
-      setInventorySelection((prev) => {
-        const next = { ...prev };
-        const nextSelection = { ...next[orderId], qtyUsed: requestedQty };
-
-        if (requestedQty >= qtyNeeded) {
-          nextSelection.type = 'inventory';
-          nextSelection.qtyToBuy = 0;
-          nextSelection.totalPrice = nextSelection.unitCost * requestedQty;
-
-          setApprovalPrices((pricesPrev) => ({ ...pricesPrev, [orderId]: 0 }));
-          setInventorySplitData((splitPrev) => ({
-            ...splitPrev,
-            [orderId]: {
-              inventory_item_id: nextSelection.itemId,
-              qty_from_inventory: requestedQty,
-              qty_to_buy: 0,
-              reference_price: parseFloat(
-                (nextSelection.unitCost * requestedQty).toFixed(2)
-              ),
-              source_type: 'inventory',
-            },
-          }));
-        } else {
-          nextSelection.type = 'split';
-          nextSelection.qtyToBuy = parseFloat(
-            (qtyNeeded - requestedQty).toFixed(2)
-          );
-          nextSelection.referencePrice = nextSelection.unitCost * requestedQty;
-
-          if (nextSelection.budgetTotalInput === undefined) {
-            nextSelection.budgetTotalInput = parseFloat(
-              (nextSelection.unitCost * qtyNeeded).toFixed(2)
-            );
-          }
-
-          setInventorySplitData((splitPrev) => ({
-            ...splitPrev,
-            [orderId]: {
-              inventory_item_id: nextSelection.itemId,
-              qty_from_inventory: requestedQty,
-              qty_to_buy: nextSelection.qtyToBuy,
-              reference_price: parseFloat(
-                nextSelection.referencePrice.toFixed(2)
-              ),
-              source_type: 'split',
-            },
-          }));
-        }
-
-        next[orderId] = nextSelection;
-        return next;
-      });
-    },
-    [getOrderQtyNum, inventorySelection, pendingOrders]
-  );
-
-  const updateReferencePrice = useCallback(() => {}, []);
-
-  const selectNewPurchase = useCallback((orderId) => {
-    setInventorySelection((prev) => ({
-      ...prev,
-      [orderId]: {
-        type: 'new',
-        itemId: null,
-      },
-    }));
-    setApprovalPrices((prev) => ({ ...prev, [orderId]: 0 }));
-    setInventorySplitData((prev) => {
-      const next = { ...prev };
-      delete next[orderId];
-      return next;
-    });
-    setInventoryExpanded((prev) => ({ ...prev, [orderId]: false }));
-  }, []);
-
-  const clearInventorySelection = useCallback((orderId) => {
-    setInventorySelection((prev) => {
-      const next = { ...prev };
-      delete next[orderId];
-      return next;
-    });
-    setInventorySplitData((prev) => {
-      const next = { ...prev };
-      delete next[orderId];
-      return next;
-    });
-    setApprovalPrices((prev) => ({ ...prev, [orderId]: 0 }));
-    setInventoryExpanded((prev) => ({ ...prev, [orderId]: false }));
-  }, []);
-
-  const isInventoryItemSelected = useCallback(
-    (orderId, itemId) => {
-      const selection = inventorySelection[orderId];
-      return (
-        selection &&
-        (selection.type === 'inventory' || selection.type === 'split') &&
-        selection.itemId === itemId
-      );
-    },
-    [inventorySelection]
-  );
-
-  const isNewPurchaseSelected = useCallback(
-    (orderId) => {
-      const selection = inventorySelection[orderId];
-      return selection && selection.type === 'new';
-    },
-    [inventorySelection]
-  );
-
-  const isPriceLocked = useCallback(
-    (orderId) => {
-      const selection = inventorySelection[orderId];
-      return selection && selection.type === 'inventory';
-    },
-    [inventorySelection]
-  );
-
-  const isSplitActive = useCallback(
-    (orderId) => {
-      const selection = inventorySelection[orderId];
-      return selection && selection.type === 'split';
-    },
-    [inventorySelection]
-  );
-
-  const getSplitInfo = useCallback(
-    (orderId) => {
-      const selection = inventorySelection[orderId];
-      if (!selection || selection.type !== 'split') return null;
-      return {
-        qtyFromInventory: selection.qtyUsed,
-        qtyToBuy: selection.qtyToBuy,
-        totalNeeded: selection.qtyNeeded,
-        unitCost: selection.unitCost,
-        referencePrice: selection.referencePrice,
-        itemName: selection.itemName,
-      };
-    },
-    [inventorySelection]
-  );
-
-  const getProjectBudgetCost = useCallback(
-    (orderId) => {
-      const selection = inventorySelection[orderId];
-      const purchasePrice = parseFloat(approvalPrices[orderId]) || 0;
-
-      if (!selection) return purchasePrice;
-
-      if (selection.type === 'inventory') {
-        return selection.totalPrice || 0;
-      }
-      if (selection.type === 'split') {
-        if (selection.budgetTotalInput !== undefined) {
-          return selection.budgetTotalInput || 0;
-        }
-        return purchasePrice + (selection.referencePrice || 0);
-      }
-      return purchasePrice;
-    },
-    [approvalPrices, inventorySelection]
-  );
-
-  const approvalBudgetTotal = useMemo(
-    () => selectedPendingIds.reduce((sum, id) => sum + getProjectBudgetCost(id), 0),
-    [getProjectBudgetCost, selectedPendingIds]
-  );
-
   const approvalCashflowTotal = useMemo(
     () =>
       selectedPendingIds.reduce(
@@ -1208,28 +819,9 @@ export default function ComprasIndex() {
     if (!canSubmitApproval) return;
     setApprovingPending(true);
     try {
-      const inventorySplitsPayload = {};
-      selectedApprovalIds.forEach((orderId) => {
-        const splitData = inventorySplitData[orderId];
-        const selection = inventorySelection[orderId];
-
-        if (splitData) {
-          if (selection && selection.type === 'split' && selection.budgetTotalInput !== undefined) {
-            const purchasePrice = parseFloat(approvalPrices[orderId] || 0);
-            const totalBudget = parseFloat(selection.budgetTotalInput || 0);
-            let inventoryPart = totalBudget - purchasePrice;
-            if (inventoryPart < 0) inventoryPart = 0;
-            splitData.reference_price = parseFloat(inventoryPart.toFixed(2));
-          }
-
-          inventorySplitsPayload[orderId] = splitData;
-        }
-      });
-
       const payload = {
         order_ids: selectedApprovalIds,
         prices: approvalPrices,
-        inventory_splits: inventorySplitsPayload,
         currency: approvalForm.currency,
         seller_name: approvalForm.seller_name,
         seller_document: approvalForm.seller_document,
@@ -1248,10 +840,7 @@ export default function ComprasIndex() {
       const data = await res.json();
 
       if (data.success) {
-        let msg = data.message || 'Órdenes procesadas';
-        if (data.inventory_count > 0) {
-          msg += ` (${data.inventory_count} de inventario)`;
-        }
+        const msg = data.message || 'Órdenes procesadas';
         showToast(msg, 'success');
         closeApprovalModal();
         setSelectedPendingIds([]);
@@ -1270,8 +859,6 @@ export default function ComprasIndex() {
     approvalPrices,
     canSubmitApproval,
     closeApprovalModal,
-    inventorySelection,
-    inventorySplitData,
     selectedApprovalIds,
     showToast,
   ]);
@@ -2684,7 +2271,7 @@ export default function ComprasIndex() {
                 </div>
               )}
 
-              {/* Materials Pricing with Inventory Search & Split */}
+              {/* Materials Pricing */}
               <div className="form-section">
                 <h4>Precios por Material</h4>
                 <div className="pricing-list">
@@ -2695,26 +2282,8 @@ export default function ComprasIndex() {
                           <span className="pricing-project-pill" style={{ background: getProjectColor(order.project_id) }}>{order.project_name}</span>
                           <span className="pricing-material">{getOrderTitle(order)}</span>
                           <span className="pricing-qty">{getOrderQty(order)}</span>
-                          {!inventoryLoading[order.id] && hasInventoryMatch(order.id) && !inventorySelection[order.id] && (
-                            <span className="inventory-badge-auto" title="Se encontraron coincidencias en inventario">📦 En Inventario</span>
-                          )}
-                          {inventoryLoading[order.id] && (
-                            <span className="inventory-badge-loading"><span className="spinner-mini"></span></span>
-                          )}
                         </div>
                         <div className="pricing-actions">
-                          <button
-                            onClick={() => searchInventoryForOrder(order)}
-                            disabled={inventoryLoading[order.id]}
-                            className={`btn-inventory-search${inventoryExpanded[order.id] ? ' active' : ''}${hasInventoryMatch(order.id) ? ' has-match' : ''}`}
-                            title="Consultar Almacén"
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                            </svg>
-                            {inventoryLoading[order.id] ? 'Buscando...' : 'Almacén'}
-                          </button>
-
                           <div className="pricing-input">
                             <span className="currency-prefix">{approvalForm.currency === 'USD' ? '$' : 'S/'}</span>
                             <input
@@ -2723,169 +2292,12 @@ export default function ComprasIndex() {
                               type="number"
                               step="0.01"
                               min="0"
-                              className={`input-field price-input${isPriceLocked(order.id) ? ' locked' : ''}${isSplitActive(order.id) ? ' split-price' : ''}`}
-                              disabled={isPriceLocked(order.id)}
-                              placeholder={isPriceLocked(order.id) ? 'De inventario' : isSplitActive(order.id) ? `Precio ${getSplitInfo(order.id)?.qtyToBuy} uds` : '0.00'}
+                              className="input-field price-input"
+                              placeholder="0.00"
                             />
-                            {inventorySelection[order.id]?.type === 'inventory' && <span className="price-source inventory">📦 100% Inventario</span>}
-                            {inventorySelection[order.id]?.type === 'split' && <span className="price-source split">✂️ Dividido</span>}
-                            {inventorySelection[order.id]?.type === 'new' && <span className="price-source new-purchase">🛒 Nueva compra</span>}
-                            {inventorySelection[order.id] && (
-                              <button onClick={() => clearInventorySelection(order.id)} className="btn-clear-selection" title="Limpiar selección">✕</button>
-                            )}
                           </div>
                         </div>
                       </div>
-
-                      {/* Split info panel */}
-                      {isSplitActive(order.id) && (
-                        <div className="split-info-panel">
-                          <div className="split-header">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                            </svg>
-                            <strong>División de Pedido</strong>
-                          </div>
-                          <div className="split-rows">
-                            <div className="split-row split-row-inventory">
-                              <span className="split-label">📦 De Inventario:</span>
-                              <div className="qty-edit-wrapper">
-                                <input
-                                  type="number"
-                                  value={inventorySelection[order.id]?.qtyUsed ?? ''}
-                                  onChange={(e) => { setInventorySelection((p) => ({ ...p, [order.id]: { ...p[order.id], qtyUsed: parseFloat(e.target.value) || 0 } })); updateInventoryUsage(order.id); }}
-                                  className="input-qty-mini"
-                                  min="0"
-                                  title="Modificar cantidad a usar"
-                                />
-                              </div>
-                              <span className="split-detail">({getSplitInfo(order.id)?.itemName})</span>
-                              <span className="split-badge badge-inventory">Entrega Inmediata</span>
-                            </div>
-                            <div className="split-row split-row-purchase">
-                              <span className="split-label">🛒 A Comprar:</span>
-                              <span className="split-value">{getSplitInfo(order.id)?.qtyToBuy} uds</span>
-                              <span className="split-detail">→ Ingresar precio abajo</span>
-                              <span className="split-badge badge-purchase">Por Pagar</span>
-                            </div>
-                          </div>
-                          <div className="split-budget-info">
-                            <span className="budget-label">Costo Total (Budget):</span>
-                            <div className="qty-edit-wrapper">
-                              <span className="currency-prefix-mini">{approvalForm.currency === 'USD' ? '$' : 'S/'}</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={inventorySelection[order.id]?.budgetTotalInput ?? ''}
-                                onChange={(e) => setInventorySelection((p) => ({ ...p, [order.id]: { ...p[order.id], budgetTotalInput: parseFloat(e.target.value) || 0 } }))}
-                                className="input-price-mini"
-                                min="0"
-                                placeholder="0.00"
-                                title="Indique el costo total teórico del pedido completo"
-                              />
-                            </div>
-                            <span className="budget-hint">(Valor imputado al proyecto)</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Info 100% Inventario */}
-                      {inventorySelection[order.id]?.type === 'inventory' && (
-                        <div className="inventory-full-panel">
-                          <div className="inventory-full-row">
-                            <span className="inventory-full-icon">✅</span>
-                            <span className="inventory-full-text">
-                              <div className="qty-edit-inline">
-                                <input
-                                  type="number"
-                                  value={inventorySelection[order.id]?.qtyUsed ?? ''}
-                                  onChange={(e) => { setInventorySelection((p) => ({ ...p, [order.id]: { ...p[order.id], qtyUsed: parseFloat(e.target.value) || 0 } })); updateInventoryUsage(order.id); }}
-                                  className="input-qty-mini"
-                                  min="0"
-                                  title="Modificar cantidad"
-                                />
-                                <span>uds cubiertas desde <strong>{inventorySelection[order.id]?.itemName}</strong></span>
-                              </div>
-                            </span>
-                            <span className="inventory-full-badge">Sin Costo Real</span>
-                          </div>
-                          <div className="inventory-full-ref">
-                            <span>Costo de referencia (presupuesto):</span>
-                            <div className="qty-edit-wrapper">
-                              <span className="currency-prefix-mini">{approvalForm.currency === 'USD' ? '$' : 'S/'}</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={inventorySelection[order.id]?.totalPrice ?? ''}
-                                onChange={(e) => { setInventorySelection((p) => ({ ...p, [order.id]: { ...p[order.id], totalPrice: parseFloat(e.target.value) || 0 } })); updateReferencePrice(order.id); }}
-                                className="input-price-mini"
-                                min="0"
-                                placeholder="0.00"
-                                title="Valor inmaterial imputado al proyecto"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Dropdown de resultados de inventario */}
-                      {inventoryExpanded[order.id] && (
-                        <div className="inventory-dropdown">
-                          {inventoryLoading[order.id] ? (
-                            <div className="inventory-loading"><span className="spinner"></span> Buscando en almacén...</div>
-                          ) : (inventorySearchResults[order.id]?.length > 0) ? (
-                            <div className="inventory-results">
-                              <div
-                                className={`inventory-item new-purchase-option${isNewPurchaseSelected(order.id) ? ' selected' : ''}`}
-                                onClick={() => selectNewPurchase(order.id)}
-                              >
-                                <div className="item-info">
-                                  <span className="item-name">🛒 Sin inventario - Nueva compra</span>
-                                  <span className="item-desc">Comprar todas las unidades al proveedor</span>
-                                </div>
-                                <span className="item-status available">Seleccionar</span>
-                              </div>
-                              {inventorySearchResults[order.id].map((item) => (
-                                <div
-                                  key={item.id}
-                                  className={`inventory-item${item.apartado ? ' reserved' : ''}${item.disponible ? ' available' : ''}${isInventoryItemSelected(order.id, item.id) ? ' selected' : ''}`}
-                                  onClick={() => item.disponible && selectInventoryItem(order.id, item, getOrderQtyNum(order))}
-                                >
-                                  <div className="item-info">
-                                    <span className="item-name">{item.nombre}</span>
-                                    <span className="item-desc">
-                                      {item.descripcion || ''}
-                                      {item.diameter && <> | Ø{item.diameter}</>}
-                                      {item.series && <> | Serie {item.series}</>}
-                                    </span>
-                                    <span className="item-stock">
-                                      Stock: {item.cantidad_disponible} {item.unidad} | Costo unit: {item.moneda === 'USD' ? '$' : 'S/'}{item.costo_unitario.toFixed(2)}
-                                    </span>
-                                    {item.cantidad_disponible >= getOrderQtyNum(order) ? (
-                                      <span className="item-coverage full">✅ Cubre todo el pedido</span>
-                                    ) : (
-                                      <span className="item-coverage partial">⚠️ Cubre {item.cantidad_disponible} de {getOrderQtyNum(order)} — se dividirá</span>
-                                    )}
-                                  </div>
-                                  <div className="item-status-container">
-                                    {item.apartado ? (
-                                      <span className="item-status reserved">Apartado: {item.nombre_proyecto}</span>
-                                    ) : (
-                                      <span className="item-status available">Usar Stock</span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="inventory-empty">
-                              <p>No se encontraron items similares en inventario</p>
-                              <button onClick={() => selectNewPurchase(order.id)} className="btn-new-purchase">Continuar como nueva compra</button>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -2912,17 +2324,6 @@ export default function ComprasIndex() {
                   <div className="total-row total-final">
                     <span>Total con IGV:</span>
                     <span>{approvalForm.currency === 'USD' ? '$' : 'S/'} {formatNumber(approvalTotal)}</span>
-                  </div>
-                )}
-                {approvalBudgetTotal !== approvalCashflowTotal && (
-                  <div className="total-row budget-row">
-                    <span className="total-label">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                      </svg>
-                      Costo Imputado al Proyecto:
-                    </span>
-                    <span className="total-amount budget-amount">{approvalForm.currency === 'USD' ? '$' : 'S/'} {formatNumber(approvalBudgetTotal)}</span>
                   </div>
                 )}
               </div>
