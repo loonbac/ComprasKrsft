@@ -3209,8 +3209,8 @@ export default function ComprasIndex() {
       {/* Quick Pay Modal */}
       {showQuickPayModal && createPortal(
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeQuickPayModal(); }}>
-          <div className="modal-content modal-lg">
-            <div className="modal-header">
+          <div className="modal-content modal-lg quick-pay-modal">
+            <div className="modal-header quick-pay-modal-header">
               <div className="quick-pay-header-content">
                 <h2 className="quick-pay-title-simple">
                   <svg className="quick-pay-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
