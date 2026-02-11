@@ -131,6 +131,15 @@ const initDarkMode = () => {
   } catch {}
 };
 
+// Hoisted SVG icons (Vercel Best Practice: rendering-hoist-jsx)
+const AlertIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="12" y1="8" x2="12" y2="12"></line>
+    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+  </svg>
+);
+
 export default function ComprasIndex() {
   const pollingRef = useRef(null);
 
@@ -3342,7 +3351,13 @@ export default function ComprasIndex() {
 
                     {/* Right: Supplier & Payment Info */}
                     <div className="quick-pay-box">
-                      <h5 className="quick-pay-section-title">Datos del Proveedor</h5>
+                      <div className="section-header-with-pill">
+                        <h5 className="quick-pay-section-title">Datos del Proveedor</h5>
+                        <span className="required-pill">
+                          {AlertIcon}
+                          OBLIGATORIO
+                        </span>
+                      </div>
                       <div className="form-section quick-pay-form-section">
                         <div className="form-group quick-pay-inline-group">
                           <label>Proveedor *</label>
@@ -3380,29 +3395,40 @@ export default function ComprasIndex() {
                         </div>
                       </div>
 
-                      <h5 className="quick-pay-section-title with-top">Comprobante de Pago</h5>
-                      <div className="form-section quick-pay-form-section">
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Tipo *</label>
-                          <input value={quickPayPaymentForm.cdp_type} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} type="text" className="input-field" placeholder="01, 03" />
-                        </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Serie *</label>
-                          <input value={quickPayPaymentForm.cdp_serie} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} type="text" className="input-field" placeholder="F001" />
-                        </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Número *</label>
-                          <input value={quickPayPaymentForm.cdp_number} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_number: e.target.value }))} type="text" className="input-field" placeholder="00001234" />
-                        </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Comprobante (archivo)</label>
-                          <input type="file" onChange={onQuickPayProofChange} accept="image/*,.pdf" className="input-file" />
-                        </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Comprobante (link)</label>
-                          <input value={quickPayPaymentForm.payment_proof_link} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, payment_proof_link: e.target.value }))} type="url" placeholder="https://..." className="input-field" />
-                        </div>
-                      </div>
+                      {/* Comprobante section hidden - can be added later in "Pagadas" tab */}
+                      {false && (
+                        <>
+                          <div className="section-header-with-pill">
+                            <h5 className="quick-pay-section-title with-top">Comprobante de Pago</h5>
+                            <span className="optional-pill">
+                              {AlertIcon}
+                              NO OBLIGATORIO
+                            </span>
+                          </div>
+                          <div className="form-section quick-pay-form-section">
+                            <div className="form-group quick-pay-inline-group">
+                              <label>Tipo *</label>
+                              <input value={quickPayPaymentForm.cdp_type} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} type="text" className="input-field" placeholder="01, 03" />
+                            </div>
+                            <div className="form-group quick-pay-inline-group">
+                              <label>Serie *</label>
+                              <input value={quickPayPaymentForm.cdp_serie} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} type="text" className="input-field" placeholder="F001" />
+                            </div>
+                            <div className="form-group quick-pay-inline-group">
+                              <label>Número *</label>
+                              <input value={quickPayPaymentForm.cdp_number} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_number: e.target.value }))} type="text" className="input-field" placeholder="00001234" />
+                            </div>
+                            <div className="form-group quick-pay-inline-group">
+                              <label>Comprobante (archivo)</label>
+                              <input type="file" onChange={onQuickPayProofChange} accept="image/*,.pdf" className="input-file" />
+                            </div>
+                            <div className="form-group quick-pay-inline-group">
+                              <label>Comprobante (link)</label>
+                              <input value={quickPayPaymentForm.payment_proof_link} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, payment_proof_link: e.target.value }))} type="url" placeholder="https://..." className="input-field" />
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
