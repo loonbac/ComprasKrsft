@@ -70,6 +70,7 @@ class ApprovalController extends Controller
             'order_ids' => 'required|array|min:1',
             'order_ids.*' => 'required|integer',
             'prices' => 'required|array',
+            'prices.*' => 'required|numeric|min:0.01',
             'currency' => 'required|in:PEN,USD',
             'seller_name' => 'required|string',
         ]);
@@ -79,7 +80,6 @@ class ApprovalController extends Controller
                 $orderIds = $request->input('order_ids');
                 $prices = $request->input('prices');
                 $currency = $request->input('currency');
-                $inventorySplits = $request->input('inventory_splits', []);
 
                 if (!$this->orderService->verifyOrdersStatus($orderIds, 'pending')) {
                     return response()->json(['success' => false, 'message' => 'Algunas órdenes ya fueron procesadas'], 400);
@@ -101,37 +101,9 @@ class ApprovalController extends Controller
                 $inventoryOrderIds = [];
 
                 foreach ($orderIds as $orderId) {
-                    $split = $inventorySplits[$orderId] ?? [];
-                    $sourceType = $split['source_type'] ?? 'external';
-
-                    // CASO 1: 100% desde inventario
-                    if ($sourceType === 'inventory' && (!isset($split['qty_to_buy']) || $split['qty_to_buy'] <= 0)) {
-                        $this->processInventoryOnly($orderId, $split, $prices, $sharedData, $currency, $exchangeRate);
-                        $inventoryOrderIds[] = $orderId;
-                        continue;
-                    }
-
-                    // CASO 2: Split parcial (parte inventario + parte compra)
-                    if ($sourceType === 'split' && isset($split['qty_from_inventory']) && $split['qty_from_inventory'] > 0) {
-                        $newOrderId = $this->processSplitOrder(
-                            $orderId, $split, $prices, $sharedData,
-                            $currency, $exchangeRate, $igvEnabled, $igvRate, $request, $batchId
-                        );
-                        if ($newOrderId) {
-                            $inventoryOrderIds[] = $newOrderId;
-                        }
-                        continue;
-                    }
-
-                    // CASO 3: Compra normal (100% externa)
+                    // Compra normal (100% externa)
                     $this->processExternalPurchase($orderId, $prices, $sharedData, $currency, $exchangeRate, $igvEnabled, $igvRate);
                 }
-
-                // Enviar órdenes de COMPRA al inventario
-                $this->sendPurchaseOrdersToInventory(
-                    array_diff($orderIds, $inventoryOrderIds),
-                    $prices, $currency, $exchangeRate, $batchId
-                );
 
                 return $this->buildBulkResponse($orderIds, $inventoryOrderIds, $batchId);
             });
