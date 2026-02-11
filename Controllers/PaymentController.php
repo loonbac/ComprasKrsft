@@ -233,9 +233,10 @@ class PaymentController extends Controller
                 $proofPath = $this->orderService->handlePaymentProof($request, $batchId);
                 $proofLink = $request->input('payment_proof_link');
 
-                if (!$proofPath && !$proofLink) {
-                    return response()->json(['success' => false, 'message' => 'Suba comprobante'], 400);
-                }
+                // Validacion eliminada para permitir pago rapido sin comprobante
+                // if (!$proofPath && !$proofLink) {
+                //    return response()->json(['success' => false, 'message' => 'Suba comprobante'], 400);
+                // }
 
                 $maxItemNumber = DB::table('purchase_orders')
                     ->where('project_id', $projectId)
