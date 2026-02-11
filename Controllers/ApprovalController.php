@@ -101,7 +101,7 @@ class ApprovalController extends Controller
                 $inventoryOrderIds = [];
 
                 foreach ($orderIds as $orderId) {
-                    $split = $inventorySplits[$orderId] ?? null;
+                    $split = $inventorySplits[$orderId] ?? [];
                     $sourceType = $split['source_type'] ?? 'external';
 
                     // CASO 1: 100% desde inventario
