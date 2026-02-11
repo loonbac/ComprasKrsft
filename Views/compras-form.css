@@ -333,3 +333,22 @@ body.dark-mode .btn-cancel:hover {
   padding: 8px 16px; /* Slightly smaller padding */
   flex: 0 0 auto;
 }
+
+/* Dark mode fix for Edit Comprobante summary labels */
+body.dark-mode .payment-summary-card .summary-label {
+    color: var(--compras-text-gray);
+}
+body.dark-mode .payment-summary-card .summary-value {
+    color: var(--compras-text-white);
+}
+
+/* Compact Quick Pay Inputs */
+.quick-pay-form-section .input-field,
+.quick-pay-form-section .input-file {
+    padding: 6px 10px; /* Reduced vertical padding */
+    font-size: 0.85rem;
+}
+.quick-pay-form-section label {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+}

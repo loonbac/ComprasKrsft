@@ -3348,36 +3348,43 @@ export default function ComprasIndex() {
                         </span>
                       </div>
                       <div className="form-section quick-pay-form-section">
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Proveedor *</label>
-                          <input value={quickPayApprovalForm.seller_name} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, seller_name: e.target.value }))} type="text" className="input-field" placeholder="Razón social" />
+                        {/* Datos del Proveedor - Grid Layout */}
+                        <div className="form-row">
+                          <div className="form-group flex-1">
+                            <label>Proveedor *</label>
+                            <input value={quickPayApprovalForm.seller_name} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, seller_name: e.target.value }))} type="text" className="input-field" placeholder="Razón social" />
+                          </div>
+                          <div className="form-group flex-1">
+                            <label>RUC *</label>
+                            <input value={quickPayApprovalForm.seller_document} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, seller_document: e.target.value }))} type="text" className="input-field" placeholder="20123456789" />
+                          </div>
                         </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>RUC *</label>
-                          <input value={quickPayApprovalForm.seller_document} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, seller_document: e.target.value }))} type="text" className="input-field" placeholder="20123456789" />
+
+                        <div className="form-row">
+                          <div className="form-group flex-1">
+                            <label>Moneda</label>
+                            <select value={quickPayApprovalForm.currency} onChange={(e) => { setQuickPayApprovalForm((p) => ({ ...p, currency: e.target.value })); onQuickPayApprovalCurrencyChange(); }} className="input-field">
+                              <option value="PEN">Soles</option>
+                              <option value="USD">Dólares</option>
+                            </select>
+                          </div>
+                          <div className="form-group flex-1">
+                            <label>Tipo Pago</label>
+                            <select value={quickPayApprovalForm.payment_type} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, payment_type: e.target.value }))} className="input-field">
+                              <option value="cash">Al Contado</option>
+                              <option value="loan">Crédito</option>
+                            </select>
+                          </div>
                         </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Moneda</label>
-                          <select value={quickPayApprovalForm.currency} onChange={(e) => { setQuickPayApprovalForm((p) => ({ ...p, currency: e.target.value })); onQuickPayApprovalCurrencyChange(); }} className="input-field">
-                            <option value="PEN">Soles</option>
-                            <option value="USD">Dólares</option>
-                          </select>
-                        </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Tipo Pago</label>
-                          <select value={quickPayApprovalForm.payment_type} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, payment_type: e.target.value }))} className="input-field">
-                            <option value="cash">Al Contado</option>
-                            <option value="loan">Crédito</option>
-                          </select>
-                        </div>
-                        <div className="quick-pay-dates-row">
-                          <div className="form-group quick-pay-inline-group">
-                            <label>Fecha Emisión</label>
+
+                        <div className="form-row">
+                          <div className="form-group flex-1">
+                            <label>Emisión</label>
                             <input value={quickPayApprovalForm.issue_date} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, issue_date: e.target.value }))} type="date" className="input-field" />
                           </div>
                           {quickPayApprovalForm.payment_type === 'loan' && (
-                            <div className="form-group quick-pay-inline-group">
-                              <label>Fecha Vencimiento</label>
+                            <div className="form-group flex-1">
+                              <label>Vencimiento</label>
                               <input value={quickPayApprovalForm.due_date} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, due_date: e.target.value }))} type="date" className="input-field" />
                             </div>
                           )}
@@ -3385,32 +3392,33 @@ export default function ComprasIndex() {
                       </div>
 
                       {/* Comprobante section - Optional */}
-                      <div className="section-header-with-pill" style={{ marginTop: '1.5rem' }}>
-                        <h5 className="quick-pay-section-title">Comprobante de Pago</h5>
-                        <span className="optional-pill" style={{ background: '#e0e7ff', color: '#4338ca', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          NO OBLIGATORIO
-                        </span>
+                      <div className="section-header-with-pill" style={{ marginTop: '1rem' }}>
+                        <h5 className="quick-pay-section-title">Comprobante (Opcional)</h5>
                       </div>
                       <div className="form-section quick-pay-form-section">
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Tipo</label>
-                          <input value={quickPayPaymentForm.cdp_type} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} type="text" className="input-field" placeholder="01, 03" />
+                        <div className="form-row">
+                          <div className="form-group flex-1">
+                            <label>Tipo</label>
+                            <input value={quickPayPaymentForm.cdp_type} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} type="text" className="input-field" placeholder="01" />
+                          </div>
+                          <div className="form-group flex-1">
+                            <label>Serie</label>
+                            <input value={quickPayPaymentForm.cdp_serie} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} type="text" className="input-field" placeholder="F001" />
+                          </div>
+                          <div className="form-group flex-1">
+                            <label>Número</label>
+                            <input value={quickPayPaymentForm.cdp_number} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_number: e.target.value }))} type="text" className="input-field" placeholder="1234" />
+                          </div>
                         </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Serie</label>
-                          <input value={quickPayPaymentForm.cdp_serie} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} type="text" className="input-field" placeholder="F001" />
-                        </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Número</label>
-                          <input value={quickPayPaymentForm.cdp_number} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_number: e.target.value }))} type="text" className="input-field" placeholder="00001234" />
-                        </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Comprobante (archivo)</label>
-                          <input type="file" onChange={onQuickPayProofChange} accept="image/*,.pdf" className="input-file" />
-                        </div>
-                        <div className="form-group quick-pay-inline-group">
-                          <label>Comprobante (link)</label>
-                          <input value={quickPayPaymentForm.payment_proof_link} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, payment_proof_link: e.target.value }))} type="url" placeholder="https://..." className="input-field" />
+                        <div className="form-row">
+                          <div className="form-group flex-2">
+                            <label>Archivo</label>
+                            <input type="file" onChange={onQuickPayProofChange} accept="image/*,.pdf" className="input-file" />
+                          </div>
+                          <div className="form-group flex-2">
+                             <label>Link</label>
+                             <input value={quickPayPaymentForm.payment_proof_link} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, payment_proof_link: e.target.value }))} type="url" placeholder="https://..." className="input-field" />
+                          </div>
                         </div>
                       </div>
                     </div>
