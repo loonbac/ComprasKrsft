@@ -124,13 +124,13 @@ body.dark-mode .quick-pay-section-title {
   margin-bottom: 10px;
 }
 
-/* Required pill (green/teal) */
+/* Required pill (orange) */
 .required-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  background: var(--compras-primary);
+  background: var(--compras-warning); /* Orange from variables */
   color: var(--compras-text-white);
   border-radius: var(--compras-radius-full);
   font-size: 0.65rem;
@@ -138,6 +138,8 @@ body.dark-mode .quick-pay-section-title {
   letter-spacing: 0.3px;
   text-transform: uppercase;
   white-space: nowrap;
+  vertical-align: middle; /* Fix alignment */
+  margin-top: -2px; /* Slight visual adjustment */
 }
 
 .required-pill svg {
