@@ -460,7 +460,6 @@ class ApprovalController extends Controller
 
         DB::table($this->ordersTable)->where('id', $orderId)->update(array_merge($sharedData, [
             'status' => 'to_pay',
-            'source_type' => 'external',
             'amount' => $amount,
             'amount_pen' => $amounts['amount_pen'],
             'igv_amount' => $amounts['igv_amount'],
