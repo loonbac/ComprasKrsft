@@ -120,17 +120,12 @@ body.dark-mode .pricing-input .price-input.locked {
 /* Dropdown de inventario */
 .inventory-dropdown {
   margin-top: 8px;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--compras-bg-card);
+  border: 1px solid var(--compras-border);
   border-radius: 8px;
   max-height: 300px;
   overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-body.dark-mode .inventory-dropdown {
-  background: #1e1e1e;
-  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: var(--compras-shadow-md);
 }
 
 .inventory-loading {
@@ -139,11 +134,7 @@ body.dark-mode .inventory-dropdown {
   justify-content: center;
   gap: 10px;
   padding: 20px;
-  color: #666;
-}
-
-body.dark-mode .inventory-loading {
-  color: #aaa;
+  color: var(--compras-text-gray);
 }
 
 .inventory-loading .spinner {
@@ -189,13 +180,9 @@ body.dark-mode .inventory-loading {
 }
 
 .inventory-item.reserved {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--compras-bg-light);
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-body.dark-mode .inventory-item.reserved {
-  background: rgba(255, 255, 255, 0.03);
 }
 
 .inventory-item.selected {
@@ -222,21 +209,13 @@ body.dark-mode .inventory-item.reserved {
 
 .item-name {
   font-weight: 600;
-  color: #333;
+  color: var(--compras-text-dark);
   font-size: 0.9rem;
-}
-
-body.dark-mode .item-name {
-  color: #e0e0e0;
 }
 
 .item-desc {
   font-size: 0.75rem;
-  color: #666;
-}
-
-body.dark-mode .item-desc {
-  color: #999;
+  color: var(--compras-text-gray);
 }
 
 .item-stock {
@@ -269,11 +248,7 @@ body.dark-mode .item-desc {
 .inventory-empty {
   padding: 20px;
   text-align: center;
-  color: #666;
-}
-
-body.dark-mode .inventory-empty {
-  color: #aaa;
+  color: var(--compras-text-gray);
 }
 
 .inventory-empty p {
