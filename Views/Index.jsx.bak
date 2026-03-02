@@ -1,0 +1,2684 @@
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import {
+    ShoppingCartIcon,
+    ArrowLeftIcon,
+    ClockIcon,
+    CurrencyDollarIcon,
+    CheckCircleIcon,
+    BanknotesIcon,
+    ChevronDownIcon,
+    ChevronRightIcon,
+    DocumentTextIcon,
+    ArrowDownTrayIcon,
+    ExclamationTriangleIcon,
+    PencilSquareIcon,
+    XMarkIcon,
+    CheckIcon,
+    PlusIcon,
+    MagnifyingGlassIcon,
+    FunnelIcon,
+} from '@heroicons/react/24/outline';
+
+import Button from './Components/ui/Button';
+import Badge from './Components/ui/Badge';
+import StatsCard from './Components/ui/StatsCard';
+import Input from './Components/ui/Input';
+import Select from './Components/ui/Select';
+import Modal from './Components/ui/Modal';
+import Toast from './Components/ui/Toast';
+
+const POLLING_INTERVAL_MS = 3000;
+const CACHE_VERSION = 'v1';
+const CACHE_PREFIX = `compras_${CACHE_VERSION}_`;
+
+const arraysEqual = (a, b) => {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+};
+
+const saveToCache = (key, data) => {
+  try {
+    localStorage.setItem(
+      CACHE_PREFIX + key,
+      JSON.stringify({ data, timestamp: Date.now() })
+    );
+  } catch (e) {
+    console.warn('Cache save error:', e);
+  }
+};
+
+const loadFromCache = (key) => {
+  try {
+    const cached = localStorage.getItem(CACHE_PREFIX + key);
+    if (cached) {
+      const { data } = JSON.parse(cached);
+      return data;
+    }
+  } catch (e) {
+    console.warn('Cache load error:', e);
+  }
+  return null;
+};
+
+const getLocalDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const formatNumber = (num) =>
+  parseFloat(num || 0).toLocaleString('es-PE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+const formatDate = (dateValue) =>
+  dateValue
+    ? new Date(dateValue).toLocaleDateString('es-PE', {
+        day: '2-digit',
+        month: 'short',
+      })
+    : '';
+
+const getCsrfToken = () =>
+  document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+const PROJECT_COLORS = [
+  '#0AA4A4',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
+  '#f59e0b',
+  '#10b981',
+  '#ef4444',
+  '#06b6d4',
+  '#6366f1',
+  '#84cc16',
+];
+
+const getProjectColor = (projectId) => {
+  const index = Number(projectId || 0) % PROJECT_COLORS.length;
+  return PROJECT_COLORS[index];
+};
+
+const isProjectInProgress = (project) => {
+  const rawStatus = (project?.status ?? project?.estado ?? '')
+    .toString()
+    .trim()
+    .toLowerCase();
+  if (!rawStatus) return true;
+  if (
+    rawStatus.includes('final') ||
+    rawStatus.includes('completed') ||
+    rawStatus.includes('closed') ||
+    rawStatus.includes('cerrado')
+  ) {
+    return false;
+  }
+  return true;
+};
+
+// Hoisted AlertIcon
+const AlertIcon = (
+  <ExclamationTriangleIcon className="size-3.5" />
+);
+
+export default function ComprasIndex() {
+  const pollingRef = useRef(null);
+
+  const [loading, setLoading] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [loadingRate, setLoadingRate] = useState(false);
+  const [currentExchangeRate, setCurrentExchangeRate] = useState(0);
+  const [orders, setOrders] = useState([]);
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [paidBatches, setPaidBatches] = useState([]);
+  const [projectList, setProjectList] = useState([]);
+  const [selectedOrders, setSelectedOrders] = useState([]);
+  const [prices, setPrices] = useState({});
+  const [activeTab, setActiveTab] = useState('pending');
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [selectedPendingProjectId, setSelectedPendingProjectId] = useState(null);
+  const [selectedPendingListId, setSelectedPendingListId] = useState(null);
+  const [selectedPendingIds, setSelectedPendingIds] = useState([]);
+  const [approvingPending, setApprovingPending] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalPrices, setApprovalPrices] = useState({});
+  const [selectedApprovalIds, setSelectedApprovalIds] = useState([]);
+  const [currentPagePending, setCurrentPagePending] = useState(1);
+  const [expandedProjects, setExpandedProjects] = useState({});
+  const [expandedLists, setExpandedLists] = useState({});
+  const [dismissedPaymentAlerts, setDismissedPaymentAlerts] = useState({});
+
+  const perPagePending = 20;
+  const [filterProject, setFilterProject] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 20;
+
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [paymentBatch, setPaymentBatch] = useState(null);
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
+
+  const [paidFilterStartDate, setPaidFilterStartDate] = useState('');
+  const [paidFilterEndDate, setPaidFilterEndDate] = useState('');
+  const [expandedPaidBatches, setExpandedPaidBatches] = useState({});
+
+  const [showEditComprobanteModal, setShowEditComprobanteModal] = useState(false);
+  const [editComprobanteBatch, setEditComprobanteBatch] = useState(null);
+  const [editComprobanteForm, setEditComprobanteForm] = useState({
+    cdp_type: '',
+    cdp_serie: '',
+    cdp_number: '',
+    payment_proof: null,
+    payment_proof_link: '',
+  });
+  const [savingComprobante, setSavingComprobante] = useState(false);
+
+  const [exportFilter, setExportFilter] = useState({
+    startDate: '',
+    endDate: '',
+    preset: '30days',
+  });
+
+  const [approvalForm, setApprovalForm] = useState({
+    seller_name: '',
+    seller_document: '',
+    payment_type: 'cash',
+    currency: 'PEN',
+    issue_date: getLocalDateString(),
+    due_date: '',
+    igv_enabled: false,
+    igv_rate: 18.0,
+  });
+
+  const [bulkForm, setBulkForm] = useState({
+    seller_name: '',
+    seller_document: '',
+    currency: 'PEN',
+    issue_date: getLocalDateString(),
+    payment_type: 'cash',
+    date_value: '',
+    igv_enabled: false,
+    igv_rate: 18.0,
+    notes: '',
+  });
+
+  const [paymentForm, setPaymentForm] = useState({
+    cdp_type: '',
+    cdp_serie: '',
+    cdp_number: '',
+    payment_proof: null,
+    payment_proof_link: '',
+  });
+
+  const [showQuickPayModal, setShowQuickPayModal] = useState(false);
+  const [quickPayStep, setQuickPayStep] = useState(1);
+  const [quickPaySelectedProject, setQuickPaySelectedProject] = useState(null);
+  const [quickPayProjects, setQuickPayProjects] = useState([]);
+  const [quickPayItems, setQuickPayItems] = useState([]);
+
+  const [toPaySearch, setToPaySearch] = useState('');
+  const [toPayFilterProject, setToPayFilterProject] = useState('');
+  const [toPayFilterCurrency, setToPayFilterCurrency] = useState('');
+  const [toPayFilterPaymentType, setToPayFilterPaymentType] = useState('');
+  const [toPayFilterIgv, setToPayFilterIgv] = useState('');
+  const [expandedToPayBatches, setExpandedToPayBatches] = useState({});
+
+  const [quickPayApprovalForm, setQuickPayApprovalForm] = useState({
+    seller_name: '',
+    seller_document: '',
+    payment_type: 'cash',
+    currency: 'PEN',
+    issue_date: new Date().toISOString().split('T')[0],
+    due_date: '',
+  });
+  const [quickPayPaymentForm, setQuickPayPaymentForm] = useState({
+    cdp_type: '',
+    cdp_serie: '',
+    cdp_number: '',
+    payment_proof: null,
+    payment_proof_link: '',
+  });
+  const [quickPayMaterialForm, setQuickPayMaterialForm] = useState({
+    qty: 1,
+    unit: '',
+    description: '',
+    diameter: '',
+    series: '',
+    material_type: '',
+  });
+  const [quickPayLoading, setQuickPayLoading] = useState(false);
+
+  console.log('ComprasKrsft v5.14.0 loaded successfully');
+
+  const apiBase = useMemo(() => {
+    const path = window.location.pathname;
+    const match = path.match(/^\/([^\/]+)/);
+    const moduleName = match ? match[1] : 'compraskrsft';
+    return `/api/${moduleName}`;
+  }, []);
+
+  const quickPayAvailableProjects = useMemo(
+    () => quickPayProjects.filter(isProjectInProgress),
+    [quickPayProjects]
+  );
+
+  const filteredOrders = useMemo(() => {
+    let result = orders;
+    if (filterProject) {
+      result = result.filter((order) => order.project_id == filterProject);
+    }
+    if (filterType) {
+      result = result.filter((order) => order.type === filterType);
+    }
+    return result;
+  }, [orders, filterProject, filterType]);
+
+  const toPayBatches = useMemo(() => {
+    const map = {};
+    orders.forEach((order) => {
+      const batchId = order.batch_id || `SINGLE-${order.id}`;
+      if (!map[batchId]) {
+        map[batchId] = {
+          batch_id: batchId,
+          seller_name: order.seller_name || 'Sin proveedor',
+          seller_document: order.seller_document || '',
+          currency: order.currency || 'PEN',
+          payment_type:
+            order.payment_type ||
+            (order.due_date || order.payment_due_date || order.credit_due_date
+              ? 'loan'
+              : 'cash'),
+          issue_date: order.issue_date || null,
+          due_date:
+            order.due_date || order.payment_due_date || order.credit_due_date || null,
+          approved_by_name: order.approved_by_name || '',
+          approved_at: order.approved_at || order.updated_at || order.created_at,
+          orders: [],
+          total: 0,
+          total_with_igv: 0,
+          igv_enabled: false,
+        };
+      }
+
+      const orderDueDate =
+        order.due_date || order.payment_due_date || order.credit_due_date || null;
+      if (!map[batchId].seller_document && order.seller_document) {
+        map[batchId].seller_document = order.seller_document;
+      }
+      if (!map[batchId].issue_date && order.issue_date) {
+        map[batchId].issue_date = order.issue_date;
+      }
+      if (order.payment_type === 'loan' || orderDueDate) {
+        map[batchId].payment_type = 'loan';
+      }
+      if (orderDueDate) {
+        if (!map[batchId].due_date) {
+          map[batchId].due_date = orderDueDate;
+        } else {
+          const currentDue = new Date(map[batchId].due_date);
+          const nextDue = new Date(orderDueDate);
+          if (nextDue < currentDue) {
+            map[batchId].due_date = orderDueDate;
+          }
+        }
+      }
+
+      const baseAmount = parseFloat(order.amount || 0);
+      const igvEnabled = !!order.igv_enabled;
+      const igvRate = parseFloat(order.igv_rate ?? 18);
+      const igvAmount = igvEnabled
+        ? parseFloat(order.igv_amount ?? 0) || baseAmount * (igvRate / 100)
+        : 0;
+      const totalWithIgv = igvEnabled
+        ? parseFloat(order.total_with_igv ?? 0) || baseAmount + igvAmount
+        : baseAmount;
+
+      order.amount_with_igv = totalWithIgv;
+      order.igv_rate = igvRate;
+      order.igv_amount = igvAmount;
+      order.igv_enabled = igvEnabled;
+
+      map[batchId].orders.push(order);
+      map[batchId].total += baseAmount;
+      map[batchId].total_with_igv += totalWithIgv;
+      if (igvEnabled) {
+        map[batchId].igv_enabled = true;
+      }
+    });
+
+    return Object.values(map).sort(
+      (a, b) => new Date(b.approved_at) - new Date(a.approved_at)
+    );
+  }, [orders]);
+
+  const toPayProjects = useMemo(() => {
+    const map = {};
+    toPayBatches.forEach((batch) => {
+      batch.orders.forEach((order) => {
+        if (!map[order.project_id]) {
+          map[order.project_id] = {
+            id: order.project_id,
+            name: order.project_name,
+            status: order.project_status,
+            estado: order.project_estado,
+          };
+        }
+      });
+    });
+    const allProjects = Object.values(map);
+    const activeProjects = allProjects.filter(isProjectInProgress);
+    return activeProjects.sort((a, b) => a.name.localeCompare(b.name));
+  }, [toPayBatches]);
+
+  const filteredToPayBatches = useMemo(() => {
+    let result = toPayBatches;
+
+    if (toPaySearch.trim()) {
+      const searchLower = toPaySearch.toLowerCase().trim();
+      result = result.filter(
+        (batch) =>
+          (batch.seller_name || '').toLowerCase().includes(searchLower) ||
+          (batch.seller_document || '').toLowerCase().includes(searchLower)
+      );
+    }
+    if (toPayFilterProject) {
+      result = result.filter((batch) =>
+        batch.orders.some((order) => order.project_id === toPayFilterProject)
+      );
+    }
+    if (toPayFilterCurrency) {
+      result = result.filter((batch) => batch.currency === toPayFilterCurrency);
+    }
+    if (toPayFilterPaymentType) {
+      result = result.filter(
+        (batch) => batch.payment_type === toPayFilterPaymentType
+      );
+    }
+    if (toPayFilterIgv) {
+      const hasIgv = toPayFilterIgv === 'true';
+      result = result.filter((batch) => batch.igv_enabled === hasIgv);
+    }
+
+    return result;
+  }, [
+    toPayBatches,
+    toPaySearch,
+    toPayFilterProject,
+    toPayFilterCurrency,
+    toPayFilterPaymentType,
+    toPayFilterIgv,
+  ]);
+
+  const pendingProjects = useMemo(() => {
+    const map = {};
+    pendingOrders.forEach((order) => {
+      if (!map[order.project_id]) {
+        map[order.project_id] = {
+          id: order.project_id,
+          name: order.project_name,
+          count: 0,
+        };
+      }
+      map[order.project_id].count += 1;
+    });
+    return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+  }, [pendingOrders]);
+
+  const selectedPendingProject = useMemo(() => {
+    if (!selectedPendingProjectId) return null;
+    return (
+      pendingProjects.find((project) => project.id === selectedPendingProjectId) ||
+      null
+    );
+  }, [pendingProjects, selectedPendingProjectId]);
+
+  const pendingLists = useMemo(() => {
+    if (!selectedPendingProjectId) return [];
+    const lists = {};
+    pendingOrders
+      .filter((order) => order.project_id === selectedPendingProjectId)
+      .forEach((order) => {
+        const filename = order.source_filename || 'Manual';
+        if (!lists[filename]) {
+          lists[filename] = { filename, count: 0 };
+        }
+        lists[filename].count += 1;
+      });
+    return Object.values(lists).sort((a, b) => a.filename.localeCompare(b.filename));
+  }, [pendingOrders, selectedPendingProjectId]);
+
+  const selectedPendingList = useMemo(() => {
+    if (!selectedPendingListId) return null;
+    return (
+      pendingLists.find((list) => list.filename === selectedPendingListId) || null
+    );
+  }, [pendingLists, selectedPendingListId]);
+
+  const selectedPendingOrders = useMemo(() => {
+    if (!selectedPendingProjectId || !selectedPendingListId) return [];
+    return pendingOrders.filter(
+      (order) =>
+        order.project_id === selectedPendingProjectId &&
+        (order.source_filename || 'Manual') === selectedPendingListId
+    );
+  }, [pendingOrders, selectedPendingProjectId, selectedPendingListId]);
+
+  const totalPagesPending =
+    Math.ceil(selectedPendingOrders.length / perPagePending) || 1;
+
+  const paginatedPendingOrders = useMemo(() => {
+    const start = (currentPagePending - 1) * perPagePending;
+    return selectedPendingOrders.slice(start, start + perPagePending);
+  }, [selectedPendingOrders, currentPagePending, perPagePending]);
+
+  // Derived Sets for O(1) lookups (Rule 7.11)
+  const selectedPendingIdSet = useMemo(
+    () => new Set(selectedPendingIds),
+    [selectedPendingIds]
+  );
+  const selectedOrderSet = useMemo(
+    () => new Set(selectedOrders),
+    [selectedOrders]
+  );
+
+  const pendingListAllSelected = useMemo(() => {
+    if (!selectedPendingListId) return false;
+    const ids = selectedPendingOrders.map((order) => order.id);
+    return ids.length > 0 && ids.every((id) => selectedPendingIdSet.has(id));
+  }, [selectedPendingListId, selectedPendingOrders, selectedPendingIdSet]);
+
+  const totalPages =
+    Math.ceil(filteredOrders.length / perPage) || 1;
+
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * perPage;
+    return filteredOrders.slice(start, start + perPage);
+  }, [filteredOrders, currentPage, perPage]);
+
+  const allSelected = useMemo(
+    () =>
+      paginatedOrders.length > 0 &&
+      paginatedOrders.every((order) => selectedOrderSet.has(order.id)),
+    [paginatedOrders, selectedOrderSet]
+  );
+
+  const allToPaySelected = useMemo(() => {
+    if (filteredOrders.length === 0) return false;
+    return filteredOrders.every((order) => selectedOrderSet.has(order.id));
+  }, [filteredOrders, selectedOrderSet]);
+
+  const selectedApprovalOrdersData = useMemo(
+    () => pendingOrders.filter((order) => selectedPendingIdSet.has(order.id)),
+    [pendingOrders, selectedPendingIdSet]
+  );
+
+  const selectedOrdersData = useMemo(
+    () => orders.filter((order) => selectedOrderSet.has(order.id)),
+    [orders, selectedOrderSet]
+  );
+
+  const bulkSubtotal = useMemo(
+    () =>
+      selectedOrders.reduce(
+        (sum, id) => sum + (parseFloat(prices[id]) || 0),
+        0
+      ),
+    [selectedOrders, prices]
+  );
+
+  const bulkIgv = bulkForm.igv_enabled ? bulkSubtotal * (bulkForm.igv_rate / 100) : 0;
+
+  const bulkTotal = bulkSubtotal + bulkIgv;
+
+  const bulkTotalPen =
+    bulkForm.currency === 'USD' && currentExchangeRate > 0
+      ? bulkTotal * currentExchangeRate
+      : bulkTotal;
+
+  const approvalSubtotal = useMemo(
+    () =>
+      selectedPendingIds.reduce(
+        (sum, id) => sum + (parseFloat(approvalPrices[id]) || 0),
+        0
+      ),
+    [selectedPendingIds, approvalPrices]
+  );
+
+  const approvalIgv =
+    approvalForm.igv_enabled
+      ? approvalSubtotal * (approvalForm.igv_rate / 100)
+      : 0;
+
+  const approvalTotal = approvalSubtotal + approvalIgv;
+
+  const canSubmitApproval = useMemo(() => {
+    if (!approvalForm.seller_name) return false;
+    if (approvalSubtotal <= 0) return false;
+    if (approvalForm.currency === 'USD' && currentExchangeRate <= 0) return false;
+    return true;
+  }, [approvalForm.seller_name, approvalForm.currency, approvalSubtotal, currentExchangeRate]);
+
+  const canSubmitBulk = useMemo(() => {
+    if (!bulkForm.seller_name) return false;
+    if (bulkSubtotal <= 0) return false;
+    if (bulkForm.currency === 'USD' && currentExchangeRate <= 0) return false;
+    return true;
+  }, [bulkForm.seller_name, bulkForm.currency, bulkSubtotal, currentExchangeRate]);
+
+  const filteredPaidBatches = useMemo(() => {
+    if (!paidFilterStartDate && !paidFilterEndDate) {
+      return paidBatches;
+    }
+
+    return paidBatches.filter((batch) => {
+      const paymentDate = new Date(batch.payment_confirmed_at);
+      paymentDate.setHours(0, 0, 0, 0);
+
+      if (paidFilterStartDate) {
+        const startDate = new Date(paidFilterStartDate);
+        startDate.setHours(0, 0, 0, 0);
+        if (paymentDate < startDate) return false;
+      }
+
+      if (paidFilterEndDate) {
+        const endDate = new Date(paidFilterEndDate);
+        endDate.setHours(23, 59, 59, 999);
+        if (paymentDate > endDate) return false;
+      }
+
+      return true;
+    });
+  }, [paidBatches, paidFilterStartDate, paidFilterEndDate]);
+
+  const goBack = useCallback(() => {
+    window.location.href = '/';
+  }, []);
+
+  /* ── Derived Stats ─────────────────────────────────────────────────── */
+  const summaryStats = useMemo(() => {
+    const totalToPay = toPayBatches.reduce((sum, b) => sum + ((b.total_with_igv ?? b.total) || 0), 0);
+    const totalPaid = paidBatches.reduce((sum, b) => sum + (b.total || 0), 0);
+    return {
+      pendingCount: pendingOrders.length,
+      toPayCount: orders.length,
+      totalToPay,
+      totalPaid,
+    };
+  }, [pendingOrders, orders, toPayBatches, paidBatches]);
+
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 4000);
+  }, []);
+
+  const getOrderTitle = useCallback((order) => {
+    if (order.type === 'service') return order.description;
+    if (order.materials?.length > 0) {
+      const mat = order.materials[0];
+      return typeof mat === 'object' ? mat.name : mat;
+    }
+    return order.description;
+  }, []);
+
+  const batchAllDelivered = useCallback(
+    (batch) => batch.orders?.every((order) => order.delivery_confirmed) || false,
+    []
+  );
+
+  const getDaysUntilDue = useCallback((dueDate) => {
+    if (!dueDate) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    const diffTime = due - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }, []);
+
+  const getPaymentAlertStatus = useCallback(
+    (batch) => {
+      const daysRemaining = getDaysUntilDue(batch.due_date);
+      if (daysRemaining === null) return null;
+      if (daysRemaining < 0) return 'overdue';
+      if (daysRemaining === 0) return 'today';
+      if (daysRemaining <= 3) return 'urgent';
+      if (daysRemaining <= 7) return 'warning';
+      return 'normal';
+    },
+    [getDaysUntilDue]
+  );
+
+  const getAlertLabel = useCallback(
+    (batch) => {
+      const daysRemaining = getDaysUntilDue(batch.due_date);
+      if (daysRemaining === null) return '';
+      if (daysRemaining < 0) {
+        return `Vencido hace ${Math.abs(daysRemaining)} días`;
+      }
+      if (daysRemaining === 0) return 'Vence HOY';
+      return `Vence en ${daysRemaining} día${daysRemaining !== 1 ? 's' : ''}`;
+    },
+    [getDaysUntilDue]
+  );
+
+  const getPaymentTypeLabel = useCallback(
+    (batch) => {
+      if (batch.payment_type === 'loan') {
+        const dueLabel = getAlertLabel(batch);
+        return dueLabel ? `Crédito · ${dueLabel}` : 'Crédito';
+      }
+      return 'Contado';
+    },
+    [getAlertLabel]
+  );
+
+  const getOrderQty = useCallback((order) => {
+    if (order.type === 'service') return '-';
+    if (order.materials?.length > 0) {
+      const mat = order.materials[0];
+      if (typeof mat === 'object' && mat.qty) return mat.qty;
+    }
+    return '-';
+  }, []);
+
+  const getOrderQtyNum = useCallback((order) => {
+    if (order.type === 'service') return 1;
+    if (order.materials?.length > 0) {
+      const mat = order.materials[0];
+      if (typeof mat === 'object' && mat.qty) return parseInt(mat.qty, 10) || 1;
+    }
+    return 1;
+  }, []);
+
+  const selectPendingProject = useCallback((projectId) => {
+    setSelectedPendingProjectId(projectId);
+    setSelectedPendingListId(null);
+    setCurrentPagePending(1);
+  }, []);
+
+  const selectPendingList = useCallback((filename) => {
+    setSelectedPendingListId(filename);
+    setCurrentPagePending(1);
+  }, []);
+
+  const selectAllPendingList = useCallback(() => {
+    if (!selectedPendingListId) return;
+    const ids = selectedPendingOrders.map((order) => order.id);
+    const idSet = new Set(ids);
+    if (pendingListAllSelected) {
+      setSelectedPendingIds((prev) => prev.filter((id) => !idSet.has(id)));
+    } else {
+      setSelectedPendingIds((prev) => Array.from(new Set([...prev, ...ids])));
+    }
+  }, [pendingListAllSelected, selectedPendingListId, selectedPendingOrders]);
+
+  const pendingProjectAllSelected = useMemo(() => {
+    if (!selectedPendingProjectId) return false;
+    const ids = pendingOrders
+      .filter((order) => order.project_id === selectedPendingProjectId)
+      .map((order) => order.id);
+    return ids.length > 0 && ids.every((id) => selectedPendingIdSet.has(id));
+  }, [pendingOrders, selectedPendingProjectId, selectedPendingIdSet]);
+
+  const openApprovalModal = useCallback(() => {
+    setSelectedApprovalIds([...selectedPendingIds]);
+    setApprovalPrices(() => {
+      const next = {};
+      selectedPendingIds.forEach((id) => {
+        next[id] = 0;
+      });
+      return next;
+    });
+
+    const defaultForm = {
+      seller_name: '',
+      seller_document: '',
+      payment_type: 'cash',
+      currency: 'PEN',
+      issue_date: getLocalDateString(),
+      due_date: '',
+      igv_enabled: false,
+      igv_rate: 18.0,
+    };
+
+    if (selectedPendingIds.length === 1) {
+      const order = pendingOrders.find(
+        (candidate) => candidate.id === selectedPendingIds[0]
+      );
+      if (order) {
+        setApprovalForm({
+          ...defaultForm,
+          seller_name: order.seller_name || defaultForm.seller_name,
+          seller_document: order.seller_document || defaultForm.seller_document,
+          payment_type: order.payment_type || defaultForm.payment_type,
+          currency: order.currency || defaultForm.currency,
+          issue_date: order.issue_date || defaultForm.issue_date,
+          due_date:
+            order.due_date ||
+            order.payment_due_date ||
+            order.credit_due_date ||
+            defaultForm.due_date,
+        });
+      } else {
+        setApprovalForm({ ...defaultForm });
+      }
+    } else {
+      const ordersForForm = selectedPendingIds
+        .map((id) => pendingOrders.find((order) => order.id === id))
+        .filter(Boolean);
+      const paymentTypes = new Set(
+        ordersForForm.map((order) => order.payment_type).filter(Boolean)
+      );
+      const currencies = new Set(
+        ordersForForm.map((order) => order.currency).filter(Boolean)
+      );
+
+      setApprovalForm((prev) => ({
+        ...prev,
+        ...defaultForm,
+        payment_type: paymentTypes.size === 1 ? ordersForForm[0].payment_type : prev.payment_type,
+        currency: currencies.size === 1 ? ordersForForm[0].currency : prev.currency,
+      }));
+    }
+
+    setShowApprovalModal(true);
+  }, [pendingOrders, selectedPendingIds]);
+
+  const closeApprovalModal = useCallback(() => {
+    setShowApprovalModal(false);
+  }, []);
+  const approvalCashflowTotal = useMemo(
+    () =>
+      selectedPendingIds.reduce(
+        (sum, id) => sum + (parseFloat(approvalPrices[id]) || 0),
+        0
+      ),
+    [approvalPrices, selectedPendingIds]
+  );
+
+  const onApprovalCurrencyChange = useCallback(() => {
+    if (approvalForm.currency === 'USD') {
+      fetchExchangeRate();
+    }
+  }, [approvalForm.currency]);
+
+  const submitApprovalPending = useCallback(async () => {
+    if (!canSubmitApproval) return;
+    setApprovingPending(true);
+    try {
+      const payload = {
+        order_ids: selectedApprovalIds,
+        prices: approvalPrices,
+        currency: approvalForm.currency,
+        seller_name: approvalForm.seller_name,
+        seller_document: approvalForm.seller_document,
+        payment_type: approvalForm.payment_type,
+        issue_date: approvalForm.issue_date,
+        due_date: approvalForm.payment_type === 'loan' ? approvalForm.due_date : null,
+        igv_enabled: approvalForm.igv_enabled,
+        igv_rate: approvalForm.igv_rate,
+      };
+
+      const res = await fetch(`${apiBase}/mark-to-pay-bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const msg = data.message || 'Órdenes procesadas';
+        showToast(msg, 'success');
+        closeApprovalModal();
+        setSelectedPendingIds([]);
+        setApprovalPrices({});
+        await Promise.all([loadPendingOrders(), loadToPayOrders()]);
+      } else {
+        showToast(data.message || 'Error', 'error');
+      }
+    } catch (e) {
+      showToast('Error', 'error');
+    }
+    setApprovingPending(false);
+  }, [
+    apiBase,
+    approvalForm,
+    approvalPrices,
+    canSubmitApproval,
+    closeApprovalModal,
+    selectedApprovalIds,
+    showToast,
+  ]);
+
+  const markToPay = useCallback(async (id, options = {}) => {
+    const { silent = false } = options;
+    try {
+      const res = await fetch(`${apiBase}/${id}/mark-to-pay`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (!silent) {
+          showToast(data.message || 'Orden enviada a Por Pagar', 'success');
+          await Promise.all([loadPendingOrders(), loadToPayOrders()]);
+        }
+        setSelectedPendingIds((prev) => prev.filter((pid) => pid !== id));
+      } else if (!silent) {
+        showToast(data.message || 'Error', 'error');
+      }
+    } catch (e) {
+      if (!silent) showToast('Error', 'error');
+    }
+  }, [apiBase, showToast]);
+
+  const approveSelectedPending = useCallback(() => {
+    if (selectedPendingIds.length === 0) return;
+    openApprovalModal();
+  }, [openApprovalModal, selectedPendingIds.length]);
+
+  const approveSinglePending = useCallback(
+    (orderId) => {
+      setSelectedPendingIds([orderId]);
+      openApprovalModal();
+    },
+    [openApprovalModal]
+  );
+
+  const isPendingSelected = useCallback(
+    (orderId) => selectedPendingIdSet.has(orderId),
+    [selectedPendingIdSet]
+  );
+
+  const togglePendingSelect = useCallback((orderId) => {
+    setSelectedPendingIds((prev) =>
+      prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId]
+    );
+  }, []);
+
+  const getListKey = useCallback(
+    (projectId, filename) => `${projectId}-${filename || 'manual'}`,
+    []
+  );
+
+  const toggleProjectExpanded = useCallback((projectId) => {
+    setExpandedProjects((prev) => ({ ...prev, [projectId]: !prev[projectId] }));
+  }, []);
+
+  const toggleListExpanded = useCallback(
+    (projectId, filename) => {
+      const key = getListKey(projectId, filename);
+      setExpandedLists((prev) => ({ ...prev, [key]: !prev[key] }));
+    },
+    [getListKey]
+  );
+
+  const getProjectLists = useCallback(
+    (projectId) => {
+      const lists = {};
+      pendingOrders
+        .filter((order) => order.project_id === projectId)
+        .forEach((order) => {
+          const filename = order.source_filename || 'Manual';
+          if (!lists[filename]) {
+            lists[filename] = { filename, count: 0 };
+          }
+          lists[filename].count += 1;
+        });
+      return Object.values(lists).sort((a, b) => a.filename.localeCompare(b.filename));
+    },
+    [pendingOrders]
+  );
+
+  const getListOrders = useCallback(
+    (projectId, filename) =>
+      pendingOrders
+        .filter(
+          (order) =>
+            order.project_id === projectId &&
+            (order.source_filename || 'Manual') === filename
+        )
+        .sort((a, b) => {
+          const aNum = parseInt(a.item_number, 10);
+          const bNum = parseInt(b.item_number, 10);
+          if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+            return aNum - bNum;
+          }
+          const aItem = (a.item_number || '').toString();
+          const bItem = (b.item_number || '').toString();
+          if (aItem !== bItem) return aItem.localeCompare(bItem);
+          return (a.id || 0) - (b.id || 0);
+        }),
+    [pendingOrders]
+  );
+
+  const isListAllSelected = useCallback(
+    (projectId, filename) => {
+      const ordersInList = getListOrders(projectId, filename);
+      if (ordersInList.length === 0) return false;
+      return ordersInList.every((order) => isPendingSelected(order.id));
+    },
+    [getListOrders, isPendingSelected]
+  );
+
+  const toggleListAllSelect = useCallback(
+    (projectId, filename) => {
+      const ordersInList = getListOrders(projectId, filename);
+      const allSelected = isListAllSelected(projectId, filename);
+      const listIds = new Set(ordersInList.map((order) => order.id));
+
+      setSelectedPendingIds((prev) => {
+        if (allSelected) {
+          return prev.filter((id) => !listIds.has(id));
+        }
+        return Array.from(new Set([...prev, ...listIds]));
+      });
+    },
+    [getListOrders, isListAllSelected]
+  );
+
+  const selectAllPending = useCallback(() => {
+    const allIds = pendingOrders.map((order) => order.id);
+    setSelectedPendingIds((prev) => Array.from(new Set([...prev, ...allIds])));
+  }, [pendingOrders]);
+
+  const deselectAllPending = useCallback(() => {
+    setSelectedPendingIds([]);
+  }, []);
+
+  const dismissPaymentAlert = useCallback((batchId) => {
+    setDismissedPaymentAlerts((prev) => ({ ...prev, [batchId]: true }));
+  }, []);
+
+  // ── Data Loading ──────────────────────────────────────────────────────
+
+  const loadPendingOrders = useCallback(
+    async (showLoading = false) => {
+      if (showLoading) setLoading(true);
+      try {
+        const res = await fetch(`${apiBase}/pending`);
+        const data = await res.json();
+        if (data.success) {
+          const newOrders = data.orders || [];
+          setPendingOrders((prev) => {
+            if (arraysEqual(prev, newOrders)) return prev;
+            saveToCache('pendingOrders', newOrders);
+
+            // Auto-expand all projects & lists
+            if (newOrders.length > 0) {
+              const projects = new Set(newOrders.map((o) => o.project_id));
+              setExpandedProjects((ep) => {
+                const next = { ...ep };
+                projects.forEach((pid) => { next[pid] = true; });
+                return next;
+              });
+              setExpandedLists((el) => {
+                const next = { ...el };
+                projects.forEach((pid) => {
+                  const filenames = new Set(
+                    newOrders
+                      .filter((o) => o.project_id === pid)
+                      .map((o) => o.source_filename || 'Manual')
+                  );
+                  filenames.forEach((fn) => {
+                    next[`${pid}-${fn}`] = true;
+                  });
+                });
+                return next;
+              });
+            }
+
+            return newOrders;
+          });
+
+          // Reconcile selectedPendingProjectId
+          setSelectedPendingProjectId((prev) => {
+            if (!prev && newOrders.length > 0) return newOrders[0].project_id;
+            if (prev && newOrders.length > 0 && !newOrders.some((o) => o.project_id === prev)) {
+              setSelectedPendingListId(null);
+              return newOrders[0].project_id;
+            }
+            return prev;
+          });
+
+          // Prune stale selections
+          const pendingIdSet = new Set(newOrders.map((o) => o.id));
+          setSelectedPendingIds((prev) => prev.filter((id) => pendingIdSet.has(id)));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      if (showLoading) setLoading(false);
+    },
+    [apiBase]
+  );
+
+  const loadToPayOrders = useCallback(
+    async (showLoading = false) => {
+      if (showLoading) setLoading(true);
+      try {
+        const res = await fetch(`${apiBase}/to-pay`);
+        const data = await res.json();
+        if (data.success) {
+          const newOrders = data.orders || [];
+          setOrders((prev) => {
+            if (arraysEqual(prev, newOrders)) return prev;
+            saveToCache('toPayOrders', newOrders);
+            // Extract unique projects for filters
+            const projects = {};
+            newOrders.forEach((o) => {
+              projects[o.project_id] = { id: o.project_id, name: o.project_name };
+            });
+            setProjectList(
+              Object.values(projects).sort((a, b) => a.name.localeCompare(b.name))
+            );
+            return newOrders;
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      if (showLoading) setLoading(false);
+    },
+    [apiBase]
+  );
+
+  const loadApprovedUnpaid = useCallback(async () => {
+    try {
+      const res = await fetch(`${apiBase}/approved-unpaid`);
+      const data = await res.json();
+      if (data.success) {
+        const batchMap = {};
+        (data.orders || []).forEach((order) => {
+          const batchId = order.batch_id || `SINGLE-${order.id}`;
+          if (!batchMap[batchId]) {
+            batchMap[batchId] = {
+              batch_id: batchId,
+              seller_name: order.seller_name,
+              seller_document: order.seller_document,
+              currency: order.currency,
+              igv_enabled: order.igv_enabled,
+              igv_rate: order.igv_rate,
+              approved_at: order.approved_at,
+              orders: [],
+              subtotal: 0,
+              igv_amount: 0,
+              total: 0,
+            };
+          }
+          batchMap[batchId].orders.push(order);
+          batchMap[batchId].subtotal += parseFloat(order.amount_pen || order.amount || 0);
+          batchMap[batchId].igv_amount += parseFloat(order.igv_amount || 0);
+          batchMap[batchId].total += parseFloat(order.total_with_igv || order.amount || 0);
+        });
+        setBatches(
+          Object.values(batchMap).sort(
+            (a, b) => new Date(b.approved_at) - new Date(a.approved_at)
+          )
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [apiBase]);
+
+  const loadPaidBatches = useCallback(async () => {
+    try {
+      const res = await fetch(`${apiBase}/paid-orders`);
+      const data = await res.json();
+      if (data.success) {
+        const batchMap = {};
+        (data.orders || []).forEach((order) => {
+          const batchId = order.batch_id || `SINGLE-${order.id}`;
+          if (!batchMap[batchId]) {
+            batchMap[batchId] = {
+              batch_id: batchId,
+              seller_name: order.seller_name,
+              currency: order.currency,
+              payment_type: order.payment_type || 'cash',
+              issue_date: order.issue_date || null,
+              payment_confirmed_at: order.payment_confirmed_at,
+              cdp_type: order.cdp_type,
+              cdp_serie: order.cdp_serie,
+              cdp_number: order.cdp_number,
+              payment_proof: order.payment_proof,
+              payment_proof_link: order.payment_proof_link,
+              payment_confirmed_by_name: order.payment_confirmed_by_name,
+              approved_by_name: order.approved_by_name,
+              orders: [],
+              total: 0,
+              igv_enabled: false,
+            };
+          }
+          if (order.issue_date && !batchMap[batchId].issue_date) {
+            batchMap[batchId].issue_date = order.issue_date;
+          }
+          if (order.igv_enabled || order.igv_amount > 0) {
+            batchMap[batchId].igv_enabled = true;
+          }
+          batchMap[batchId].orders.push(order);
+          batchMap[batchId].total += parseFloat(order.total_with_igv || order.amount || 0);
+        });
+        const newBatches = Object.values(batchMap).sort(
+          (a, b) => new Date(b.payment_confirmed_at) - new Date(a.payment_confirmed_at)
+        );
+        setPaidBatches((prev) => {
+          if (arraysEqual(prev, newBatches)) return prev;
+          saveToCache('paidBatches', newBatches);
+          return newBatches;
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [apiBase]);
+
+  const initFromCache = useCallback(() => {
+    const cachedPending = loadFromCache('pendingOrders');
+    const cachedToPay = loadFromCache('toPayOrders');
+    const cachedPaid = loadFromCache('paidBatches');
+    if (cachedPending) setPendingOrders(cachedPending);
+    if (cachedToPay) setOrders(cachedToPay);
+    if (cachedPaid) setPaidBatches(cachedPaid);
+  }, []);
+
+  const fetchExchangeRate = useCallback(async () => {
+    setLoadingRate(true);
+    try {
+      const res = await fetch(`${apiBase}/exchange-rate`);
+      const data = await res.json();
+      if (data.success) setCurrentExchangeRate(data.rate);
+    } catch (e) {
+      console.error(e);
+    }
+    setLoadingRate(false);
+  }, [apiBase]);
+
+  // ── To-Pay Selection ──────────────────────────────────────────────────
+
+  const toggleToPaySelect = useCallback((id) => {
+    setSelectedOrders((prev) => {
+      if (prev.includes(id)) {
+        setPrices((p) => { const n = { ...p }; delete n[id]; return n; });
+        return prev.filter((x) => x !== id);
+      }
+      setPrices((p) => ({ ...p, [id]: 0 }));
+      return [...prev, id];
+    });
+  }, []);
+
+  const selectAllToPay = useCallback(() => {
+    const ids = filteredOrders.map((o) => o.id);
+    const idSet = new Set(ids);
+    setSelectedOrders((prev) => {
+      const prevSet = new Set(prev);
+      const allSelected = ids.length > 0 && ids.every((id) => prevSet.has(id));
+      if (allSelected) {
+        setPrices((p) => {
+          const n = { ...p };
+          ids.forEach((id) => delete n[id]);
+          return n;
+        });
+        return prev.filter((id) => !idSet.has(id));
+      }
+      setPrices((p) => {
+        const n = { ...p };
+        ids.forEach((id) => { if (n[id] === undefined) n[id] = 0; });
+        return n;
+      });
+      return Array.from(new Set([...prev, ...ids]));
+    });
+  }, [filteredOrders]);
+
+  const toggleSelect = useCallback((id) => {
+    setSelectedOrders((prev) => {
+      if (prev.includes(id)) {
+        setPrices((p) => { const n = { ...p }; delete n[id]; return n; });
+        return prev.filter((x) => x !== id);
+      }
+      setPrices((p) => ({ ...p, [id]: 0 }));
+      return [...prev, id];
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    const pageIds = paginatedOrders.map((o) => o.id);
+    const pageIdSet = new Set(pageIds);
+    setSelectedOrders((prev) => {
+      const prevSet = new Set(prev);
+      const allSelected = pageIds.length > 0 && pageIds.every((id) => prevSet.has(id));
+      if (allSelected) {
+        setPrices((p) => {
+          const n = { ...p };
+          pageIds.forEach((id) => delete n[id]);
+          return n;
+        });
+        return prev.filter((id) => !pageIdSet.has(id));
+      }
+      setPrices((p) => {
+        const n = { ...p };
+        pageIds.forEach((id) => { if (n[id] === undefined) n[id] = 0; });
+        return n;
+      });
+      return Array.from(new Set([...prev, ...pageIds]));
+    });
+  }, [paginatedOrders]);
+
+  // ── Bulk Approve Modal ────────────────────────────────────────────────
+
+  const openBulkApproveModal = useCallback(() => {
+    if (selectedOrders.length === 0) return;
+    setBulkForm({
+      seller_name: '',
+      seller_document: '',
+      currency: 'PEN',
+      issue_date: getLocalDateString(),
+      payment_type: 'cash',
+      date_value: '',
+      igv_enabled: false,
+      igv_rate: 18.0,
+      notes: '',
+    });
+    setShowBulkModal(true);
+  }, [selectedOrders.length]);
+
+  const openSingleApproveModal = useCallback(
+    (order) => {
+      setSelectedOrders([order.id]);
+      setPrices({ [order.id]: 0 });
+      setTimeout(() => openBulkApproveModal(), 0);
+    },
+    [openBulkApproveModal]
+  );
+
+  const closeBulkModal = useCallback(() => {
+    setShowBulkModal(false);
+  }, []);
+
+  const onCurrencyChange = useCallback(() => {
+    if (bulkForm.currency === 'USD') fetchExchangeRate();
+  }, [bulkForm.currency, fetchExchangeRate]);
+
+  const submitBulkApprove = useCallback(async () => {
+    if (!canSubmitBulk) return;
+    setApproving(true);
+    try {
+      const payload = {
+        order_ids: selectedOrders,
+        prices,
+        currency: bulkForm.currency,
+        seller_name: bulkForm.seller_name,
+        seller_document: bulkForm.seller_document,
+        issue_date: bulkForm.issue_date,
+        payment_type: bulkForm.payment_type,
+        payment_date: bulkForm.payment_type === 'cash' ? bulkForm.date_value : null,
+        due_date: bulkForm.payment_type === 'loan' ? bulkForm.date_value : null,
+        igv_enabled: bulkForm.igv_enabled,
+        igv_rate: bulkForm.igv_rate,
+        notes: bulkForm.notes,
+      };
+
+      const res = await fetch(`${apiBase}/pay-bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        closeBulkModal();
+        setSelectedOrders([]);
+        setPrices({});
+        await Promise.all([loadToPayOrders(), loadPaidBatches()]);
+      } else {
+        showToast(data.message || 'Error', 'error');
+      }
+    } catch (e) {
+      showToast('Error de conexión', 'error');
+    }
+    setApproving(false);
+  }, [
+    apiBase,
+    bulkForm,
+    canSubmitBulk,
+    closeBulkModal,
+    loadPaidBatches,
+    loadToPayOrders,
+    prices,
+    selectedOrders,
+    showToast,
+  ]);
+
+  // ── Reject ────────────────────────────────────────────────────────────
+
+  const rejectOrder = useCallback(
+    async (id) => {
+      if (!window.confirm('¿Rechazar esta orden?')) return;
+      try {
+        const res = await fetch(`${apiBase}/${id}/reject`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Orden rechazada', 'success');
+          await Promise.all([loadPendingOrders(), loadToPayOrders()]);
+        } else {
+          showToast(data.message || 'Error', 'error');
+        }
+      } catch (e) {
+        showToast('Error', 'error');
+      }
+    },
+    [apiBase, loadPendingOrders, loadToPayOrders, showToast]
+  );
+
+  // ── Payment Modal ─────────────────────────────────────────────────────
+
+  const openPaymentModal = useCallback((batch) => {
+    setPaymentBatch(batch);
+    setPaymentForm({ cdp_type: '', cdp_serie: '', cdp_number: '', payment_proof: null, payment_proof_link: '' });
+    setShowPaymentModal(true);
+  }, []);
+
+  const closePaymentModal = useCallback(() => {
+    setShowPaymentModal(false);
+    setPaymentBatch(null);
+  }, []);
+
+  const onPaymentProofChange = useCallback((e) => {
+    setPaymentForm((prev) => ({ ...prev, payment_proof: e.target.files[0] || null }));
+  }, []);
+
+  const confirmPayment = useCallback(async () => {
+    setConfirmingPayment(true);
+    try {
+      const formData = new FormData();
+      formData.append('batch_id', paymentBatch.batch_id);
+      formData.append('cdp_type', paymentForm.cdp_type);
+      formData.append('cdp_serie', paymentForm.cdp_serie);
+      formData.append('cdp_number', paymentForm.cdp_number);
+      if (paymentForm.payment_proof_link) {
+        formData.append('payment_proof_link', paymentForm.payment_proof_link);
+      }
+      if (paymentForm.payment_proof) {
+        formData.append('payment_proof', paymentForm.payment_proof);
+      }
+
+      const res = await fetch(`${apiBase}/pay-batch`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': getCsrfToken() },
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast('Pago confirmado', 'success');
+        closePaymentModal();
+        await Promise.all([loadToPayOrders(), loadPaidBatches()]);
+      } else {
+        showToast(data.message || 'Error', 'error');
+      }
+    } catch (e) {
+      showToast('Error', 'error');
+    }
+    setConfirmingPayment(false);
+  }, [apiBase, closePaymentModal, loadPaidBatches, loadToPayOrders, paymentBatch, paymentForm, showToast]);
+
+  // ── Export ─────────────────────────────────────────────────────────────
+
+  const openExportModal = useCallback(() => {
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+    setExportFilter({
+      startDate: thirtyDaysAgo.toISOString().split('T')[0],
+      endDate: today.toISOString().split('T')[0],
+      preset: '30days',
+    });
+    setShowExportModal(true);
+  }, []);
+
+  const closeExportModal = useCallback(() => {
+    setShowExportModal(false);
+  }, []);
+
+  const setExportPreset = useCallback((preset) => {
+    const today = new Date();
+    const startDate = new Date(today);
+    switch (preset) {
+      case '7days': startDate.setDate(today.getDate() - 7); break;
+      case '30days': startDate.setDate(today.getDate() - 30); break;
+      case '90days': startDate.setDate(today.getDate() - 90); break;
+      case 'custom': setExportFilter((prev) => ({ ...prev, preset: 'custom' })); return;
+    }
+    setExportFilter({
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: today.toISOString().split('T')[0],
+      preset,
+    });
+  }, []);
+
+  const exportPaidExcelWithFilter = useCallback(() => {
+    const params = new URLSearchParams();
+    params.append('start_date', exportFilter.startDate);
+    params.append('end_date', exportFilter.endDate);
+    window.location.href = `${apiBase}/export-paid?${params.toString()}`;
+    closeExportModal();
+  }, [apiBase, closeExportModal, exportFilter]);
+
+  const resetPaidFilter = useCallback(() => {
+    setPaidFilterStartDate('');
+    setPaidFilterEndDate('');
+  }, []);
+
+  const togglePaidBatchExpanded = useCallback((batchId) => {
+    setExpandedPaidBatches((prev) => {
+      const next = { ...prev };
+      if (next[batchId]) { delete next[batchId]; } else { next[batchId] = true; }
+      return next;
+    });
+  }, []);
+
+  const toggleToPayBatchExpanded = useCallback((batchId) => {
+    setExpandedToPayBatches((prev) => {
+      const next = { ...prev };
+      if (next[batchId]) { delete next[batchId]; } else { next[batchId] = true; }
+      return next;
+    });
+  }, []);
+
+  // ── Quick Pay ─────────────────────────────────────────────────────────
+
+  const openQuickPayModal = useCallback(async () => {
+    setShowQuickPayModal(true);
+    setQuickPayStep(1);
+    setQuickPaySelectedProject(null);
+    setQuickPayItems([]);
+    setQuickPayMaterialForm({ qty: 1, unit: '', description: '', diameter: '', series: '', material_type: '' });
+    try {
+      const res = await fetch(`${apiBase}/projects`);
+      const data = await res.json();
+      setQuickPayProjects(data.projects || []);
+    } catch (e) {
+      showToast('Error cargando proyectos', 'error');
+    }
+  }, [apiBase, showToast]);
+
+  const closeQuickPayModal = useCallback(() => {
+    setShowQuickPayModal(false);
+    setQuickPayStep(1);
+    setQuickPaySelectedProject(null);
+    setQuickPayItems([]);
+  }, []);
+
+  const selectProjectForQuickPay = useCallback((project) => {
+    setQuickPaySelectedProject(project);
+    setQuickPayStep(2);
+  }, []);
+
+  const addQuickPayItem = useCallback(() => {
+    if (!quickPayMaterialForm.description || !quickPayMaterialForm.qty) {
+      showToast('Completa descripción y cantidad', 'error');
+      return;
+    }
+    setQuickPayItems((prev) => [
+      ...prev,
+      {
+        qty: quickPayMaterialForm.qty,
+        unit: quickPayMaterialForm.unit || 'UND',
+        description: quickPayMaterialForm.description.trim(),
+        diameter: quickPayMaterialForm.diameter || '',
+        series: quickPayMaterialForm.series || '',
+        material_type: quickPayMaterialForm.material_type || '',
+        price: 0,
+        subtotal: 0,
+      },
+    ]);
+    setQuickPayMaterialForm({ qty: 1, unit: '', description: '', diameter: '', series: '', material_type: '' });
+    showToast('Item agregado', 'success');
+  }, [quickPayMaterialForm, showToast]);
+
+  const removeQuickPayItem = useCallback((index) => {
+    setQuickPayItems((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const proceedToQuickPayReview = useCallback(() => {
+    if (quickPayItems.length === 0) {
+      showToast('Agrega al menos un item', 'error');
+      return;
+    }
+    setQuickPayStep(3);
+  }, [quickPayItems.length, showToast]);
+
+  const updateQuickPayItemPrice = useCallback((index, price) => {
+    setQuickPayItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, price: parseFloat(price) || 0, subtotal: item.qty * (parseFloat(price) || 0) }
+          : item
+      )
+    );
+  }, []);
+
+  const quickPaySubtotal = useMemo(
+    () => quickPayItems.reduce((sum, item) => sum + (item.subtotal || 0), 0),
+    [quickPayItems]
+  );
+
+  const onQuickPayProofChange = useCallback((e) => {
+    setQuickPayPaymentForm((prev) => ({ ...prev, payment_proof: e.target.files[0] || null }));
+  }, []);
+
+  const onQuickPayApprovalCurrencyChange = useCallback(() => {
+    if (quickPayApprovalForm.currency === 'USD' && !quickPayApprovalForm.issue_date) {
+      setQuickPayApprovalForm((prev) => ({
+        ...prev,
+        issue_date: new Date().toISOString().split('T')[0],
+      }));
+    }
+  }, [quickPayApprovalForm.currency, quickPayApprovalForm.issue_date]);
+
+  const completeQuickPay = useCallback(async () => {
+    if (!quickPayApprovalForm.seller_name || !quickPayApprovalForm.seller_document) {
+      showToast('Complete proveedor y RUC', 'error');
+      return;
+    }
+
+    setQuickPayLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('project_id', quickPaySelectedProject.id);
+      formData.append('seller_name', quickPayApprovalForm.seller_name);
+      formData.append('seller_document', quickPayApprovalForm.seller_document);
+      formData.append('payment_type', quickPayApprovalForm.payment_type);
+      formData.append('currency', quickPayApprovalForm.currency);
+      formData.append('issue_date', quickPayApprovalForm.issue_date);
+      if (quickPayApprovalForm.payment_type === 'loan') {
+        formData.append('due_date', quickPayApprovalForm.due_date);
+      }
+      // Optional cdp fields
+      formData.append('cdp_type', quickPayPaymentForm.cdp_type || '');
+      formData.append('cdp_serie', quickPayPaymentForm.cdp_serie || '');
+      formData.append('cdp_number', quickPayPaymentForm.cdp_number || '');
+      if (quickPayPaymentForm.payment_proof_link) {
+        formData.append('payment_proof_link', quickPayPaymentForm.payment_proof_link);
+      }
+      if (quickPayPaymentForm.payment_proof) {
+        formData.append('payment_proof', quickPayPaymentForm.payment_proof);
+      }
+      formData.append(
+        'items',
+        JSON.stringify(
+          quickPayItems.map((item) => ({
+            description: item.description,
+            qty: item.qty,
+            unit: item.unit,
+            diameter: item.diameter,
+            series: item.series,
+            material_type: item.material_type,
+            price: item.price,
+            subtotal: item.subtotal,
+          }))
+        )
+      );
+
+      const res = await fetch(`${apiBase}/quick-pay`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': getCsrfToken() },
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast('Pago rápido completado', 'success');
+        closeQuickPayModal();
+        await loadPaidBatches();
+        setActiveTab('paid');
+      } else {
+        showToast(data.message || 'Error', 'error');
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+    }
+    setQuickPayLoading(false);
+  }, [
+    apiBase,
+    closeQuickPayModal,
+    loadPaidBatches,
+    quickPayApprovalForm,
+    quickPayItems,
+    quickPayPaymentForm,
+    quickPaySelectedProject,
+    showToast,
+  ]);
+
+  // ── Edit Comprobante ──────────────────────────────────────────────────
+
+  const batchMissingComprobante = useCallback(
+    (batch) => !batch.cdp_type || !batch.cdp_serie || !batch.cdp_number,
+    []
+  );
+
+  const openEditComprobante = useCallback((batch) => {
+    setEditComprobanteBatch(batch);
+    setEditComprobanteForm({
+      cdp_type: batch.cdp_type || '',
+      cdp_serie: batch.cdp_serie || '',
+      cdp_number: batch.cdp_number || '',
+      payment_proof: null,
+      payment_proof_link: batch.payment_proof_link || '',
+    });
+    setShowEditComprobanteModal(true);
+  }, []);
+
+  const closeEditComprobante = useCallback(() => {
+    setShowEditComprobanteModal(false);
+    setEditComprobanteBatch(null);
+  }, []);
+
+  const onEditComprobanteFileChange = useCallback((e) => {
+    setEditComprobanteForm((prev) => ({ ...prev, payment_proof: e.target.files[0] || null }));
+  }, []);
+
+  const saveComprobante = useCallback(async () => {
+    if (!editComprobanteForm.cdp_type || !editComprobanteForm.cdp_serie || !editComprobanteForm.cdp_number) {
+      showToast('Complete tipo, serie y número de comprobante', 'error');
+      return;
+    }
+    setSavingComprobante(true);
+    try {
+      const formData = new FormData();
+      formData.append('batch_id', editComprobanteBatch.batch_id);
+      formData.append('cdp_type', editComprobanteForm.cdp_type);
+      formData.append('cdp_serie', editComprobanteForm.cdp_serie);
+      formData.append('cdp_number', editComprobanteForm.cdp_number);
+      if (editComprobanteForm.payment_proof_link) {
+        formData.append('payment_proof_link', editComprobanteForm.payment_proof_link);
+      }
+      if (editComprobanteForm.payment_proof) {
+        formData.append('payment_proof', editComprobanteForm.payment_proof);
+      }
+
+      const res = await fetch(`${apiBase}/update-comprobante`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': getCsrfToken() },
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast('Comprobante actualizado', 'success');
+        closeEditComprobante();
+        await loadPaidBatches();
+      } else {
+        showToast(data.message || 'Error al actualizar', 'error');
+      }
+    } catch (e) {
+      showToast('Error al actualizar comprobante', 'error');
+    }
+    setSavingComprobante(false);
+  }, [apiBase, closeEditComprobante, editComprobanteBatch, editComprobanteForm, loadPaidBatches, showToast]);
+
+  // ── Lifecycle / Polling ───────────────────────────────────────────────
+
+  useEffect(() => {
+    initFromCache();
+
+    // Parallel initial load (Rule 1.1)
+    Promise.all([loadPendingOrders(), loadToPayOrders()]);
+
+    const interval = setInterval(() => {
+      if (activeTab === 'pending') loadPendingOrders();
+      else if (activeTab === 'to_pay') loadToPayOrders();
+      else if (activeTab === 'paid') loadPaidBatches();
+    }, POLLING_INTERVAL_MS);
+    pollingRef.current = interval;
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="space-y-6">
+
+          {/* ═══ Header ═══ */}
+          <header className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 pb-6">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={goBack} className="gap-2">
+                <ArrowLeftIcon className="size-4" />
+              </Button>
+              <ShoppingCartIcon className="size-8 text-emerald-500" />
+              <h1 className="text-2xl font-bold text-gray-900">GESTIÓN DE COMPRAS</h1>
+            </div>
+          </header>
+
+          {/* ═══ Stats Grid ═══ */}
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatsCard title="Pendientes" value={summaryStats.pendingCount} icon={<ClockIcon className="size-8" />} iconBg="bg-amber-100" iconColor="text-amber-600" />
+            <StatsCard title="Por Pagar" value={summaryStats.toPayCount} icon={<BanknotesIcon className="size-8" />} iconBg="bg-blue-100" iconColor="text-blue-600" />
+            <StatsCard title="Total Por Pagar" value={`S/ ${formatNumber(summaryStats.totalToPay)}`} icon={<CurrencyDollarIcon className="size-8" />} iconBg="bg-emerald-100" iconColor="text-emerald-600" />
+            <StatsCard title="Total Pagado" value={`S/ ${formatNumber(summaryStats.totalPaid)}`} icon={<CheckCircleIcon className="size-8" />} iconBg="bg-purple-100" iconColor="text-purple-600" />
+          </section>
+
+          {/* ═══ Tab Bar ═══ */}
+          <div className="flex gap-1 rounded-lg border border-gray-100 bg-white p-1" role="tablist" aria-label="Secciones de compras">
+            {[
+              { key: 'pending', label: 'Por Aprobar', count: pendingOrders.length, load: loadPendingOrders },
+              { key: 'to_pay', label: 'Por Pagar', count: orders.length, load: loadToPayOrders },
+              { key: 'paid', label: 'Pagadas', count: null, load: loadPaidBatches },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                role="tab"
+                aria-selected={activeTab === tab.key}
+                onClick={() => { setActiveTab(tab.key); tab.load(); }}
+                className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === tab.key
+                    ? 'bg-emerald-500 text-white'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {tab.label}
+                {tab.count !== null && (
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${
+                    activeTab === tab.key ? 'bg-white/20' : 'bg-gray-100 text-gray-500'
+                  }`}>{tab.count}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* ═══ TAB: Por Aprobar ═══ */}
+          {activeTab === 'pending' && (
+            <>
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <svg className="size-10 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <p className="mt-4 text-sm text-gray-500">Cargando órdenes...</p>
+                </div>
+              ) : pendingOrders.length === 0 ? (
+                <div className="rounded-lg border border-gray-100 bg-white p-12 text-center">
+                  <DocumentTextIcon className="mx-auto size-16 text-gray-300" />
+                  <h3 className="mt-4 text-lg font-semibold text-gray-900">No hay órdenes pendientes</h3>
+                  <p className="mt-2 text-sm text-gray-500">Las órdenes de compra aparecerán aquí cuando se creen desde Proyectos</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Bulk actions */}
+                  {selectedPendingIds.length > 0 && (
+                    <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                      <span className="text-sm font-medium text-emerald-700">{selectedPendingIds.length} seleccionados</span>
+                      <Button variant="primary" size="sm" onClick={openApprovalModal} disabled={approvingPending} loading={approvingPending}>
+                        {approvingPending ? 'Aprobando...' : 'Aprobar seleccionados'}
+                      </Button>
+                      <Button variant="secondary" size="sm" onClick={() => setSelectedPendingIds([])}>Cancelar</Button>
+                    </div>
+                  )}
+
+                  {/* Projects with collapsible lists */}
+                  <div className="space-y-3">
+                    {pendingProjects.map((proj) => (
+                      <div key={proj.id} className="overflow-hidden rounded-lg border border-gray-100 bg-white">
+                        {/* Project Header */}
+                        <button
+                          className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${
+                            expandedProjects[proj.id] ? 'bg-gray-50' : 'hover:bg-gray-50'
+                          }`}
+                          onClick={() => toggleProjectExpanded(proj.id)}
+                        >
+                          <ChevronRightIcon className={`size-4 shrink-0 text-gray-400 transition-transform ${expandedProjects[proj.id] ? 'rotate-90' : ''}`} />
+                          <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: getProjectColor(proj.id) }}>{proj.name}</span>
+                          <Badge variant="gray">{proj.count} items</Badge>
+                        </button>
+
+                        {/* Lists under project */}
+                        {expandedProjects[proj.id] && (
+                          <div className="border-t border-gray-100">
+                            {getProjectLists(proj.id).map((list) => (
+                              <div key={list.filename || 'manual'}>
+                                {/* List Header */}
+                                <button
+                                  className={`flex w-full items-center gap-3 border-b border-gray-50 px-6 py-2 text-left text-sm transition-colors hover:bg-gray-50 ${
+                                    expandedLists[getListKey(proj.id, list.filename)] ? 'bg-gray-50' : ''
+                                  }`}
+                                  onClick={() => toggleListExpanded(proj.id, list.filename)}
+                                >
+                                  <ChevronRightIcon className={`size-3.5 shrink-0 text-gray-400 transition-transform ${expandedLists[getListKey(proj.id, list.filename)] ? 'rotate-90' : ''}`} />
+                                  <DocumentTextIcon className="size-4 shrink-0 text-gray-400" />
+                                  <span className="truncate font-medium text-gray-600">{list.filename || 'Órdenes Manuales'}</span>
+                                  <Badge variant="gray">{list.count}</Badge>
+                                </button>
+
+                                {/* Materials table */}
+                                {expandedLists[getListKey(proj.id, list.filename)] && (
+                                  <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                      <thead className="bg-gray-50">
+                                        <tr className="*:px-3 *:py-2 *:text-left *:text-xs *:font-medium *:uppercase *:text-gray-500">
+                                          <th>ITEM</th><th>DESCRIPCIÓN</th><th>CANT</th><th>UND</th><th>DIÁMETRO</th><th>SERIE</th><th>MATERIAL</th><th className="text-right">ACCIONES</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-gray-100">
+                                        {getListOrders(proj.id, list.filename).map((order) => (
+                                          <tr
+                                            key={order.id}
+                                            className={`*:px-3 *:py-2 *:text-gray-700 cursor-pointer transition-colors ${
+                                              isPendingSelected(order.id) ? 'bg-emerald-50' : 'hover:bg-gray-50'
+                                            }`}
+                                            onClick={() => togglePendingSelect(order.id)}
+                                          >
+                                            <td className="font-medium">{order.item_number || '-'}</td>
+                                            <td className="max-w-[200px] truncate">{getOrderTitle(order)}</td>
+                                            <td>{getOrderQty(order)}</td>
+                                            <td>{order.unit || 'UND'}</td>
+                                            <td>{order.diameter || '-'}</td>
+                                            <td>{order.series || '-'}</td>
+                                            <td>{order.material_type || '-'}</td>
+                                            <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                                              <div className="flex justify-end gap-1">
+                                                <button onClick={() => approveSinglePending(order.id)} title="Aprobar" className="rounded p-1 text-emerald-500 transition-colors hover:bg-emerald-50">
+                                                  <CheckIcon className="size-4" />
+                                                </button>
+                                                <button onClick={() => rejectOrder(order.id)} title="Rechazar" className="rounded p-1 text-red-500 transition-colors hover:bg-red-50">
+                                                  <XMarkIcon className="size-4" />
+                                                </button>
+                                              </div>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ═══ TAB: Por Pagar ═══ */}
+          {activeTab === 'to_pay' && (
+            <>
+              {/* Search and Filters Bar */}
+              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-100 bg-white px-4 py-3">
+                <div className="relative flex-1 min-w-[200px]">
+                  <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    value={toPaySearch}
+                    onChange={(e) => setToPaySearch(e.target.value)}
+                    type="text"
+                    placeholder="Buscar por proveedor..."
+                    className="w-full rounded border border-gray-300 py-2 pl-9 pr-3 text-sm shadow-sm transition-colors focus:border-emerald-500 focus:ring-emerald-500"
+                  />
+                </div>
+                <select value={toPayFilterProject} onChange={(e) => setToPayFilterProject(e.target.value)} className="rounded border border-gray-300 px-3 py-2 text-sm shadow-sm">
+                  <option value="">Todos proyectos</option>
+                  {toPayProjects.map((proj) => (
+                    <option key={proj.id} value={proj.id}>{proj.name}</option>
+                  ))}
+                </select>
+                <select value={toPayFilterCurrency} onChange={(e) => setToPayFilterCurrency(e.target.value)} className="rounded border border-gray-300 px-3 py-2 text-sm shadow-sm">
+                  <option value="">Moneda</option>
+                  <option value="PEN">PEN</option>
+                  <option value="USD">USD</option>
+                </select>
+                <select value={toPayFilterPaymentType} onChange={(e) => setToPayFilterPaymentType(e.target.value)} className="rounded border border-gray-300 px-3 py-2 text-sm shadow-sm">
+                  <option value="">Tipo pago</option>
+                  <option value="cash">Contado</option>
+                  <option value="loan">Crédito</option>
+                </select>
+                <select value={toPayFilterIgv} onChange={(e) => setToPayFilterIgv(e.target.value)} className="rounded border border-gray-300 px-3 py-2 text-sm shadow-sm">
+                  <option value="">IGV</option>
+                  <option value="true">Con IGV</option>
+                  <option value="false">Sin IGV</option>
+                </select>
+                <Button variant="primary" size="sm" onClick={openQuickPayModal} className="ml-auto gap-2">
+                  <CurrencyDollarIcon className="size-4" />
+                  Pago Rápido
+                </Button>
+              </div>
+
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <svg className="size-10 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <p className="mt-4 text-sm text-gray-500">Cargando órdenes...</p>
+                </div>
+              ) : filteredToPayBatches.length === 0 ? (
+                <div className="rounded-lg border border-gray-100 bg-white p-12 text-center">
+                  <DocumentTextIcon className="mx-auto size-16 text-gray-300" />
+                  <h3 className="mt-4 text-lg font-semibold text-gray-900">No hay órdenes por pagar</h3>
+                  <p className="mt-2 text-sm text-gray-500">Las órdenes aprobadas aparecerán aquí para registrar el pago</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredToPayBatches.map((batch) => {
+                    const alertStatus = getPaymentAlertStatus(batch);
+                    return (
+                      <div
+                        key={batch.batch_id}
+                        className={`overflow-hidden rounded-lg border bg-white transition-shadow hover:shadow-md ${
+                          alertStatus === 'overdue' ? 'border-red-300' :
+                          alertStatus === 'today' ? 'border-amber-300' :
+                          alertStatus === 'urgent' ? 'border-orange-300' :
+                          'border-gray-100'
+                        }`}
+                      >
+                        {/* Batch Header */}
+                        <button
+                          onClick={() => toggleToPayBatchExpanded(batch.batch_id)}
+                          className={`flex w-full flex-wrap items-center gap-2 px-4 py-3 text-left text-sm transition-colors ${
+                            expandedToPayBatches[batch.batch_id] ? 'bg-gray-50' : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <ChevronDownIcon className={`size-4 shrink-0 text-gray-400 transition-transform ${expandedToPayBatches[batch.batch_id] ? 'rotate-180' : ''}`} />
+                          <span className="font-mono text-xs text-gray-400">{batch.batch_id}</span>
+                          <span className="font-medium text-gray-700 truncate">Proveedor: {batch.seller_name}</span>
+                          <Badge variant="gray">{batch.orders.length} items</Badge>
+                          {batch.payment_type === 'loan'
+                            ? <Badge variant="purple">CRÉDITO</Badge>
+                            : <Badge variant="emerald">CONTADO</Badge>
+                          }
+                          <Badge variant={batch.currency === 'PEN' ? 'blue' : 'amber'}>{batch.currency}</Badge>
+                          {batch.igv_enabled && <Badge variant="cyan">+IGV</Badge>}
+                          {batch.payment_type === 'loan' && alertStatus && alertStatus !== 'normal' && (
+                            <Badge variant={alertStatus === 'overdue' ? 'red' : alertStatus === 'today' ? 'red' : 'amber'}>
+                              <ClockIcon className="mr-1 size-3" />
+                              {getAlertLabel(batch)}
+                            </Badge>
+                          )}
+                          <span className="ml-auto font-semibold text-gray-900">{batch.currency} {formatNumber((batch.total_with_igv ?? batch.total) || 0)}</span>
+                        </button>
+
+                        {/* Expanded Content */}
+                        {expandedToPayBatches[batch.batch_id] && (
+                          <div className="border-t border-gray-100">
+                            <div className="flex flex-wrap gap-3 px-4 py-2 text-xs text-gray-500">
+                              {batch.approved_by_name && <span>Aprobado por: {batch.approved_by_name}</span>}
+                              <span>Aprobado {formatDate(batch.approved_at)}</span>
+                              {batch.issue_date && <span>Emisión {formatDate(batch.issue_date)}</span>}
+                              {batch.due_date && <span>Vence {formatDate(batch.due_date)}</span>}
+                            </div>
+
+                            <div className="divide-y divide-gray-50 px-4">
+                              {batch.orders.map((order) => (
+                                <div key={order.id} className="flex items-center gap-3 py-2 text-sm">
+                                  <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{order.project_name}</span>
+                                  <span className="flex-1 truncate text-gray-700">{getOrderTitle(order)}</span>
+                                  <span className="text-gray-500">Cant: {getOrderQty(order)}</span>
+                                  <span className="font-medium text-gray-900">{batch.currency} {formatNumber((order.amount_with_igv ?? order.amount) || 0)}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3">
+                              <span className="text-sm font-semibold text-gray-900">
+                                Total: {batch.currency} {formatNumber((batch.total_with_igv ?? batch.total) || 0)}
+                              </span>
+                              <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); openPaymentModal(batch); }}>
+                                Pagar
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ═══ TAB: Pagadas ═══ */}
+          {activeTab === 'paid' && (
+            <>
+              {paidBatches.length > 0 && (
+                <div className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-100 bg-white px-4 py-3">
+                  <span className="text-sm text-gray-500">Desde:</span>
+                  <input value={paidFilterStartDate} onChange={(e) => setPaidFilterStartDate(e.target.value)} type="date" className="rounded border border-gray-300 px-2 py-1 text-sm shadow-sm" />
+                  <span className="text-sm text-gray-500">Hasta:</span>
+                  <input value={paidFilterEndDate} onChange={(e) => setPaidFilterEndDate(e.target.value)} type="date" className="rounded border border-gray-300 px-2 py-1 text-sm shadow-sm" />
+                  {(paidFilterStartDate || paidFilterEndDate) && (
+                    <Button variant="ghost" size="sm" onClick={resetPaidFilter}>Limpiar</Button>
+                  )}
+                  <Button variant="secondary" size="sm" onClick={openExportModal} className="ml-auto gap-2">
+                    <ArrowDownTrayIcon className="size-4" />
+                    Exportar Registro
+                  </Button>
+                </div>
+              )}
+
+              {paidBatches.length === 0 ? (
+                <div className="rounded-lg border border-gray-100 bg-white p-12 text-center">
+                  <DocumentTextIcon className="mx-auto size-16 text-gray-300" />
+                  <h3 className="mt-4 text-lg font-semibold text-gray-900">No hay compras pagadas</h3>
+                  <p className="mt-2 text-sm text-gray-500">Las compras con pago confirmado aparecerán aquí</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredPaidBatches.map((batch) => (
+                    <div key={batch.batch_id} className="overflow-hidden rounded-lg border border-gray-100 bg-white transition-shadow hover:shadow-md">
+                      {/* Header */}
+                      <button
+                        onClick={() => togglePaidBatchExpanded(batch.batch_id)}
+                        className={`flex w-full flex-wrap items-center gap-2 px-4 py-3 text-left text-sm transition-colors ${
+                          expandedPaidBatches[batch.batch_id] ? 'bg-gray-50' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <ChevronDownIcon className={`size-4 shrink-0 text-gray-400 transition-transform ${expandedPaidBatches[batch.batch_id] ? 'rotate-180' : ''}`} />
+                        <span className="font-mono text-xs text-gray-400">{batch.batch_id}</span>
+                        <span className="font-medium text-gray-700 truncate">{batch.seller_name}</span>
+                        {batchAllDelivered(batch)
+                          ? <Badge variant="emerald" dot>Entregado</Badge>
+                          : <Badge variant="blue" dot>Pagado</Badge>
+                        }
+                        {batchMissingComprobante(batch) && (
+                          <Badge variant="warning">
+                            <ExclamationTriangleIcon className="mr-1 size-3" />
+                            Sin comprobante
+                          </Badge>
+                        )}
+                        <Badge variant="gray">{batch.orders.length} items</Badge>
+                        <span className="ml-auto font-semibold text-gray-900">{batch.currency} {formatNumber(batch.total)}</span>
+                        {!batchMissingComprobante(batch) && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openEditComprobante(batch); }}
+                            className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                            title="Editar Comprobante"
+                          >
+                            <PencilSquareIcon className="size-4" />
+                          </button>
+                        )}
+                      </button>
+
+                      {/* Expanded */}
+                      {expandedPaidBatches[batch.batch_id] && (
+                        <div className="border-t border-gray-100">
+                          <div className="flex flex-wrap gap-2 px-4 py-2 text-xs">
+                            <span className="text-gray-500">Pagado {formatDate(batch.payment_confirmed_at)}</span>
+                            {batch.issue_date && <span className="text-gray-500">Emisión {formatDate(batch.issue_date)}</span>}
+                            <Badge variant={batch.currency === 'PEN' ? 'blue' : 'amber'}>{batch.currency}</Badge>
+                            <Badge variant={batch.payment_type === 'cash' ? 'emerald' : 'purple'}>
+                              {batch.payment_type === 'cash' ? 'Contado' : 'Crédito'}
+                            </Badge>
+                            {batch.igv_enabled ? <Badge variant="cyan">Con IGV</Badge> : <Badge variant="gray">Sin IGV</Badge>}
+                            {batch.approved_by_name && <span className="text-gray-400">Aprobado por: {batch.approved_by_name}</span>}
+                            {batch.payment_confirmed_by_name && <span className="text-gray-400">Pagado por: {batch.payment_confirmed_by_name}</span>}
+                          </div>
+
+                          <div className="divide-y divide-gray-50 px-4">
+                            {batch.orders.map((order) => (
+                              <div key={order.id} className="flex items-center gap-3 py-2 text-sm">
+                                <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{order.project_name}</span>
+                                <span className="flex-1 truncate text-gray-700">{getOrderTitle(order)}</span>
+                                <span className="text-gray-500">Cant: {getOrderQty(order)}</span>
+                                <span className="font-medium text-gray-900">{order.currency} {formatNumber(order.amount)}</span>
+                                {order.delivery_confirmed && <Badge variant="emerald">Entregado</Badge>}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Comprobante Alert / Details */}
+                          <div className="border-t border-gray-100 px-4 py-3">
+                            {batchMissingComprobante(batch) && (
+                              <div className="mb-3 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                <ExclamationTriangleIcon className="size-5 text-amber-500 shrink-0" />
+                                <span className="flex-1 text-sm text-amber-700">Faltan datos del comprobante de pago</span>
+                                <Button variant="warning" size="sm" onClick={(e) => { e.stopPropagation(); openEditComprobante(batch); }} className="gap-1.5">
+                                  <PencilSquareIcon className="size-3.5" />
+                                  Completar
+                                </Button>
+                              </div>
+                            )}
+                            {(batch.cdp_type || batch.cdp_serie) && (
+                              <div className="flex gap-4 text-sm">
+                                <span className="text-gray-500">Comprobante:</span>
+                                <span className="text-gray-700">{batch.cdp_type} {batch.cdp_serie}-{batch.cdp_number}</span>
+                              </div>
+                            )}
+                            {batch.payment_proof_link && (
+                              <div className="flex gap-4 text-sm mt-1">
+                                <span className="text-gray-500">Link Factura:</span>
+                                <a href={batch.payment_proof_link} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-700 underline">{batch.payment_proof_link}</a>
+                              </div>
+                            )}
+                            {batch.payment_proof && (
+                              <div className="flex gap-4 text-sm mt-1">
+                                <span className="text-gray-500">Archivo:</span>
+                                <a href={`/storage/${batch.payment_proof}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-700 underline">Descargar</a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+        </div>
+      </div>
+
+      {/* ═══════════════════ MODALS ═══════════════════ */}
+
+      {/* Approval Pricing Modal */}
+      <Modal
+        open={showApprovalModal}
+        onClose={closeApprovalModal}
+        title={`Enviar ${selectedApprovalOrdersData.length} Órdenes a Por Pagar`}
+        titleIcon={<CheckCircleIcon className="size-5 text-emerald-500" />}
+        size="lg"
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeApprovalModal}>Cancelar</Button>
+            <Button variant="primary" onClick={submitApprovalPending} disabled={!canSubmitApproval || approvingPending} loading={approvingPending}>
+              {approvingPending ? 'Procesando...' : `Enviar ${selectedApprovalOrdersData.length} a Por Pagar`}
+            </Button>
+          </>
+        }
+      >
+        {/* Seller & Billing Info */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-semibold text-gray-900">Datos de Facturación</h4>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Input label="Proveedor *" value={approvalForm.seller_name} onChange={(e) => setApprovalForm((p) => ({ ...p, seller_name: e.target.value }))} placeholder="Nombre o Razón Social" className="sm:col-span-2" />
+            <Input label="RUC/DNI" value={approvalForm.seller_document} onChange={(e) => setApprovalForm((p) => ({ ...p, seller_document: e.target.value }))} placeholder="20123456789" />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Select label="Tipo de Pago *" value={approvalForm.payment_type} onChange={(e) => setApprovalForm((p) => ({ ...p, payment_type: e.target.value }))} placeholder="">
+              <option value="cash">Pago Directo</option>
+              <option value="loan">Pago a Crédito</option>
+            </Select>
+            <Select label="Moneda" value={approvalForm.currency} onChange={(e) => { setApprovalForm((p) => ({ ...p, currency: e.target.value })); onApprovalCurrencyChange(); }} placeholder="">
+              <option value="PEN">PEN - Soles</option>
+              <option value="USD">USD - Dólares</option>
+            </Select>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Input label="Fecha Emisión" type="date" value={approvalForm.issue_date} onChange={(e) => setApprovalForm((p) => ({ ...p, issue_date: e.target.value }))} />
+            {approvalForm.payment_type === 'loan' && (
+              <Input label="Fecha Vencimiento" type="date" value={approvalForm.due_date} onChange={(e) => setApprovalForm((p) => ({ ...p, due_date: e.target.value }))} />
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" checked={approvalForm.igv_enabled} onChange={(e) => setApprovalForm((p) => ({ ...p, igv_enabled: e.target.checked }))} className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+              Aplicar IGV
+            </label>
+            {approvalForm.igv_enabled && (
+              <Input label="Tasa IGV (%)" type="number" step="0.01" value={approvalForm.igv_rate} onChange={(e) => setApprovalForm((p) => ({ ...p, igv_rate: parseFloat(e.target.value) || 0 }))} className="w-32" />
+            )}
+          </div>
+
+          {/* Exchange Rate */}
+          {approvalForm.currency === 'USD' && (
+            <div className="rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700">
+              {loadingRate ? 'Obteniendo tipo de cambio...' : currentExchangeRate > 0 ? `T.C: 1 USD = S/ ${currentExchangeRate.toFixed(4)}` : <span className="text-red-600">No se pudo obtener tipo de cambio</span>}
+            </div>
+          )}
+
+          {/* Materials Pricing */}
+          <h4 className="text-sm font-semibold text-gray-900 pt-2">Precios por Material</h4>
+          <div className="space-y-2">
+            {selectedApprovalOrdersData.map((order) => (
+              <div key={order.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-100 p-3">
+                <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{order.project_name}</span>
+                <span className="flex-1 text-sm text-gray-700 truncate">{getOrderTitle(order)}</span>
+                <span className="text-xs text-gray-500">{getOrderQty(order)}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-gray-500">{approvalForm.currency === 'USD' ? '$' : 'S/'}</span>
+                  <input
+                    value={approvalPrices[order.id] ?? ''}
+                    onChange={(e) => setApprovalPrices((p) => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
+                    type="number" step="0.01" min="0"
+                    className="w-28 rounded border border-gray-300 px-2 py-1 text-right text-sm shadow-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Totals */}
+          <div className="space-y-1 rounded-lg bg-gray-50 p-4 text-sm">
+            <div className="flex justify-between font-medium">
+              <span className="flex items-center gap-2"><CurrencyDollarIcon className="size-4" /> Gasto Real:</span>
+              <span>{approvalForm.currency === 'USD' ? '$' : 'S/'} {formatNumber(approvalCashflowTotal)}</span>
+            </div>
+            {approvalForm.igv_enabled && approvalCashflowTotal > 0 && (
+              <>
+                <div className="flex justify-between text-gray-500">
+                  <span>IGV ({approvalForm.igv_rate}%):</span>
+                  <span>{approvalForm.currency === 'USD' ? '$' : 'S/'} {formatNumber(approvalIgv)}</span>
+                </div>
+                <div className="flex justify-between border-t border-gray-200 pt-1 font-semibold text-gray-900">
+                  <span>Total con IGV:</span>
+                  <span>{approvalForm.currency === 'USD' ? '$' : 'S/'} {formatNumber(approvalTotal)}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Bulk Approve Modal */}
+      <Modal
+        open={showBulkModal}
+        onClose={closeBulkModal}
+        title={`Pagar ${selectedOrdersData.length} Órdenes`}
+        titleIcon={<BanknotesIcon className="size-5 text-emerald-500" />}
+        size="lg"
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeBulkModal}>Cancelar</Button>
+            <Button variant="primary" onClick={submitBulkApprove} disabled={!canSubmitBulk || approving} loading={approving}>
+              {approving ? 'Pagando...' : `Pagar ${selectedOrdersData.length} Órdenes`}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <h4 className="text-sm font-semibold text-gray-900">Datos de Facturación</h4>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Input label="Proveedor *" value={bulkForm.seller_name} onChange={(e) => setBulkForm((p) => ({ ...p, seller_name: e.target.value }))} placeholder="Nombre o Razón Social" className="sm:col-span-2" />
+            <Input label="RUC/DNI" value={bulkForm.seller_document} onChange={(e) => setBulkForm((p) => ({ ...p, seller_document: e.target.value }))} placeholder="20123456789" />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+            <Select label="Moneda" value={bulkForm.currency} onChange={(e) => { setBulkForm((p) => ({ ...p, currency: e.target.value })); onCurrencyChange(); }} placeholder="">
+              <option value="PEN">PEN - Soles</option>
+              <option value="USD">USD - Dólares</option>
+            </Select>
+            <Input label="Fecha Emisión" type="date" value={bulkForm.issue_date} onChange={(e) => setBulkForm((p) => ({ ...p, issue_date: e.target.value }))} />
+            <Select label="Tipo Pago" value={bulkForm.payment_type} onChange={(e) => setBulkForm((p) => ({ ...p, payment_type: e.target.value }))} placeholder="">
+              <option value="cash">Contado</option>
+              <option value="loan">Crédito</option>
+            </Select>
+            <Input label={bulkForm.payment_type === 'cash' ? 'F. Pago' : 'F. Vencimiento'} type="date" value={bulkForm.date_value} onChange={(e) => setBulkForm((p) => ({ ...p, date_value: e.target.value }))} />
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" checked={bulkForm.igv_enabled} onChange={(e) => setBulkForm((p) => ({ ...p, igv_enabled: e.target.checked }))} className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+              Aplicar IGV
+            </label>
+            {bulkForm.igv_enabled && (
+              <Input label="Tasa IGV (%)" type="number" step="0.01" value={bulkForm.igv_rate} onChange={(e) => setBulkForm((p) => ({ ...p, igv_rate: parseFloat(e.target.value) || 0 }))} className="w-32" />
+            )}
+          </div>
+
+          {bulkForm.currency === 'USD' && (
+            <div className="rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700">
+              {loadingRate ? 'Obteniendo tipo de cambio...' : currentExchangeRate > 0 ? `T.C: 1 USD = S/ ${currentExchangeRate.toFixed(4)}` : <span className="text-red-600">No se pudo obtener tipo de cambio</span>}
+            </div>
+          )}
+
+          <h4 className="text-sm font-semibold text-gray-900 pt-2">Precios por Material</h4>
+          <div className="space-y-2">
+            {selectedOrdersData.map((order) => (
+              <div key={order.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-100 p-3">
+                <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{order.project_name}</span>
+                <span className="flex-1 text-sm text-gray-700 truncate">{getOrderTitle(order)}</span>
+                <span className="text-xs text-gray-500">{getOrderQty(order)}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-gray-500">{bulkForm.currency === 'USD' ? '$' : 'S/'}</span>
+                  <input
+                    value={prices[order.id] ?? ''}
+                    onChange={(e) => setPrices((p) => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
+                    type="number" step="0.01" min="0.01"
+                    className="w-28 rounded border border-gray-300 px-2 py-1 text-right text-sm shadow-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-1 rounded-lg bg-gray-50 p-4 text-sm">
+            {bulkForm.igv_enabled && (
+              <div className="flex justify-between text-gray-500">
+                <span>IGV ({bulkForm.igv_rate}%):</span>
+                <span>{bulkForm.currency === 'USD' ? '$' : 'S/'} {formatNumber(bulkIgv)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-semibold text-gray-900">
+              <span>TOTAL:</span>
+              <span>{bulkForm.currency === 'USD' ? '$' : 'S/'} {formatNumber(bulkTotal)}</span>
+            </div>
+            {bulkForm.currency === 'USD' && currentExchangeRate > 0 && (
+              <div className="flex justify-between text-gray-500">
+                <span>Equivalente en Soles:</span>
+                <span>S/ {formatNumber(bulkTotalPen)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Payment Modal */}
+      <Modal
+        open={showPaymentModal}
+        onClose={closePaymentModal}
+        title="CONFIRMAR PAGO"
+        titleIcon={<BanknotesIcon className="size-5 text-emerald-500" />}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closePaymentModal}>Cancelar</Button>
+            <Button variant="primary" onClick={confirmPayment} disabled={confirmingPayment} loading={confirmingPayment}>
+              {confirmingPayment ? 'Confirmando...' : 'Confirmar Pago'}
+            </Button>
+          </>
+        }
+      >
+        {paymentBatch && (
+          <div className="space-y-4">
+            {paymentBatch.igv_enabled && <Badge variant="cyan" className="mb-2">+IGV</Badge>}
+            <div className="rounded-lg bg-gray-50 p-4 space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-gray-500">Lote:</span><span className="font-medium text-gray-900">{paymentBatch.batch_id}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Proveedor:</span><span className="font-medium text-gray-900">{paymentBatch.seller_name}</span></div>
+              <div className="flex justify-between border-t border-gray-200 pt-2"><span className="text-gray-500">Total:</span><span className="text-lg font-bold text-emerald-600">{paymentBatch.currency} {formatNumber(paymentBatch.total)}</span></div>
+            </div>
+
+            <h4 className="text-sm font-semibold text-gray-900">Datos del Comprobante (opcional)</h4>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="Tipo CP" value={paymentForm.cdp_type} onChange={(e) => setPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} placeholder="01, 03" />
+              <Input label="Serie" value={paymentForm.cdp_serie} onChange={(e) => setPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} placeholder="F001" />
+              <Input label="Número" value={paymentForm.cdp_number} onChange={(e) => setPaymentForm((p) => ({ ...p, cdp_number: e.target.value }))} placeholder="00001234" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-0.5">Comprobante (opcional)</label>
+              <input type="file" onChange={onPaymentProofChange} accept="image/*,.pdf" className="block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200" />
+            </div>
+            <Input label="Link de comprobante (opcional)" type="url" value={paymentForm.payment_proof_link} onChange={(e) => setPaymentForm((p) => ({ ...p, payment_proof_link: e.target.value }))} placeholder="https://..." />
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit Comprobante Modal */}
+      <Modal
+        open={showEditComprobanteModal}
+        onClose={closeEditComprobante}
+        title="EDITAR COMPROBANTE"
+        titleIcon={<PencilSquareIcon className="size-5 text-emerald-500" />}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeEditComprobante}>Cancelar</Button>
+            <Button variant="primary" onClick={saveComprobante} disabled={savingComprobante} loading={savingComprobante}>
+              {savingComprobante ? 'Guardando...' : 'Guardar Comprobante'}
+            </Button>
+          </>
+        }
+      >
+        {editComprobanteBatch && (
+          <div className="space-y-4">
+            <div className="rounded-lg bg-gray-50 p-4 space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-gray-500">Lote:</span><span className="font-medium text-gray-900">{editComprobanteBatch.batch_id}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Proveedor:</span><span className="font-medium text-gray-900">{editComprobanteBatch.seller_name}</span></div>
+              <div className="flex justify-between border-t border-gray-200 pt-2"><span className="text-gray-500">Total:</span><span className="text-lg font-bold text-emerald-600">{editComprobanteBatch.currency} {formatNumber(editComprobanteBatch.total)}</span></div>
+            </div>
+
+            <h4 className="text-sm font-semibold text-gray-900">Datos del Comprobante *</h4>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="Tipo CP *" value={editComprobanteForm.cdp_type} onChange={(e) => setEditComprobanteForm((p) => ({ ...p, cdp_type: e.target.value }))} placeholder="01, 03" required />
+              <Input label="Serie *" value={editComprobanteForm.cdp_serie} onChange={(e) => setEditComprobanteForm((p) => ({ ...p, cdp_serie: e.target.value }))} placeholder="F001" required />
+              <Input label="Número *" value={editComprobanteForm.cdp_number} onChange={(e) => setEditComprobanteForm((p) => ({ ...p, cdp_number: e.target.value }))} placeholder="00001234" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-0.5">Comprobante (archivo)</label>
+              <input type="file" onChange={onEditComprobanteFileChange} accept="image/*,.pdf" className="block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200" />
+            </div>
+            <Input label="Link de comprobante (opcional)" type="url" value={editComprobanteForm.payment_proof_link} onChange={(e) => setEditComprobanteForm((p) => ({ ...p, payment_proof_link: e.target.value }))} placeholder="https://..." />
+          </div>
+        )}
+      </Modal>
+
+      {/* Quick Pay Modal */}
+      <Modal
+        open={showQuickPayModal}
+        onClose={closeQuickPayModal}
+        title="PAGO RÁPIDO"
+        titleIcon={<CurrencyDollarIcon className="size-5 text-emerald-500" />}
+        size="lg"
+        footer={
+          <>
+            <Button variant="danger" onClick={closeQuickPayModal}>Cancelar</Button>
+            {quickPayStep > 1 && <Button variant="secondary" onClick={() => setQuickPayStep((s) => s - 1)}>Atrás</Button>}
+            {quickPayStep < 3 && <Button variant="primary" onClick={proceedToQuickPayReview}>Siguiente</Button>}
+            {quickPayStep === 3 && (
+              <Button variant="primary" onClick={completeQuickPay} disabled={quickPayLoading} loading={quickPayLoading}>
+                {quickPayLoading ? 'Procesando...' : 'Confirmar Pago Rápido'}
+              </Button>
+            )}
+          </>
+        }
+      >
+        <div>
+          <p className="mb-4 text-sm text-gray-500">Registra una compra al instante sin pasar por aprobaciones del jefe de proyectos ni esperar autorización de pago</p>
+
+          {/* Step 1: Select Project */}
+          {quickPayStep === 1 && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-gray-900">Selecciona un Proyecto</h4>
+              {quickPayAvailableProjects.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">No hay proyectos disponibles</p>
+              ) : (
+                <div className="space-y-2">
+                  {quickPayAvailableProjects.map((project) => (
+                    <button
+                      key={project.id}
+                      type="button"
+                      onClick={() => selectProjectForQuickPay(project)}
+                      className="flex w-full items-center justify-between rounded-lg border border-gray-100 p-4 text-left transition-colors hover:bg-gray-50 hover:border-emerald-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="size-3 rounded-full" style={{ background: getProjectColor(project.id) }} />
+                        <span className="font-medium text-gray-900">{project.name}</span>
+                      </div>
+                      <Badge variant="amber" border>{project.currency}</Badge>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 2: Add Items */}
+          {quickPayStep === 2 && quickPaySelectedProject && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Proyecto:</span>
+                <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: getProjectColor(quickPaySelectedProject.id) }}>{quickPaySelectedProject.name}</span>
+              </div>
+
+              <div className="rounded-lg border border-gray-100 p-4 space-y-3">
+                <h5 className="text-sm font-semibold text-gray-900">Agregar Material</h5>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <Input label="Descripción *" value={quickPayMaterialForm.description} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, description: e.target.value }))} placeholder="Ej: BRIDA ANILLO" />
+                  <Input label="Cantidad" type="number" min="1" value={quickPayMaterialForm.qty} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, qty: parseInt(e.target.value) || 1 }))} />
+                  <Input label="Unidad" value={quickPayMaterialForm.unit} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, unit: e.target.value }))} placeholder="UND" />
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <Input label="Diámetro" value={quickPayMaterialForm.diameter} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, diameter: e.target.value }))} placeholder={'Φ1/2 INCH'} />
+                  <Input label="Serie" value={quickPayMaterialForm.series} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, series: e.target.value }))} placeholder="CLASE 150" />
+                  <Input label="Material" value={quickPayMaterialForm.material_type} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, material_type: e.target.value }))} placeholder="ACERO INOX" />
+                </div>
+                <Button variant="primary" size="sm" onClick={addQuickPayItem} className="gap-1.5">
+                  <PlusIcon className="size-4" />
+                  Agregar Item
+                </Button>
+              </div>
+
+              {quickPayItems.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-sm font-semibold text-gray-900">Items Agregados</h5>
+                  {quickPayItems.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{item.description}</p>
+                        <p className="text-xs text-gray-500">
+                          Cant: {item.qty} · Und: {item.unit}
+                          {item.diameter && ` · Φ: ${item.diameter}`}
+                          {item.series && ` · Serie: ${item.series}`}
+                          {item.material_type && ` · Mat: ${item.material_type}`}
+                        </p>
+                      </div>
+                      <button onClick={() => removeQuickPayItem(idx)} className="rounded p-1 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600">
+                        <XMarkIcon className="size-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Review & Pay */}
+          {quickPayStep === 3 && (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Left: Items & Pricing */}
+              <div className="rounded-lg border border-gray-100 p-4 space-y-3">
+                <h5 className="text-sm font-semibold text-gray-900">Items a Pagar</h5>
+                <div className="space-y-2">
+                  {quickPayItems.map((item, idx) => (
+                    <div key={idx} className="rounded border border-gray-50 p-3 space-y-2">
+                      <p className="text-sm font-medium text-gray-900">{item.description}</p>
+                      <p className="text-xs text-gray-500">Cant: {item.qty} · Und: {item.unit}</p>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-500">Precio x Und:</label>
+                        <input value={item.price || ''} onChange={(e) => updateQuickPayItemPrice(idx, e.target.value)} type="number" min="0" step="0.01" className="w-24 rounded border border-gray-300 px-2 py-1 text-right text-sm shadow-sm" placeholder="0.00" />
+                        <span className="text-sm font-medium text-gray-700">S/ {formatNumber(item.subtotal)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between border-t border-gray-200 pt-2 text-sm font-semibold text-gray-900">
+                  <span>Total:</span>
+                  <span>S/ {formatNumber(quickPaySubtotal)}</span>
+                </div>
+              </div>
+
+              {/* Right: Supplier & Payment Info */}
+              <div className="space-y-4">
+                <div className="rounded-lg border border-gray-100 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-sm font-semibold text-gray-900">Datos del Proveedor</h5>
+                    <Badge variant="warning">{AlertIcon} OBLIGATORIO</Badge>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Input label="Proveedor *" value={quickPayApprovalForm.seller_name} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, seller_name: e.target.value }))} placeholder="Razón social" />
+                    <Input label="RUC *" value={quickPayApprovalForm.seller_document} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, seller_document: e.target.value }))} placeholder="201..." />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <Select label="Moneda" value={quickPayApprovalForm.currency} onChange={(e) => { setQuickPayApprovalForm((p) => ({ ...p, currency: e.target.value })); onQuickPayApprovalCurrencyChange(); }} placeholder="">
+                      <option value="PEN">Soles</option>
+                      <option value="USD">Dólares</option>
+                    </Select>
+                    <Select label="Tipo Pago" value={quickPayApprovalForm.payment_type} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, payment_type: e.target.value }))} placeholder="">
+                      <option value="cash">Al Contado</option>
+                      <option value="loan">Crédito</option>
+                    </Select>
+                    <Input label="Emisión" type="date" value={quickPayApprovalForm.issue_date} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, issue_date: e.target.value }))} />
+                  </div>
+                  {quickPayApprovalForm.payment_type === 'loan' && (
+                    <Input label="Vencimiento" type="date" value={quickPayApprovalForm.due_date} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, due_date: e.target.value }))} className="w-1/3" />
+                  )}
+                </div>
+
+                <div className="rounded-lg border border-gray-100 p-4 space-y-3">
+                  <h5 className="text-sm font-semibold text-gray-900">Comprobante (Opcional)</h5>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input label="Tipo" value={quickPayPaymentForm.cdp_type} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} placeholder="01" />
+                    <Input label="Serie" value={quickPayPaymentForm.cdp_serie} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} placeholder="F001" />
+                    <Input label="Número" value={quickPayPaymentForm.cdp_number} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_number: e.target.value }))} placeholder="1234" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-0.5">Archivo</label>
+                    <input type="file" onChange={onQuickPayProofChange} accept="image/*,.pdf" className="block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200" />
+                  </div>
+                  <Input label="Link" type="url" value={quickPayPaymentForm.payment_proof_link} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, payment_proof_link: e.target.value }))} placeholder="https://..." />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Export Modal */}
+      <Modal
+        open={showExportModal}
+        onClose={closeExportModal}
+        title="Exportar Registro de Compras"
+        titleIcon={<ArrowDownTrayIcon className="size-5 text-emerald-500" />}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeExportModal}>Cancelar</Button>
+            <Button variant="primary" onClick={exportPaidExcelWithFilter}>Exportar Excel</Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Período Predefinido:</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: '7days', label: 'Últimos 7 días' },
+                { key: '30days', label: 'Últimos 30 días' },
+                { key: '90days', label: 'Últimos 90 días' },
+                { key: 'custom', label: 'Personalizado' },
+              ].map((p) => (
+                <button
+                  key={p.key}
+                  onClick={() => setExportPreset(p.key)}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                    exportFilter.preset === p.key
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {exportFilter.preset === 'custom' && (
+            <div className="flex items-center gap-3">
+              <Input label="Desde" type="date" value={exportFilter.startDate} onChange={(e) => setExportFilter((p) => ({ ...p, startDate: e.target.value }))} />
+              <Input label="Hasta" type="date" value={exportFilter.endDate} onChange={(e) => setExportFilter((p) => ({ ...p, endDate: e.target.value }))} />
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Toast */}
+      <Toast show={toast.show} message={toast.message} type={toast.type} onHide={() => setToast((p) => ({ ...p, show: false }))} />
+    </div>
+  );
+}

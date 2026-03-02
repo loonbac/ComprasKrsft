@@ -1,0 +1,648 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - INVENTARIO, SPLIT Y PRECIOS DUALES
+   HyperUI Adaptation v6.0.0 - Feb 2026
+   ============================================ */
+
+/* ── Consulta de Inventario ── */
+.pricing-row-container {
+  margin-bottom: 12px;
+}
+
+.pricing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--compras-gray-50);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-md);
+  gap: 12px;
+}
+
+.pricing-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Botón Buscar en Almacén — HyperUI: bg-blue-600 */
+.btn-inventory-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: var(--compras-info);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+  white-space: nowrap;
+}
+
+.btn-inventory-search svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.btn-inventory-search:hover {
+  background: var(--compras-info-dark);
+  box-shadow: var(--compras-shadow-md);
+}
+
+.btn-inventory-search.active {
+  background: var(--compras-info-dark);
+}
+
+.btn-inventory-search:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Con coincidencia — emerald */
+.btn-inventory-search.has-match {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--compras-success);
+  color: var(--compras-success-dark);
+}
+
+.btn-inventory-search.has-match:hover {
+  background: rgba(16, 185, 129, 0.18);
+}
+
+.pricing-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+/* Input bloqueado por inventario */
+.pricing-input .price-input.locked {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: var(--compras-info);
+  color: var(--compras-info);
+  font-weight: 600;
+}
+
+/* Precio con split activo */
+.price-input.split-price {
+  border-color: var(--compras-warning) !important;
+  background: rgba(245, 158, 11, 0.05) !important;
+}
+
+/* Badge de fuente de precio — HyperUI 1.5 */
+.price-source {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--compras-radius-full);
+  white-space: nowrap;
+}
+
+.price-source.inventory {
+  background: var(--compras-info-bg);
+  color: var(--compras-info-text);
+}
+
+.price-source.new-purchase {
+  background: var(--compras-success-bg);
+  color: var(--compras-success-text);
+}
+
+.price-source.split {
+  background: var(--compras-badge-warning-bg);
+  color: var(--compras-badge-warning-text);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Botón limpiar selección */
+.btn-clear-selection {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--compras-danger);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--compras-transition);
+  flex-shrink: 0;
+}
+
+.btn-clear-selection:hover {
+  background: var(--compras-danger-dark);
+}
+
+/* ── Dropdown de Inventario ── */
+.inventory-dropdown {
+  margin-top: 8px;
+  background: var(--compras-bg-white);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-lg);
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: var(--compras-shadow-md);
+}
+
+.inventory-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-sm);
+}
+
+.inventory-loading .spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--compras-gray-200);
+  border-top-color: var(--compras-info);
+  border-radius: 50%;
+  animation: compras-spin 0.75s linear infinite;
+}
+
+.inventory-results {
+  padding: 8px;
+}
+
+/* Item de inventario */
+.inventory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--compras-radius-md);
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: var(--compras-transition);
+  border: 1px solid transparent;
+}
+
+.inventory-item:last-child {
+  margin-bottom: 0;
+}
+
+.inventory-item.available {
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.inventory-item.available:hover {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.inventory-item.reserved {
+  background: var(--compras-gray-50);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inventory-item.selected {
+  background: var(--compras-info-bg);
+  border-color: var(--compras-info);
+}
+
+.inventory-item.new-purchase-option {
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px dashed rgba(16, 185, 129, 0.3);
+}
+
+.inventory-item.new-purchase-option:hover {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: var(--compras-success);
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.item-name {
+  font-weight: 600;
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+}
+
+.item-desc {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+}
+
+.item-stock {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-info);
+  font-weight: 500;
+}
+
+.item-status-container {
+  flex-shrink: 0;
+}
+
+/* Badge de estado — HyperUI 1.5 */
+.item-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--compras-radius-full);
+}
+
+.item-status.available {
+  background: var(--compras-success-bg);
+  color: var(--compras-success-text);
+}
+
+.item-status.reserved {
+  background: var(--compras-danger-bg);
+  color: var(--compras-danger-text);
+}
+
+/* Indicador de cobertura */
+.item-coverage {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--compras-radius-full);
+  margin-top: 2px;
+}
+
+.item-coverage.full {
+  color: var(--compras-success-dark);
+  background: var(--compras-success-bg);
+}
+
+.item-coverage.partial {
+  color: var(--compras-badge-warning-text);
+  background: var(--compras-badge-warning-bg);
+}
+
+/* Estado vacío */
+.inventory-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-sm);
+}
+
+.inventory-empty p {
+  margin-bottom: 12px;
+}
+
+/* Botón Nueva Compra */
+.btn-new-purchase {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: var(--compras-success);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.btn-new-purchase:hover {
+  background: var(--compras-success-dark);
+  box-shadow: var(--compras-shadow-md);
+}
+
+/* ── Badge Automático "En Inventario" ── */
+.inventory-badge-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  background: var(--compras-success-bg);
+  color: var(--compras-success-dark);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--compras-radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  animation: compras-badge-pulse 2s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+@keyframes compras-badge-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
+.inventory-badge-loading {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+}
+
+.spinner-mini {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--compras-gray-200);
+  border-top-color: var(--compras-primary);
+  border-radius: 50%;
+  animation: compras-spin 0.75s linear infinite;
+}
+
+/* ── Panel de Split ── */
+.split-info-panel {
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: rgba(245, 158, 11, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--compras-radius-lg);
+  border-left: 3px solid var(--compras-warning);
+}
+
+.split-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--compras-badge-warning-text);
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+}
+
+.split-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.split-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-xs);
+}
+
+.split-row-inventory {
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.split-row-purchase {
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.split-label {
+  font-weight: 600;
+  color: var(--compras-gray-700);
+  min-width: 120px;
+}
+
+.split-value {
+  font-weight: 700;
+  font-size: var(--compras-font-sm);
+}
+
+/* Badges de split */
+.split-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--compras-radius-full);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badge-inventory {
+  background: var(--compras-success-bg);
+  color: var(--compras-success-dark);
+}
+
+.badge-purchase {
+  background: var(--compras-info-bg);
+  color: var(--compras-info-text);
+}
+
+/* Info de presupuesto */
+.split-budget-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(245, 158, 11, 0.2);
+  font-size: var(--compras-font-xs);
+}
+
+.budget-label {
+  color: var(--compras-gray-500);
+  font-weight: 500;
+}
+
+.budget-value {
+  font-weight: 700;
+  color: var(--compras-badge-warning-text);
+}
+
+.budget-hint {
+  color: var(--compras-gray-400);
+  font-size: 0.7rem;
+  font-style: italic;
+}
+
+/* ── Panel 100% Inventario ── */
+.inventory-full-panel {
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: var(--compras-radius-lg);
+  border-left: 3px solid var(--compras-success);
+}
+
+.inventory-full-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.inventory-full-icon {
+  font-size: 1.1rem;
+}
+
+.inventory-full-text {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-700);
+  flex: 1;
+}
+
+.inventory-full-text.flex-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inventory-full-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--compras-success-bg);
+  color: var(--compras-success-dark);
+  border-radius: var(--compras-radius-full);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.inventory-full-ref {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+  padding-top: 6px;
+  border-top: 1px dashed rgba(16, 185, 129, 0.15);
+}
+
+.inventory-full-ref strong {
+  color: var(--compras-success-dark);
+}
+
+.split-detail {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+  flex: 1;
+}
+
+/* ── Inputs Mini para Splits ── */
+.qty-edit-wrapper,
+.qty-edit-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--compras-bg-white);
+  padding: 2px 6px;
+  border-radius: var(--compras-radius-md);
+  border: 1px solid var(--compras-gray-200);
+}
+
+.qty-edit-inline {
+  display: flex !important;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+input.input-qty-mini {
+  width: 60px;
+  padding: 3px 4px;
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-sm);
+  text-align: center;
+  font-weight: 600;
+  font-size: var(--compras-font-xs);
+  background: var(--compras-bg-white);
+  color: var(--compras-gray-900);
+  outline: none;
+  -moz-appearance: textfield;
+  transition: var(--compras-transition);
+}
+
+input.input-qty-mini::-webkit-outer-spin-button,
+input.input-qty-mini::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input.input-qty-mini:focus {
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 2px rgba(10, 164, 164, 0.15);
+}
+
+input.input-price-mini {
+  width: 90px;
+  padding: 3px 4px;
+  border: none;
+  background: transparent;
+  text-align: right;
+  font-weight: 700;
+  font-size: var(--compras-font-sm);
+  color: var(--compras-gray-900);
+  outline: none;
+}
+
+.currency-prefix-mini {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-400);
+  font-weight: 600;
+}
+
+.split-unit,
+.unit-text {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-400);
+  font-weight: 500;
+}
+
+/* ── Totales Duales: Cashflow vs Budget ── */
+.cashflow-row {
+  background: rgba(59, 130, 246, 0.05);
+  padding: 10px 14px !important;
+  border-radius: var(--compras-radius-md);
+  margin-bottom: 4px;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.cashflow-row .total-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--compras-info);
+  font-weight: 600;
+  font-size: var(--compras-font-sm);
+}
+
+.budget-row {
+  background: rgba(139, 92, 246, 0.05);
+  padding: 10px 14px !important;
+  border-radius: var(--compras-radius-md);
+  border: 1px dashed rgba(139, 92, 246, 0.2);
+  margin-top: 8px;
+}
+
+.budget-row .total-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #7c3aed;
+  font-weight: 600;
+  font-size: var(--compras-font-sm);
+}
+
+.budget-amount {
+  color: #7c3aed !important;
+  font-weight: 700;
+}
+
+.total-amount {
+  font-weight: 700;
+  font-size: var(--compras-font-base);
+}

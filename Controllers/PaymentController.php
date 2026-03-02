@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modulos_ERP\ComprasKrsft\Controllers\SupplierController;
 use Modulos_ERP\ComprasKrsft\Services\ExchangeRateService;
 use Modulos_ERP\ComprasKrsft\Services\InventoryService;
 use Modulos_ERP\ComprasKrsft\Services\OrderService;
@@ -47,12 +48,9 @@ class PaymentController extends Controller
                     return response()->json(['success' => false, 'message' => 'Algunas órdenes no están disponibles para pago'], 400);
                 }
 
-                $exchangeRate = null;
-                if ($currency === 'USD') {
-                    $exchangeRate = $this->exchangeRateService->getRate();
-                    if (!$exchangeRate) {
-                        return response()->json(['success' => false, 'message' => 'No se pudo obtener el tipo de cambio'], 400);
-                    }
+                $exchangeRate = $this->exchangeRateService->getRate();
+                if ($currency === 'USD' && !$exchangeRate) {
+                    return response()->json(['success' => false, 'message' => 'No se pudo obtener el tipo de cambio'], 400);
                 }
 
                 $batchId = $this->orderService->generateBatchId('PAY');
@@ -75,6 +73,16 @@ class PaymentController extends Controller
                         'igv_amount' => $amounts['igv_amount'],
                         'total_with_igv' => $amounts['total_with_igv'],
                     ]));
+                }
+
+                // Upsert proveedor
+                try {
+                    SupplierController::upsertFromApproval(
+                        $request->input('seller_name'),
+                        $request->input('seller_document')
+                    );
+                } catch (\Throwable $th) {
+                    Log::warning('Supplier upsert failed in payBulk', ['error' => $th->getMessage()]);
                 }
 
                 return [
@@ -129,18 +137,25 @@ class PaymentController extends Controller
                 return response()->json(['success' => false, 'message' => 'No se encontraron órdenes para pagar'], 404);
             }
 
-            // Enviar al inventario
+            // Enviar al inventario (solo órdenes de compra externa, no las de inventario)
             $paidOrders = DB::table($this->ordersTable)
                 ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
                 ->select('purchase_orders.*', 'projects.name as project_name')
                 ->where('purchase_orders.batch_id', $batchId)
+                ->where(function ($q) {
+                    $q->whereNull('purchase_orders.source_type')
+                      ->orWhere('purchase_orders.source_type', 'external')
+                      ->orWhere('purchase_orders.source_type', 'mixed');
+                })
                 ->get();
 
             foreach ($paidOrders as $order) {
                 if ($order->type !== 'material') continue;
+                $amount = floatval($order->amount ?? 0);
+                if ($amount <= 0) continue;
                 $this->inventoryService->sendOrderItems(
                     $order,
-                    floatval($order->amount ?? 0),
+                    $amount,
                     $order->currency ?? 'PEN',
                     floatval($order->amount_pen ?? 0),
                     $batchId
@@ -238,6 +253,12 @@ class PaymentController extends Controller
                 //    return response()->json(['success' => false, 'message' => 'Suba comprobante'], 400);
                 // }
 
+                // Obtener tipo de cambio (siempre, para conversión en resumen de proyecto)
+                $exchangeRate = $this->exchangeRateService->getRate() ?? 1.0;
+                if ($currency === 'USD' && $exchangeRate <= 1.0) {
+                    return response()->json(['success' => false, 'message' => 'No se pudo obtener el tipo de cambio'], 400);
+                }
+
                 $maxItemNumber = DB::table('purchase_orders')
                     ->where('project_id', $projectId)
                     ->max('item_number');
@@ -245,6 +266,7 @@ class PaymentController extends Controller
 
                 foreach ($items as $index => $item) {
                     $subtotal = $item['subtotal'] ?? 0;
+                    $amountPen = ($currency === 'USD') ? $subtotal * $exchangeRate : $subtotal;
 
                     DB::table($this->ordersTable)->insert([
                         'project_id' => $projectId,
@@ -260,10 +282,10 @@ class PaymentController extends Controller
                         'series' => $item['series'] ?? null,
                         'material_type' => $item['material_type'] ?? null,
                         'amount' => $subtotal,
-                        'amount_pen' => $subtotal,
+                        'amount_pen' => $amountPen,
                         'currency' => $currency,
-                        'exchange_rate' => 1.0,
-                        'total_with_igv' => $subtotal,
+                        'exchange_rate' => $exchangeRate,
+                        'total_with_igv' => $amountPen,
                         'status' => 'approved',
                         'payment_type' => $paymentType,
                         'issue_date' => $issueDate,
@@ -286,6 +308,13 @@ class PaymentController extends Controller
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
+                }
+
+                // Upsert proveedor
+                try {
+                    SupplierController::upsertFromApproval($sellerName, $sellerDocument);
+                } catch (\Throwable $th) {
+                    Log::warning('Supplier upsert failed in quickPay', ['error' => $th->getMessage()]);
                 }
 
                 // Enviar items al inventario como apartados
@@ -343,14 +372,17 @@ class PaymentController extends Controller
 
             $paidOrder = $this->orderService->getOrderWithProject($id);
 
-            if ($paidOrder && $paidOrder->type === 'material') {
-                $this->inventoryService->sendOrderItems(
-                    $paidOrder,
-                    floatval($paidOrder->amount ?? 0),
-                    $paidOrder->currency ?? 'PEN',
-                    floatval($paidOrder->amount_pen ?? 0),
-                    $paidOrder->batch_id ?: 'PAY-' . date('Ymd') . '-' . $id
-                );
+            if ($paidOrder && $paidOrder->type === 'material' && ($paidOrder->source_type ?? null) !== 'inventory') {
+                $amount = floatval($paidOrder->amount ?? 0);
+                if ($amount > 0) {
+                    $this->inventoryService->sendOrderItems(
+                        $paidOrder,
+                        $amount,
+                        $paidOrder->currency ?? 'PEN',
+                        floatval($paidOrder->amount_pen ?? 0),
+                        $paidOrder->batch_id ?: 'PAY-' . date('Ymd') . '-' . $id
+                    );
+                }
             }
 
             return response()->json(['success' => true, 'message' => 'Pago confirmado exitosamente']);
@@ -424,5 +456,74 @@ class PaymentController extends Controller
             });
 
         return response()->json(['success' => true, 'orders' => $orders, 'total' => $orders->count()]);
+    }
+
+    /**
+     * Extender el plazo de crédito de un lote (batch_id).
+     * Solo aplica a lotes con payment_type = 'loan' y status = 'to_pay'.
+     * Guarda la fecha original y registra quién realizó el cambio.
+     */
+    public function extendCredit(Request $request)
+    {
+        $request->validate([
+            'batch_id'  => 'required|string',
+            'due_date'  => 'required|date|after:today',
+        ]);
+
+        try {
+            $batchId = $request->input('batch_id');
+            $newDueDate = $request->input('due_date');
+
+            // Verificar que el lote existe y es de crédito
+            $sample = DB::table($this->ordersTable)
+                ->where('batch_id', $batchId)
+                ->where('payment_type', 'loan')
+                ->where('status', 'to_pay')
+                ->first();
+
+            if (!$sample) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Lote no encontrado o no es de tipo crédito',
+                ], 404);
+            }
+
+            $user = auth()->user();
+            $userName = $user ? $user->name : 'Sistema';
+
+            // Guardar fecha original solo si aún no se ha extendido
+            $updateData = [
+                'due_date'                  => $newDueDate,
+                'credit_extended_by'        => auth()->id(),
+                'credit_extended_at'        => now(),
+                'credit_extended_by_name'   => $userName,
+                'updated_at'                => now(),
+            ];
+
+            // Solo guardar original_due_date la primera vez
+            if (!$sample->original_due_date) {
+                $updateData['original_due_date'] = $sample->due_date;
+            }
+
+            $updated = DB::table($this->ordersTable)
+                ->where('batch_id', $batchId)
+                ->where('payment_type', 'loan')
+                ->where('status', 'to_pay')
+                ->update($updateData);
+
+            if ($updated === 0) {
+                return response()->json(['success' => false, 'message' => 'No se actualizaron órdenes'], 400);
+            }
+
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Plazo de crédito extendido correctamente',
+                'due_date'  => $newDueDate,
+                'extended_by' => $userName,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error en extendCredit', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error interno: ' . $e->getMessage()], 500);
+        }
     }
 }

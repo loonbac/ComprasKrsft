@@ -54,7 +54,13 @@ class PurchaseOrder extends Model
         'created_by',
         'approved_by',
         'approved_at',
-        'notes'
+        'notes',
+        // Cross-flow fields
+        'unit_price',
+        'qty_purchased',
+        'warehouse_status',
+        'purchased_at',
+        'purchased_by',
     ];
 
     protected $casts = [
@@ -63,6 +69,7 @@ class PurchaseOrder extends Model
         'igv_amount' => 'decimal:2',
         'total_with_igv' => 'decimal:2',
         'reference_price' => 'decimal:2',
+        'unit_price' => 'decimal:4',
         'exchange_rate' => 'decimal:4',
         'igv_rate' => 'decimal:2',
         'materials' => 'array',
@@ -76,6 +83,8 @@ class PurchaseOrder extends Model
         'delivery_confirmed_at' => 'datetime',
         'supervisor_approved_at' => 'datetime',
         'manager_approved_at' => 'datetime',
+        'purchased_at' => 'datetime',
+        'qty_purchased' => 'integer',
     ];
 
     public function project()
@@ -121,5 +130,64 @@ class PurchaseOrder extends Model
     public function splitChildren()
     {
         return $this->hasMany(PurchaseOrder::class, 'parent_order_id');
+    }
+
+    // ── Cross-flow helpers ───────────────────────────────────────
+
+    public function isPurchased()
+    {
+        return $this->status === 'purchased';
+    }
+
+    public function isWarehouseIncoming()
+    {
+        return $this->warehouse_status === 'proximo_a_llegar';
+    }
+
+    public function isWarehouseReserved()
+    {
+        return $this->warehouse_status === 'apartado';
+    }
+
+    public function isWarehouseAvailable()
+    {
+        return $this->warehouse_status === 'disponible';
+    }
+
+    public function isMixedSource()
+    {
+        return $this->source_type === 'mixed';
+    }
+
+    /**
+     * Obtener la cantidad total de materiales de la orden.
+     */
+    public function getTotalQuantityAttribute(): int
+    {
+        $materials = is_array($this->materials) ? $this->materials : [];
+        if (!empty($materials)) {
+            return array_sum(array_map(fn($m) => intval($m['qty'] ?? 1), $materials));
+        }
+        return 1;
+    }
+
+    /**
+     * Precio unitario calculado.
+     */
+    public function getCalculatedUnitPriceAttribute(): float
+    {
+        $qty = $this->total_quantity;
+        $amount = floatval($this->amount ?? 0);
+        return $qty > 0 && $amount > 0 ? round($amount / $qty, 4) : 0;
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(\Modulos_ERP\ComprasKrsft\Models\InventoryReservation::class, 'purchase_order_id');
+    }
+
+    public function priceHistory()
+    {
+        return $this->hasMany(\Modulos_ERP\ComprasKrsft\Models\MaterialPriceHistory::class, 'purchase_order_id');
     }
 }

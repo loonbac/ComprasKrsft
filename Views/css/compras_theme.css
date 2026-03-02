@@ -1,0 +1,185 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - TEMA DE COLORES
+   Variables CSS específicas del módulo
+   Alineadas con el sistema de diseño HyperUI/Tailwind
+   Versión 6.0.0 - HyperUI Adaptation - Feb 2026
+   ============================================ */
+
+:root {
+    /* ── Colores Primarios del Módulo (Teal #0AA4A4) ── */
+    --compras-primary:       #0AA4A4;
+    --compras-primary-dark:  #087A7A;
+    --compras-primary-light: #08C6B6;
+    --compras-secondary:     #2F6FBF;
+    --compras-gradient: linear-gradient(135deg, #0AA4A4 0%, #08C6B6 50%, #2F6FBF 100%);
+
+    /* Colores para Animación del Fondo */
+    --compras-bg-color-1: #0AA4A4;
+    --compras-bg-color-2: #2F6FBF;
+
+    /* ── Escala de Grises (Tailwind Gray) ── */
+    --compras-gray-50:  #f9fafb;
+    --compras-gray-100: #f3f4f6;
+    --compras-gray-200: #e5e7eb;
+    --compras-gray-300: #d1d5db;
+    --compras-gray-400: #9ca3af;
+    --compras-gray-500: #6b7280;
+    --compras-gray-600: #4b5563;
+    --compras-gray-700: #374151;
+    --compras-gray-800: #1f2937;
+    --compras-gray-900: #111827;
+
+    /* ── Colores de Estado ── */
+    --compras-success:      #10b981;   /* emerald-500 */
+    --compras-success-dark: #059669;   /* emerald-600 */
+    --compras-success-bg:   #ecfdf5;   /* emerald-50 */
+    --compras-success-text: #065f46;   /* emerald-800 */
+    --compras-success-border: #10b981; /* emerald-500 */
+
+    --compras-danger:       #ef4444;   /* red-500 */
+    --compras-danger-dark:  #dc2626;   /* red-600 */
+    --compras-danger-bg:    #fef2f2;   /* red-50 */
+    --compras-danger-text:  #991b1b;   /* red-800 */
+    --compras-danger-border: #ef4444;  /* red-500 */
+
+    --compras-warning:       #f59e0b;  /* amber-500 */
+    --compras-warning-dark:  #d97706;  /* amber-600 */
+    --compras-warning-bg:    #fffbeb;  /* amber-50 */
+    --compras-warning-text:  #92400e;  /* amber-800 */
+    --compras-warning-border: #f59e0b; /* amber-500 */
+
+    --compras-info:       #3b82f6;     /* blue-500 */
+    --compras-info-dark:  #2563eb;     /* blue-600 */
+    --compras-info-bg:    #eff6ff;     /* blue-50 */
+    --compras-info-text:  #1e40af;     /* blue-800 */
+    --compras-info-border: #3b82f6;    /* blue-500 */
+
+    /* ── Botón Exportar ── */
+    --compras-btn-export-bg:    #2563eb;  /* blue-600 */
+    --compras-btn-export-hover: #1d4ed8;  /* blue-700 */
+
+    /* ── Pago Rápido ── */
+    --compras-quickpay-bg:        #0AA4A4;
+    --compras-quickpay-btn-bg:    #8b5cf6;  /* violet-500 */
+    --compras-quickpay-btn-hover: #7c3aed;  /* violet-600 */
+    --compras-quickpay-btn-text:  #ffffff;
+    --compras-quickpay-shadow:    0 8px 16px rgba(124, 58, 237, 0.35);
+
+    /* ── Selección de fila ── */
+    --compras-row-selected-bg:       rgba(6, 182, 212, 0.08);
+    --compras-row-selected-bg-hover: rgba(6, 182, 212, 0.14);
+
+    /* ── Fondos ── */
+    --compras-bg:           linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+    --compras-bg-page:      linear-gradient(135deg, #0AA4A4 0%, #08C6B6 50%, #2F6FBF 100%);
+    --compras-bg-container: #ffffff;
+    --compras-bg-card:      #ffffff;
+    --compras-bg-light:     #f9fafb;   /* gray-50 */
+    --compras-bg-input:     #ffffff;
+    --compras-bg-white:     #ffffff;
+    --compras-bg-secondary: #f3f4f6;   /* gray-100 */
+    --compras-bg-hover:     #f3f4f6;   /* gray-100 */
+
+    /* ── Textos ── */
+    --compras-text-dark:  #111827;   /* gray-900 */
+    --compras-text-gray:  #6b7280;   /* gray-500 */
+    --compras-text-light: #9ca3af;   /* gray-400 */
+    --compras-text-muted: #4b5563;   /* gray-600 */
+    --compras-text-white: #ffffff;
+
+    /* ── Bordes ── */
+    --compras-border:       #e5e7eb;  /* gray-200 */
+    --compras-border-light: #f3f4f6;  /* gray-100 */
+    --compras-border-input: #d1d5db;  /* gray-300 */
+
+    /* ── Sombras (Tailwind) ── */
+    --compras-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --compras-shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --compras-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --compras-shadow-primary: 0 4px 12px rgba(10, 164, 164, 0.3);
+
+    /* ── Badges ── */
+    /* Aprobado / Pagado — emerald */
+    --compras-badge-success-bg:   #d1fae5;  /* emerald-100 */
+    --compras-badge-success-text: #065f46;  /* emerald-800 */
+
+    /* Rechazado — red */
+    --compras-badge-danger-bg:   #fee2e2;   /* red-100 */
+    --compras-badge-danger-text: #991b1b;   /* red-800 */
+
+    /* Pendiente — amber */
+    --compras-badge-warning-bg:   #fef3c7;  /* amber-100 */
+    --compras-badge-warning-text: #92400e;  /* amber-800 */
+
+    /* Por Pagar — blue */
+    --compras-badge-info-bg:   #dbeafe;     /* blue-100 */
+    --compras-badge-info-text: #1e40af;     /* blue-800 */
+
+    /* Default — gray */
+    --compras-badge-default-bg:   #f3f4f6;  /* gray-100 */
+    --compras-badge-default-text: #4b5563;  /* gray-600 */
+
+    /* Servicio — violet */
+    --compras-badge-service-bg:   #ede9fe;  /* violet-100 */
+    --compras-badge-service-text: #5b21b6;  /* violet-800 */
+
+    /* ── Botones de Acción ── */
+    --compras-btn-approve-bg:     #10b981;  /* emerald-500 */
+    --compras-btn-approve-hover:  #059669;  /* emerald-600 */
+    --compras-btn-reject-bg:      #fee2e2;  /* red-100 */
+    --compras-btn-reject-text:    #dc2626;  /* red-600 */
+    --compras-btn-reject-hover:   #fecaca;  /* red-200 */
+    --compras-btn-confirm-bg:     #3b82f6;  /* blue-500 */
+    --compras-btn-confirm-hover:  #2563eb;  /* blue-600 */
+
+    /* ── Iconos de Stats ── */
+    --compras-stat-pending-bg:   #fef3c7;   /* amber-100 */
+    --compras-stat-approved-bg:  #d1fae5;   /* emerald-100 */
+    --compras-stat-projects-bg:  #dbeafe;   /* blue-100 */
+
+    /* ── Modal ── */
+    --compras-modal-bg:            #ffffff;
+    --compras-modal-overlay:       rgba(0, 0, 0, 0.5);
+    --compras-modal-overlay-color: rgba(0, 0, 0, 0.5);
+
+    /* ── Toast ── */
+    --compras-toast-success: #10b981;
+    --compras-toast-error:   #ef4444;
+
+    /* ── Alertas de Fecha ── */
+    --compras-alert-overdue-bg:     rgba(124, 45, 18, 0.12);
+    --compras-alert-overdue-text:   #7c2d12;
+    --compras-alert-overdue-border: #92400e;
+    --compras-alert-today-bg:       rgba(234, 88, 12, 0.12);
+    --compras-alert-today-text:     #92400e;
+    --compras-alert-today-border:   #ea580c;
+    --compras-alert-urgent-bg:      rgba(220, 38, 38, 0.10);
+    --compras-alert-urgent-text:    #991b1b;
+    --compras-alert-urgent-border:  #dc2626;
+    --compras-alert-warning-bg:     rgba(202, 138, 4, 0.12);
+    --compras-alert-warning-text:   #854d0e;
+    --compras-alert-warning-border: #ca8a04;
+
+    /* ── Transiciones (Tailwind 150ms ease) ── */
+    --compras-transition:      color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+                               background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+                               border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --compras-transition-fast: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --compras-transition-transform: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ── Border Radius (Tailwind) ── */
+    --compras-radius-sm:   4px;    /* rounded */
+    --compras-radius-md:   6px;    /* rounded-md */
+    --compras-radius-lg:   8px;    /* rounded-lg */
+    --compras-radius-xl:   12px;   /* rounded-xl */
+    --compras-radius-2xl:  16px;   /* rounded-2xl */
+    --compras-radius-full: 9999px; /* rounded-full */
+
+    /* ── Tipografía ── */
+    --compras-font-xs:   0.75rem;   /* text-xs */
+    --compras-font-sm:   0.875rem;  /* text-sm */
+    --compras-font-base: 1rem;      /* text-base */
+    --compras-font-lg:   1.125rem;  /* text-lg */
+    --compras-font-xl:   1.25rem;   /* text-xl */
+    --compras-font-2xl:  1.5rem;    /* text-2xl */
+}

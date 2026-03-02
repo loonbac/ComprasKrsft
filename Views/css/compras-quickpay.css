@@ -1,0 +1,735 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - PAGO RÁPIDO Y FILTROS POR PAGAR
+   HyperUI Adaptation v6.0.0 - Feb 2026
+   ============================================ */
+
+/* ── Header del Modal Quick Pay — violet ── */
+.quick-pay-modal-header {
+  background: var(--compras-quickpay-btn-bg);
+  border-bottom: none;
+  padding: 18px 24px;
+  border-radius: var(--compras-radius-xl) var(--compras-radius-xl) 0 0;
+}
+
+.quick-pay-modal-header .quick-pay-title-simple {
+  color: #ffffff;
+}
+
+.quick-pay-modal-header .quick-pay-description {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Sección Quick Pay ── */
+.quick-pay-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--compras-gray-50);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-md);
+}
+
+.quick-pay-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-pay-title-simple {
+  margin: 0;
+  font-size: var(--compras-font-xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--compras-gray-900);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-pay-title-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.quick-pay-description {
+  margin: 0;
+  font-size: var(--compras-font-sm);
+  line-height: 1.5;
+  color: var(--compras-gray-500);
+}
+
+.quick-pay-title {
+  margin: 0;
+}
+
+/* Pill de título — violet */
+.quick-pay-title-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--compras-quickpay-btn-bg);
+  color: #ffffff;
+  padding: 5px 14px;
+  border-radius: var(--compras-radius-full);
+  font-weight: 700;
+  font-size: var(--compras-font-sm);
+}
+
+.quick-pay-subtitle {
+  margin-bottom: 16px;
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quick-pay-label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: var(--compras-font-xs);
+  font-weight: 700;
+  color: var(--compras-gray-700);
+}
+
+.quick-pay-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-700);
+  margin: 0 0 10px 0;
+}
+
+.quick-pay-section-title.with-top {
+  margin-top: 8px;
+}
+
+/* Header con pill */
+.section-header-with-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Pill Requerido — amber */
+.required-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--compras-warning);
+  color: #ffffff;
+  border-radius: var(--compras-radius-full);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.required-pill svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* Pill Opcional — gray */
+.optional-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--compras-gray-400);
+  color: #ffffff;
+  border-radius: var(--compras-radius-full);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.optional-pill svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Formulario Quick Pay ── */
+.quick-pay-form-section {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.quick-pay-form-section .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.quick-pay-inline-group {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-pay-inline-group label {
+  min-width: 110px;
+  max-width: 160px;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.quick-pay-inline-group .input-field,
+.quick-pay-inline-group .input-file {
+  flex: 1;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.quick-pay-dates-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.quick-pay-dates-row .form-group {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: calc(50% - 6px);
+}
+
+.quick-pay-step {
+  padding: 12px 0;
+}
+
+.quick-pay-step label {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  color: var(--compras-gray-700);
+}
+
+/* Caja Quick Pay */
+.quick-pay-box {
+  background: var(--compras-bg-white);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-md);
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Grid de revisión */
+.quick-pay-review-grid {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-pay-review-grid > div {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Tabla de items */
+.quick-pay-items-table {
+  margin-bottom: 8px;
+  flex: 1;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* ── Botón Quick Pay — violet ── */
+.btn-quick-pay {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--compras-quickpay-btn-bg);
+  color: #ffffff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.btn-quick-pay:hover {
+  background: var(--compras-quickpay-btn-hover);
+  box-shadow: var(--compras-quickpay-shadow);
+}
+
+.btn-quick-pay svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Botón Agregar Quick Pay */
+.btn-quick-pay-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--compras-quickpay-btn-bg);
+  color: #ffffff;
+  border: none;
+  padding: 9px 16px;
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.btn-quick-pay-add:hover {
+  background: var(--compras-quickpay-btn-hover);
+  box-shadow: var(--compras-quickpay-shadow);
+}
+
+/* Botón Volver Quick Pay */
+.btn-quick-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--compras-gray-600);
+  color: #ffffff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.btn-quick-back:hover {
+  background: var(--compras-gray-700);
+}
+
+/* ── Barra de Filtros Por Pagar ── */
+.to-pay-filters-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--compras-gray-50);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-lg);
+  margin-bottom: 16px;
+}
+
+.search-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+/* Input de búsqueda — HyperUI 4.1 */
+.search-input-topay {
+  padding: 7px 12px;
+  border: 1px solid var(--compras-gray-300);
+  border-radius: var(--compras-radius-md);
+  background: var(--compras-bg-white);
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  min-width: 200px;
+  flex: 1;
+  max-width: 300px;
+  transition: var(--compras-transition);
+}
+
+.search-input-topay::placeholder {
+  color: var(--compras-gray-400);
+}
+
+.search-input-topay:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.15);
+}
+
+/* ── Proyectos ── */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* Item de proyecto en lista — HyperUI: hover:border-teal */
+.project-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  background: var(--compras-gray-50);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-lg);
+  cursor: pointer;
+  transition: var(--compras-transition);
+  text-align: left;
+}
+
+.project-list-item:hover {
+  border-color: var(--compras-primary);
+  background: rgba(10, 164, 164, 0.04);
+}
+
+.project-list-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.project-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.project-list-name {
+  font-weight: 700;
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-list-currency {
+  font-weight: 700;
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+  background: var(--compras-gray-100);
+  padding: 3px 10px;
+  border-radius: var(--compras-radius-full);
+  flex: 0 0 auto;
+}
+
+/* Tarjeta de Proyecto */
+.project-card {
+  padding: 18px;
+  background: var(--compras-gray-50);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-lg);
+  transition: var(--compras-transition);
+}
+
+.project-card.clickable {
+  cursor: pointer;
+  border-left: 4px solid var(--project-color, var(--compras-primary));
+}
+
+.project-card.clickable:hover {
+  border-color: var(--project-color, var(--compras-primary));
+  background: rgba(10, 164, 164, 0.04);
+}
+
+.project-card.clickable .project-name {
+  color: var(--project-color, var(--compras-gray-900));
+}
+
+.project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--compras-radius-full);
+  background: var(--project-color, var(--compras-primary));
+  color: #ffffff;
+  font-weight: 700;
+  font-size: var(--compras-font-sm);
+}
+
+.quick-pay-project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--compras-radius-full);
+  color: #ffffff;
+  font-weight: 700;
+  margin-left: 8px;
+  font-size: var(--compras-font-sm);
+}
+
+.project-name {
+  font-weight: 600;
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  margin-bottom: 6px;
+}
+
+.project-currency {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+}
+
+/* ── Resumen de Items ── */
+.items-summary {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--compras-gray-50);
+  border-radius: var(--compras-radius-md);
+  border: 1px solid var(--compras-gray-200);
+}
+
+.items-summary h5 {
+  margin: 0 0 10px 0;
+  color: var(--compras-gray-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: var(--compras-font-xs);
+  font-weight: 700;
+}
+
+.items-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.items-table .item-info {
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+}
+
+.items-summary-table {
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* Fila de item resumen */
+.item-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--compras-bg-white);
+  border-radius: var(--compras-radius-md);
+  border: 1px solid var(--compras-gray-200);
+  border-left: 3px solid var(--compras-primary);
+}
+
+.item-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+
+.item-summary-title {
+  font-weight: 600;
+  font-size: var(--compras-font-sm);
+  color: var(--compras-gray-900);
+}
+
+.item-summary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+}
+
+.item-summary-label {
+  font-weight: 700;
+  color: var(--compras-gray-600);
+  margin-right: 4px;
+}
+
+/* Fila de item con precio */
+.item-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--compras-bg-white);
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-sm);
+  border: 1px solid var(--compras-gray-200);
+  border-left: 3px solid var(--compras-primary);
+}
+
+.item-name {
+  font-weight: 600;
+  font-size: var(--compras-font-sm);
+  color: var(--compras-gray-900);
+}
+
+.item-qty-unit {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+  display: flex;
+  gap: 14px;
+}
+
+.item-label {
+  font-weight: 600;
+  color: var(--compras-gray-600);
+}
+
+.item-price-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-label {
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  color: var(--compras-gray-600);
+  flex-shrink: 0;
+}
+
+/* Input de precio */
+.input-price {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid var(--compras-gray-300);
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-sm);
+  background: var(--compras-bg-white);
+  color: var(--compras-gray-900);
+  min-width: 80px;
+  transition: var(--compras-transition);
+}
+
+.input-price:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.15);
+}
+
+.item-subtotal {
+  flex: 0 0 100px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--compras-primary);
+  font-size: var(--compras-font-sm);
+}
+
+/* Fila total — teal */
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--compras-primary);
+  color: #ffffff;
+  border-radius: var(--compras-radius-md);
+  font-weight: 600;
+  font-size: var(--compras-font-sm);
+  margin-top: 10px;
+}
+
+/* Botón Eliminar */
+.btn-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--compras-danger);
+  color: #ffffff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: var(--compras-radius-md);
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.items-summary .btn-remove {
+  padding: 3px 8px;
+  border-radius: var(--compras-radius-full);
+}
+
+.btn-remove-square {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: var(--compras-radius-md);
+  flex: 0 0 30px;
+}
+
+.btn-remove:hover {
+  background: var(--compras-danger-dark);
+}
+
+/* Ajuste modal quick pay */
+.modal-lg {
+  max-width: 900px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .quick-pay-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .quick-pay-form-section .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-pay-dates-row {
+    flex-direction: column;
+  }
+}

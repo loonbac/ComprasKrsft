@@ -1,0 +1,343 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - LAYOUT
+   Autocontenido — sin dependencias externas
+   HyperUI Adaptation v6.0.0 - Feb 2026
+   ============================================ */
+
+/* ── Layout Principal ── */
+.compras-layout {
+  min-height: 100vh;
+  position: relative;
+}
+
+.compras-bg {
+  position: fixed;
+  inset: 0;
+  background: var(--compras-bg-page);
+  z-index: -1;
+}
+
+/* Contenedor principal — HyperUI: bg-white border border-gray-100 shadow-sm rounded-xl */
+.compras-container {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  background: var(--compras-bg-container);
+  border: 1px solid var(--compras-gray-100);
+  border-radius: var(--compras-radius-xl);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  overflow: hidden;
+  box-shadow: var(--compras-shadow-lg);
+}
+
+/* ── Header — HyperUI Application Shell ── */
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--compras-bg-container);
+  border-radius: var(--compras-radius-lg) var(--compras-radius-lg) 0 0;
+  border-bottom: 1px solid var(--compras-gray-200);
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--compras-font-xl);
+  font-weight: 700;
+  color: var(--compras-gray-900);
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.title-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Botón Volver — HyperUI: border border-gray-200 bg-white hover:bg-gray-50 */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--compras-bg-white);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-md);
+  color: var(--compras-gray-700);
+  cursor: pointer;
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  transition: var(--compras-transition);
+  text-decoration: none;
+}
+
+.btn-back:hover {
+  background: var(--compras-gray-50);
+  border-color: var(--compras-gray-300);
+}
+
+.btn-back svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Contenido Principal — Área scrollable ── */
+.module-content {
+  flex: 1;
+  background: var(--compras-bg-container);
+  border-radius: 0 0 var(--compras-radius-lg) var(--compras-radius-lg);
+  padding: 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ── Tabs — HyperUI 13.1: border-b border-gray-200 ── */
+.main-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--compras-gray-200);
+  background: transparent;
+  padding: 0;
+}
+
+.main-tab {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--compras-transition);
+  white-space: nowrap;
+}
+
+.main-tab:hover {
+  color: var(--compras-gray-700);
+  border-bottom-color: var(--compras-gray-300);
+}
+
+.main-tab.active {
+  color: var(--compras-primary);
+  border-bottom-color: var(--compras-primary);
+  font-weight: 600;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Badges dentro de tabs — HyperUI 1.5 */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: var(--compras-radius-full);
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  min-width: 20px;
+  line-height: 1.4;
+}
+
+.pending-badge {
+  background: var(--compras-badge-warning-bg);
+  color: var(--compras-badge-warning-text);
+}
+
+.unpaid-badge {
+  background: var(--compras-badge-info-bg);
+  color: var(--compras-badge-info-text);
+}
+
+/* ── Loading — HyperUI 24.1: spinner circular ── */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 60px;
+  color: var(--compras-gray-500);
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--compras-gray-200);
+  border-top-color: var(--compras-primary);
+  border-radius: 50%;
+  animation: compras-spin 0.75s linear infinite;
+}
+
+.loading-container p {
+  font-size: var(--compras-font-sm);
+  color: var(--compras-gray-500);
+  margin: 0;
+}
+
+@keyframes compras-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Empty State — HyperUI 12.1 ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 60px;
+  color: var(--compras-gray-500);
+  gap: 12px;
+}
+
+.empty-state svg {
+  width: 48px;
+  height: 48px;
+  color: var(--compras-gray-300);
+  margin-bottom: 4px;
+}
+
+.empty-state h3 {
+  font-size: var(--compras-font-lg);
+  font-weight: 600;
+  color: var(--compras-gray-700);
+  margin: 0;
+}
+
+.empty-state p {
+  font-size: var(--compras-font-sm);
+  color: var(--compras-gray-500);
+  margin: 0;
+  max-width: 360px;
+}
+
+/* ── Toast — HyperUI 14.x: border + bg-{color}-50 + text-{color}-800 ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: var(--compras-radius-lg);
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  z-index: 2000;
+  box-shadow: var(--compras-shadow-lg);
+  animation: compras-slide-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 360px;
+  border: 1px solid;
+}
+
+/* HyperUI 14.1 — success */
+.toast.success {
+  background: var(--compras-success-bg);
+  border-color: var(--compras-success-border);
+  color: var(--compras-success-text);
+}
+
+/* HyperUI 14.2 — error */
+.toast.error {
+  background: var(--compras-danger-bg);
+  border-color: var(--compras-danger-border);
+  color: var(--compras-danger-text);
+}
+
+/* HyperUI 14.3 — warning */
+.toast.warning {
+  background: var(--compras-warning-bg);
+  border-color: var(--compras-warning-border);
+  color: var(--compras-warning-text);
+}
+
+/* HyperUI 14.4 — info */
+.toast.info {
+  background: var(--compras-info-bg);
+  border-color: var(--compras-info-border);
+  color: var(--compras-info-text);
+}
+
+@keyframes compras-slide-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .compras-container {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+  }
+
+  .module-content {
+    padding: 16px;
+  }
+
+  .main-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .main-tab {
+    padding: 8px 14px;
+    font-size: var(--compras-font-xs);
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .selection-info {
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .modal-content {
+    margin: 10px;
+  }
+}

@@ -1,0 +1,715 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - LOTES, ALERTAS Y COMPROBANTE
+   HyperUI 22.1 (Accordions) + 1.5 (Badges)
+   Adaptation v6.0.0 - Feb 2026
+   ============================================ */
+
+/* ── Lista de Lotes ── */
+.batches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Tarjeta de Lote — HyperUI: border-l-4 rounded-lg shadow-sm ── */
+.batch-card {
+  background: var(--compras-bg-white);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-lg);
+  overflow: hidden;
+  border-left: 4px solid var(--compras-warning);
+  box-shadow: var(--compras-shadow-sm);
+  content-visibility: auto;
+  contain-intrinsic-size: 0 120px;
+}
+
+.batch-card.to-pay {
+  border-left-color: var(--compras-info);
+}
+
+.batch-card.paid {
+  border-left-color: var(--compras-primary);
+}
+
+/* Alertas de fecha */
+.batch-card.alert-urgent  { border-left-color: var(--compras-alert-urgent-border); }
+.batch-card.alert-overdue { border-left-color: var(--compras-alert-overdue-border); }
+.batch-card.alert-today   { border-left-color: var(--compras-alert-today-border); }
+.batch-card.alert-warning { border-left-color: var(--compras-alert-warning-border); }
+
+/* ── Header del Lote ── */
+.batch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--compras-gray-50);
+  border-bottom: 1px solid var(--compras-gray-200);
+}
+
+.batch-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.batch-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+  background: var(--compras-gray-100);
+  padding: 3px 8px;
+  border-radius: var(--compras-radius-sm);
+}
+
+.batch-seller {
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+}
+
+.batch-ruc {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+}
+
+.batch-approver {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+}
+
+.batch-due-date {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+}
+
+/* Badge Pagado — HyperUI 1.5: emerald */
+.paid-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  background: var(--compras-badge-success-bg);
+  color: var(--compras-badge-success-text);
+  border-radius: var(--compras-radius-full);
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+}
+
+.batch-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+}
+
+/* ── Pills de Metadatos — HyperUI 1.5 ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--compras-radius-full);
+  font-size: var(--compras-font-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.pill svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.pill-cash    { background: #2563eb; color: #ffffff; }
+.pill-credit  { background: #7c3aed; color: #ffffff; }
+.pill-igv     { background: #8b5cf6; color: #ffffff; }
+.pill-due     { background: var(--compras-gray-100); color: var(--compras-gray-700); }
+.pill-overdue { background: var(--compras-alert-overdue-bg); color: var(--compras-alert-overdue-text); }
+.pill-urgent  { background: var(--compras-alert-urgent-bg); color: var(--compras-alert-urgent-text); }
+.pill-today   { background: var(--compras-alert-today-bg); color: var(--compras-alert-today-text); }
+.pill-warning { background: var(--compras-alert-warning-bg); color: var(--compras-alert-warning-text); }
+.pill-pen     { background: #ef4444; color: #ffffff; }
+.pill-usd     { background: #3b82f6; color: #ffffff; }
+
+/* ── Items del Lote ── */
+.batch-items {
+  padding: 6px 12px;
+}
+
+.batch-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--compras-gray-100);
+}
+
+.batch-item:last-child {
+  border-bottom: none;
+}
+
+.item-project {
+  min-width: 150px;
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+}
+
+.item-desc {
+  flex: 0 0 auto;
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-separator {
+  flex: 1;
+  border-bottom: 2px dotted var(--compras-gray-300);
+  min-width: 20px;
+  margin: 0 4px;
+}
+
+.item-amount {
+  font-weight: 600;
+  color: var(--compras-primary);
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: var(--compras-font-sm);
+}
+
+/* ── Footer del Lote ── */
+.batch-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--compras-gray-50);
+  border-top: 1px solid var(--compras-gray-200);
+}
+
+.batch-totals {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  order: 2;
+  background: var(--compras-primary);
+  padding: 5px 14px;
+  border-radius: var(--compras-radius-md);
+  height: 32px;
+  min-width: fit-content;
+  font-size: var(--compras-font-xs);
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.total-row {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-sm);
+}
+
+.total-final {
+  font-size: var(--compras-font-xs);
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.batch-cdp {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+}
+
+/* Detalles de Pago */
+.batch-payment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 300px;
+}
+
+.payment-detail-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: var(--compras-font-sm);
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--compras-gray-700);
+  min-width: 120px;
+}
+
+.detail-value {
+  color: var(--compras-gray-500);
+  flex: 1;
+  word-break: break-word;
+}
+
+.detail-link {
+  color: var(--compras-info);
+  text-decoration: none;
+  cursor: pointer;
+  flex: 1;
+  word-break: break-word;
+  transition: var(--compras-transition);
+}
+
+.detail-link:hover {
+  text-decoration: underline;
+  color: var(--compras-info-dark);
+}
+
+/* Botón Confirmar Pago */
+.btn-confirm-payment {
+  order: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  background: var(--compras-info);
+  border: none;
+  border-radius: var(--compras-radius-md);
+  color: #ffffff;
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+  height: 32px;
+}
+
+.btn-confirm-payment:hover {
+  background: var(--compras-info-dark);
+}
+
+/* ── Alertas de Pago ── */
+.payment-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+  animation: compras-slide-down 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.payment-alert.urgent  { background: var(--compras-alert-urgent-bg);  color: var(--compras-alert-urgent-text);  border-left: 4px solid var(--compras-alert-urgent-border); }
+.payment-alert.overdue { background: var(--compras-alert-overdue-bg); color: var(--compras-alert-overdue-text); border-left: 4px solid var(--compras-alert-overdue-border); }
+.payment-alert.today   { background: var(--compras-alert-today-bg);   color: var(--compras-alert-today-text);   border-left: 4px solid var(--compras-alert-today-border); }
+.payment-alert.warning { background: var(--compras-alert-warning-bg); color: var(--compras-alert-warning-text); border-left: 4px solid var(--compras-alert-warning-border); }
+
+.alert-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.alert-text {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: var(--compras-font-xs);
+}
+
+.alert-close {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 150ms;
+  flex-shrink: 0;
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+@keyframes compras-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Lotes Colapsados (tab Pagadas) — HyperUI 22.1 ── */
+.collapsed-batch {
+  border: none;
+  box-shadow: none;
+}
+
+.collapsed-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--compras-gray-50);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-lg);
+  cursor: pointer;
+  transition: var(--compras-transition);
+  user-select: none;
+}
+
+.collapsed-header:hover {
+  background: var(--compras-gray-100);
+  border-color: var(--compras-primary);
+}
+
+.expand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.expand-icon svg {
+  width: 16px;
+  height: 16px;
+  color: var(--compras-gray-400);
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.batch-id-compact {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+  background: var(--compras-gray-100);
+  padding: 2px 7px;
+  border-radius: var(--compras-radius-sm);
+  min-width: 90px;
+}
+
+.batch-seller-compact {
+  color: var(--compras-gray-900);
+  font-weight: 600;
+  font-size: var(--compras-font-sm);
+  min-width: 120px;
+}
+
+/* Badges compactos — HyperUI 1.5 */
+.delivered-badge-compact,
+.paid-badge-compact {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--compras-badge-success-bg);
+  color: var(--compras-badge-success-text);
+  border-radius: var(--compras-radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.batch-items-count {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+  background: var(--compras-gray-100);
+  padding: 2px 7px;
+  border-radius: var(--compras-radius-sm);
+}
+
+.batch-total-compact {
+  font-weight: 700;
+  color: var(--compras-primary);
+  font-size: var(--compras-font-sm);
+  margin-left: auto;
+}
+
+/* Contenido expandido */
+.batch-expanded-content {
+  padding: 12px 16px;
+  background: var(--compras-bg-white);
+  border: 1px solid var(--compras-gray-200);
+  border-top: none;
+  border-radius: 0 0 var(--compras-radius-lg) var(--compras-radius-lg);
+  animation: compras-slide-down 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.batch-meta-expanded {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+}
+
+/* Meta items */
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  background: var(--compras-gray-100);
+  border-radius: var(--compras-radius-sm);
+  font-size: var(--compras-font-xs);
+  white-space: nowrap;
+  color: var(--compras-gray-700);
+}
+
+.meta-cash    { background: #2563eb; color: #ffffff; }
+.meta-credit  { background: #7c3aed; color: #ffffff; }
+.meta-igv     { background: #8b5cf6; color: #ffffff; }
+.meta-no-igv  { background: #64748b; color: #ffffff; }
+.meta-pen     { background: #ef4444; color: #ffffff; font-weight: 700; }
+.meta-usd     { background: #3b82f6; color: #ffffff; font-weight: 700; }
+.meta-info    { background: var(--compras-gray-100); color: var(--compras-gray-500); }
+
+.batch-items-expanded {
+  margin-bottom: 10px;
+}
+
+.batch-item-expanded {
+  display: grid;
+  grid-template-columns: minmax(150px, 200px) 1fr auto 100px auto;
+  gap: 12px;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--compras-gray-100);
+  font-size: var(--compras-font-xs);
+}
+
+.batch-item-expanded:last-child {
+  border-bottom: none;
+}
+
+.item-project-small {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+  word-wrap: break-word;
+}
+
+.item-desc-small {
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-qty-small {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.item-amount-small {
+  font-weight: 600;
+  color: var(--compras-primary);
+  text-align: right;
+  font-size: var(--compras-font-xs);
+}
+
+.item-delivered-badge-small {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  background: var(--compras-badge-success-bg);
+  color: var(--compras-badge-success-text);
+  border-radius: var(--compras-radius-sm);
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.batch-footer-expanded {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--compras-gray-100);
+}
+
+.batch-payment-details-expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payment-detail-row-small {
+  display: flex;
+  gap: 8px;
+  font-size: var(--compras-font-xs);
+}
+
+.detail-label-small {
+  font-weight: 600;
+  color: var(--compras-gray-500);
+  min-width: 90px;
+}
+
+.detail-value-small {
+  color: var(--compras-gray-900);
+}
+
+.detail-link-small {
+  color: var(--compras-primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.detail-link-small:hover {
+  text-decoration: underline;
+}
+
+/* ── Badge Comprobante Faltante ── */
+.missing-comprobante-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--compras-radius-full);
+  background: var(--compras-badge-warning-bg);
+  color: var(--compras-badge-warning-text);
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: compras-pulse-warning 2s ease-in-out infinite;
+}
+
+.missing-comprobante-badge svg {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+
+@keyframes compras-pulse-warning {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
+/* ── Alerta de Comprobante ── */
+.comprobante-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border-radius: var(--compras-radius-md);
+  background: var(--compras-alert-warning-bg);
+  border-left: 4px solid var(--compras-alert-warning-border);
+  animation: compras-slide-down 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.comprobante-alert-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--compras-alert-warning-text);
+}
+
+.comprobante-alert-text {
+  flex: 1;
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  color: var(--compras-alert-warning-text);
+}
+
+/* Botón Editar Comprobante */
+.btn-edit-comprobante {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: var(--compras-radius-md);
+  background: var(--compras-warning);
+  color: #ffffff;
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+  white-space: nowrap;
+}
+
+.btn-edit-comprobante:hover {
+  background: var(--compras-warning-dark);
+}
+
+.btn-edit-comprobante svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* Botón pequeño editar comprobante */
+.comprobante-edit-row {
+  margin-top: 6px;
+}
+
+.btn-edit-comprobante-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-md);
+  background: transparent;
+  color: var(--compras-gray-500);
+  font-size: 0.65rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.btn-edit-comprobante-small:hover {
+  background: var(--compras-gray-50);
+  color: var(--compras-primary);
+  border-color: var(--compras-primary);
+}
+
+.btn-edit-comprobante-small svg {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+
+/* Modal Editar Comprobante — header amber */
+.edit-comprobante-modal .modal-header {
+  background: var(--compras-warning);
+  border-radius: var(--compras-radius-xl) var(--compras-radius-xl) 0 0;
+}
+
+.edit-comprobante-modal .modal-header h2 {
+  color: #ffffff;
+}
+
+/* Botón editar en header del lote */
+.btn-edit-comprobante-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  margin-left: 12px;
+  border: 1px solid var(--compras-primary);
+  border-radius: var(--compras-radius-md);
+  background: transparent;
+  color: var(--compras-primary);
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+  white-space: nowrap;
+}
+
+.btn-edit-comprobante-header:hover {
+  background: var(--compras-primary);
+  color: #ffffff;
+}
+
+.btn-edit-comprobante-header svg {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}

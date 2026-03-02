@@ -1,0 +1,409 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - FORMULARIOS
+   HyperUI 4.x / 5.x Adaptation v6.0.0
+   ============================================ */
+
+/* ── Sección de Formulario ── */
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-section h4 {
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+  color: var(--compras-gray-700);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--compras-gray-200);
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.quick-pay-inline-group {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-form .form-row .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-group.flex-1 {
+  flex: 1;
+}
+
+.form-group.flex-2 {
+  flex: 2;
+}
+
+/* Label — HyperUI 4.x: text-sm font-medium text-gray-700 */
+.form-group label {
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  color: var(--compras-gray-700);
+  line-height: 1.4;
+}
+
+/* Input — HyperUI 4.1: border border-gray-300 rounded-md focus:ring-2 focus:ring-teal */
+.input-field {
+  padding: 9px 12px;
+  background: var(--compras-bg-white);
+  border: 1px solid var(--compras-gray-300);
+  border-radius: var(--compras-radius-md);
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  line-height: 1.5;
+  transition: var(--compras-transition);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.input-field::placeholder {
+  color: var(--compras-gray-400);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.15);
+}
+
+.input-field:disabled {
+  background: var(--compras-gray-50);
+  color: var(--compras-gray-400);
+  cursor: not-allowed;
+}
+
+/* Input file — HyperUI: dashed border */
+.input-file {
+  padding: 10px 12px;
+  background: var(--compras-gray-50);
+  border: 1px dashed var(--compras-gray-300);
+  border-radius: var(--compras-radius-md);
+  color: var(--compras-gray-700);
+  font-size: var(--compras-font-sm);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.input-file:hover {
+  border-color: var(--compras-primary);
+  background: rgba(10, 164, 164, 0.04);
+}
+
+/* Checkbox — HyperUI 4.5 */
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--compras-gray-700);
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--compras-primary);
+  cursor: pointer;
+}
+
+/* ── Exchange Info — HyperUI: info callout ── */
+.exchange-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--compras-info-bg);
+  border: 1px solid var(--compras-info-border);
+  border-radius: var(--compras-radius-md);
+  margin-bottom: 16px;
+  color: var(--compras-info-text);
+  font-size: var(--compras-font-sm);
+}
+
+.exchange-info .error {
+  color: var(--compras-danger);
+}
+
+/* ── Pricing List ── */
+.pricing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.pricing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--compras-gray-50);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-md);
+  gap: 12px;
+}
+
+.pricing-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pricing-project {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+}
+
+.pricing-project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--compras-radius-full);
+  color: var(--compras-text-white);
+  font-size: var(--compras-font-xs);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.pricing-material {
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pricing-qty {
+  font-size: var(--compras-font-xs);
+  color: var(--compras-gray-500);
+}
+
+.pricing-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.currency-prefix {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+}
+
+.price-input {
+  width: 100px;
+  text-align: right;
+}
+
+/* ── Totals Section ── */
+.totals-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--compras-gray-50);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-md);
+}
+
+.totals-section .total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: var(--compras-font-sm);
+  color: var(--compras-gray-700);
+}
+
+.totals-section .total-final {
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid var(--compras-gray-200);
+  font-weight: 600;
+  color: var(--compras-gray-900);
+}
+
+.pen-equivalent {
+  color: var(--compras-gray-500);
+  font-size: var(--compras-font-xs);
+}
+
+/* ── Payment Summary Card ── */
+.payment-summary-card {
+  background: transparent;
+  border: none;
+  border-radius: var(--compras-radius-md);
+  padding: 12px 0;
+  margin-bottom: 16px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: var(--compras-font-sm);
+}
+
+.summary-row:not(:last-child) {
+  border-bottom: 1px solid var(--compras-gray-200);
+}
+
+.summary-label {
+  color: var(--compras-gray-600);
+}
+
+.summary-value {
+  color: var(--compras-gray-900);
+  font-weight: 500;
+}
+
+/* Fila total — HyperUI: bg-teal text-white */
+.summary-row.total-row {
+  padding: 10px 14px;
+  margin-top: 10px;
+  border-top: none;
+  background: var(--compras-primary);
+  border-radius: var(--compras-radius-md);
+  color: #ffffff;
+}
+
+.summary-row.total-row .summary-label {
+  font-size: var(--compras-font-sm);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.summary-row.total-row .summary-value {
+  font-size: var(--compras-font-base);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.summary-value.total-amount {
+  font-size: var(--compras-font-lg);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* ── Botones — HyperUI ── */
+
+/* Cancelar — HyperUI: border border-gray-200 bg-white hover:bg-gray-50 */
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: var(--compras-bg-white);
+  border: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-md);
+  color: var(--compras-gray-700);
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.btn-cancel:hover {
+  background: var(--compras-gray-50);
+  border-color: var(--compras-gray-300);
+}
+
+/* Cancelar rojo — HyperUI: bg-red-500 text-white */
+.btn-cancel-red {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: var(--compras-danger);
+  border: none;
+  border-radius: var(--compras-radius-md);
+  color: var(--compras-text-white);
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.btn-cancel-red:hover {
+  background: var(--compras-danger-dark);
+}
+
+/* Submit — HyperUI: bg-teal text-white */
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 24px;
+  background: var(--compras-primary);
+  border: none;
+  border-radius: var(--compras-radius-md);
+  color: #ffffff;
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--compras-transition);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: var(--compras-primary-dark);
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Edit Comprobante Modal ── */
+.edit-comprobante-modal .modal-footer {
+  justify-content: flex-end !important;
+  gap: 12px;
+}
+
+.edit-comprobante-modal .btn-cancel,
+.edit-comprobante-modal .btn-submit {
+  width: auto !important;
+  min-width: unset;
+  padding: 8px 16px;
+  flex: 0 0 auto;
+}
+
+/* ── Quick Pay Form (compacto) ── */
+.quick-pay-form-section .input-field,
+.quick-pay-form-section .input-file {
+  padding: 7px 10px;
+  font-size: var(--compras-font-xs);
+}
+
+.quick-pay-form-section label {
+  font-size: var(--compras-font-xs);
+  margin-bottom: 2px;
+}

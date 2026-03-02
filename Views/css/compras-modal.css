@@ -1,0 +1,316 @@
+/* ============================================
+   MÓDULO COMPRASKRSFT - MODALES
+   HyperUI 7.3 / 7.4 Adaptation v6.0.0
+   ============================================ */
+
+/* ── Overlay — HyperUI 7.3: fixed inset-0 bg-black/50 ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--compras-modal-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* ── Contenido del Modal — HyperUI 7.3: bg-white rounded-xl shadow-xl ── */
+.modal-content {
+  background: var(--compras-bg-white);
+  border-radius: var(--compras-radius-xl);
+  width: min(1800px, 95vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--compras-shadow-lg);
+  border: 1px solid var(--compras-gray-200);
+}
+
+/* Tamaños de modal */
+.modal-lg {
+  width: min(1800px, 95vw);
+  max-width: 1800px;
+}
+
+.modal-md {
+  width: min(560px, 90vw);
+  max-width: 560px;
+}
+
+/* Modal de Pago */
+.payment-modal {
+  width: min(700px, 90vw);
+  max-width: 700px;
+}
+
+.payment-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
+.payment-modal .modal-header {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.payment-modal .header-igv {
+  margin-left: 8px;
+}
+
+.payment-modal .summary-row.total-row .summary-label,
+.payment-modal .summary-row.total-row .summary-value,
+.payment-modal .summary-value.total-amount {
+  color: #ffffff;
+}
+
+/* ── Header del Modal — HyperUI 7.3 ── */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--compras-gray-50);
+  border-bottom: 1px solid var(--compras-gray-200);
+  border-radius: var(--compras-radius-xl) var(--compras-radius-xl) 0 0;
+  flex-shrink: 0;
+}
+
+.modal-header h2 {
+  font-size: var(--compras-font-base);
+  font-weight: 600;
+  color: var(--compras-gray-900);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Botón Cerrar — HyperUI: rounded-lg hover:bg-gray-100 */
+.btn-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: var(--compras-radius-md);
+  color: var(--compras-gray-500);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: var(--compras-transition);
+  flex-shrink: 0;
+}
+
+.btn-close:hover {
+  background: var(--compras-gray-100);
+  color: var(--compras-gray-700);
+}
+
+/* ── Cuerpo del Modal ── */
+.modal-body {
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  flex: 1;
+  background: var(--compras-bg-white);
+}
+
+/* ── Footer del Modal — HyperUI 7.3 ── */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--compras-gray-50);
+  border-top: 1px solid var(--compras-gray-200);
+  border-radius: 0 0 var(--compras-radius-xl) var(--compras-radius-xl);
+  flex-shrink: 0;
+}
+
+/* ── Modal de Aprobación Masiva ── */
+.bulk-approve-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
+.bulk-approve-modal .btn-close {
+  display: none !important;
+}
+
+.bulk-approve-modal .totals-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.bulk-approve-modal .total-row,
+.bulk-approve-modal .total-final {
+  color: var(--compras-primary);
+  font-weight: 700;
+}
+
+.bulk-approve-modal .total-row span,
+.bulk-approve-modal .total-final span {
+  color: var(--compras-primary);
+}
+
+.bulk-approve-modal .btn-submit {
+  background: var(--compras-primary);
+  color: #ffffff;
+  border: none;
+  box-shadow: var(--compras-shadow-primary);
+}
+
+.bulk-approve-modal .btn-submit:hover:not(:disabled) {
+  background: var(--compras-primary-dark);
+}
+
+.bulk-approve-modal .btn-cancel {
+  background: var(--compras-danger);
+  color: #ffffff;
+  border: none;
+}
+
+.bulk-approve-modal .btn-cancel:hover {
+  background: var(--compras-danger-dark);
+}
+
+/* ── Modal de Aprobación Individual ── */
+.approval-modal .modal-header h2 {
+  text-transform: uppercase;
+}
+
+.approval-modal .btn-close {
+  display: none !important;
+}
+
+.approval-modal .totals-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.approval-modal .total-row,
+.approval-modal .total-final {
+  color: var(--compras-primary);
+  font-weight: 700;
+  background: transparent !important;
+  padding: 0;
+  border-radius: 0;
+  margin: 0;
+}
+
+.approval-modal .total-row span,
+.approval-modal .total-final span {
+  color: var(--compras-primary);
+}
+
+.approval-modal .total-final {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.approval-modal .btn-submit {
+  background: var(--compras-primary);
+  color: #ffffff;
+  border: none;
+  box-shadow: var(--compras-shadow-primary);
+}
+
+.approval-modal .btn-submit:hover:not(:disabled) {
+  background: var(--compras-primary-dark);
+}
+
+.approval-modal .btn-cancel {
+  background: var(--compras-danger);
+  color: #ffffff;
+  border: none;
+}
+
+.approval-modal .btn-cancel:hover {
+  background: var(--compras-danger-dark);
+}
+
+/* ── Modal de Exportación ── */
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-group label {
+  font-size: var(--compras-font-sm);
+  font-weight: 600;
+  color: var(--compras-gray-700);
+}
+
+.preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preset-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 9px 12px;
+  border: 1px solid var(--compras-gray-200);
+  background: var(--compras-bg-white);
+  border-radius: var(--compras-radius-md);
+  color: var(--compras-gray-600);
+  font-size: var(--compras-font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--compras-transition);
+  text-align: center;
+}
+
+.preset-btn:hover {
+  border-color: var(--compras-primary);
+  color: var(--compras-primary);
+  background: rgba(10, 164, 164, 0.04);
+}
+
+.preset-btn.active {
+  border-color: var(--compras-primary);
+  background: var(--compras-primary);
+  color: #ffffff;
+}
+
+.custom-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.custom-dates label {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
+.custom-dates .input-date {
+  grid-column: span 1;
+}
+
+.input-date {
+  padding: 9px 12px;
+  border: 1px solid var(--compras-gray-300);
+  border-radius: var(--compras-radius-md);
+  background: var(--compras-bg-white);
+  color: var(--compras-gray-900);
+  font-size: var(--compras-font-sm);
+  transition: var(--compras-transition);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-date:focus {
+  outline: none;
+  border-color: var(--compras-primary);
+  box-shadow: 0 0 0 3px rgba(10, 164, 164, 0.15);
+}

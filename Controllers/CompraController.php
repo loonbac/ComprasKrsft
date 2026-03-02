@@ -71,7 +71,6 @@ class CompraController extends Controller
                 'approver.name as approved_by_name',
             ])
             ->where('purchase_orders.status', 'pending')
-            ->where('purchase_orders.type', 'material')
             ->orderBy('purchase_orders.created_at', 'asc')
             ->get()
             ->map(function ($order) {

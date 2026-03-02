@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modulos_ERP\ComprasKrsft\Controllers\SupplierController;
 use Modulos_ERP\ComprasKrsft\Services\ExchangeRateService;
 use Modulos_ERP\ComprasKrsft\Services\InventoryService;
 use Modulos_ERP\ComprasKrsft\Services\OrderService;
@@ -41,17 +42,7 @@ class ApprovalController extends Controller
                 ->where('id', $id)
                 ->update(['status' => 'to_pay', 'updated_at' => now()]);
 
-            $approvedOrder = $this->orderService->getOrderWithProject($id);
-
-            if ($approvedOrder && $approvedOrder->type === 'material') {
-                $this->inventoryService->sendOrderItems(
-                    $approvedOrder,
-                    floatval($approvedOrder->amount ?? 0),
-                    $approvedOrder->currency ?? 'PEN',
-                    floatval($approvedOrder->amount_pen ?? 0),
-                    $approvedOrder->batch_id ?: 'AP-' . date('Ymd') . '-' . $id
-                );
-            }
+            // NO crear items de inventario aquí — se crean al confirmar pago
 
             return response()->json(['success' => true, 'message' => 'Orden enviada a Por Pagar']);
         } catch (\Exception $e) {
@@ -85,12 +76,9 @@ class ApprovalController extends Controller
                     return response()->json(['success' => false, 'message' => 'Algunas órdenes ya fueron procesadas'], 400);
                 }
 
-                $exchangeRate = null;
-                if ($currency === 'USD') {
-                    $exchangeRate = $this->exchangeRateService->getRate();
-                    if (!$exchangeRate) {
-                        return response()->json(['success' => false, 'message' => 'No se pudo obtener el tipo de cambio'], 400);
-                    }
+                $exchangeRate = $this->exchangeRateService->getRate();
+                if ($currency === 'USD' && !$exchangeRate) {
+                    return response()->json(['success' => false, 'message' => 'No se pudo obtener el tipo de cambio'], 400);
                 }
 
                 $batchId = $this->orderService->generateBatchId('AP');
@@ -99,10 +87,54 @@ class ApprovalController extends Controller
                 $sharedData = $this->orderService->buildSharedData($request, $exchangeRate, $batchId);
 
                 $inventoryOrderIds = [];
+                $purchaseOrderIds = [];
+                $splits = $request->input('splits', []);
 
                 foreach ($orderIds as $orderId) {
-                    // Compra normal (100% externa)
-                    $this->processExternalPurchase($orderId, $prices, $sharedData, $currency, $exchangeRate, $igvEnabled, $igvRate);
+                    $split = $splits[$orderId] ?? null;
+
+                    if ($split && !empty($split['inventory_item_id'])) {
+                        // Determinar si es 100% inventario o split parcial
+                        $order = DB::table($this->ordersTable)->find($orderId);
+                        if (!$order) continue;
+
+                        $totalQty = $this->getOrderQuantity($order);
+                        $qtyFromInventory = intval($split['qty_from_inventory'] ?? 0);
+                        $qtyToBuy = max(0, $totalQty - $qtyFromInventory);
+
+                        if ($qtyToBuy <= 0) {
+                            // CASO 1: 100% cubierto desde inventario
+                            $this->processInventoryOnly($orderId, $split, $prices, $sharedData, $currency, $exchangeRate);
+                            $inventoryOrderIds[] = $orderId;
+                        } else {
+                            // CASO 2: Split parcial (parte inventario + parte compra)
+                            $newOrderId = $this->processSplitOrder(
+                                $orderId, $split, $prices, $sharedData,
+                                $currency, $exchangeRate, $igvEnabled, $igvRate,
+                                $request, $batchId
+                            );
+                            if ($newOrderId) {
+                                $inventoryOrderIds[] = $newOrderId;
+                            }
+                            $purchaseOrderIds[] = $orderId;
+                        }
+                    } else {
+                        // CASO 3: Compra normal (100% externa)
+                        $this->processExternalPurchase($orderId, $prices, $sharedData, $currency, $exchangeRate, $igvEnabled, $igvRate);
+                        $purchaseOrderIds[] = $orderId;
+                    }
+                }
+
+                // NO crear items de inventario aquí — se crean al confirmar pago (payBatch/confirmPayment)
+
+                // Registrar proveedor automáticamente
+                try {
+                    SupplierController::upsertFromApproval(
+                        $request->input('seller_name'),
+                        $request->input('seller_document')
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('Error al registrar proveedor en markToPayBulk', ['error' => $e->getMessage()]);
                 }
 
                 return $this->buildBulkResponse($orderIds, $inventoryOrderIds, $batchId);
@@ -110,7 +142,7 @@ class ApprovalController extends Controller
 
             return response()->json($result);
         } catch (\Exception $e) {
-            Log::error('Error en markToPayBulk', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error('Error en markToPayBulk', ['error' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'Error interno al procesar las órdenes'], 500);
         }
     }
@@ -138,11 +170,10 @@ class ApprovalController extends Controller
         try {
             $amount = floatval($request->amount);
             $currency = $request->currency;
-            $exchangeRate = null;
+            $exchangeRate = $this->exchangeRateService->getRate();
             $amountPen = $amount;
 
             if ($currency === 'USD') {
-                $exchangeRate = $this->exchangeRateService->getRate();
                 if (!$exchangeRate) {
                     return response()->json(['success' => false, 'message' => 'No se pudo obtener el tipo de cambio'], 400);
                 }
@@ -201,6 +232,16 @@ class ApprovalController extends Controller
                 }
             }
 
+            // Registrar proveedor automáticamente
+            try {
+                SupplierController::upsertFromApproval(
+                    $request->input('seller_name'),
+                    $request->input('seller_document')
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Error al registrar proveedor en approve', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Orden aprobada exitosamente',
@@ -239,12 +280,9 @@ class ApprovalController extends Controller
                     return response()->json(['success' => false, 'message' => 'Algunas órdenes ya fueron procesadas'], 400);
                 }
 
-                $exchangeRate = null;
-                if ($currency === 'USD') {
-                    $exchangeRate = $this->exchangeRateService->getRate();
-                    if (!$exchangeRate) {
-                        return response()->json(['success' => false, 'message' => 'No se pudo obtener el tipo de cambio'], 400);
-                    }
+                $exchangeRate = $this->exchangeRateService->getRate();
+                if ($currency === 'USD' && !$exchangeRate) {
+                    return response()->json(['success' => false, 'message' => 'No se pudo obtener el tipo de cambio'], 400);
                 }
 
                 $batchId = $this->orderService->generateBatchId('BATCH');
@@ -274,6 +312,16 @@ class ApprovalController extends Controller
                     if ($amount <= 0) continue;
                     $amountPen = $currency === 'USD' ? $amount * $exchangeRate : $amount;
                     $this->inventoryService->sendOrderItems($order, $amount, $currency, $amountPen, $batchId);
+                }
+
+                // Registrar proveedor automáticamente
+                try {
+                    SupplierController::upsertFromApproval(
+                        $request->input('seller_name'),
+                        $request->input('seller_document')
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('Error al registrar proveedor en approveBulk', ['error' => $e->getMessage()]);
                 }
 
                 return [
@@ -367,7 +415,8 @@ class ApprovalController extends Controller
         if (!$originalOrder) return null;
 
         $qtyFromInventory = intval($split['qty_from_inventory']);
-        $qtyToBuy = intval($split['qty_to_buy'] ?? 0);
+        $totalQty = $this->getOrderQuantity($originalOrder);
+        $qtyToBuy = max(0, $totalQty - $qtyFromInventory);
         $referencePrice = floatval($split['reference_price'] ?? 0);
         $purchaseAmount = floatval($prices[$orderId] ?? 0);
 
@@ -377,8 +426,10 @@ class ApprovalController extends Controller
         $originalMaterials = $originalOrder->materials ? json_decode($originalOrder->materials, true) : [];
         if (!empty($originalMaterials)) {
             foreach ($originalMaterials as &$mat) {
+                $mat['original_qty'] = $mat['qty'] ?? $totalQty;
                 $mat['qty'] = $qtyToBuy;
-                $mat['original_qty'] = $mat['qty'] ?? $qtyToBuy;
+                $mat['qty_from_stock'] = $qtyFromInventory;
+                $mat['stock_unit_price'] = round($referencePrice, 2);
             }
             unset($mat);
         }
@@ -402,13 +453,19 @@ class ApprovalController extends Controller
             unset($mat);
         }
 
+        // Obtener siguiente item_number disponible para el proyecto (evitar unique constraint)
+        $maxItemNumber = DB::table($this->ordersTable)
+            ->where('project_id', $originalOrder->project_id)
+            ->max('item_number') ?? 0;
+        $nextItemNumber = $maxItemNumber + 1;
+
         $newOrderId = DB::table($this->ordersTable)->insertGetId([
             'project_id' => $originalOrder->project_id,
             'type' => $originalOrder->type,
             'description' => $originalOrder->description . ' [De Inventario]',
             'materials' => json_encode($inventoryMaterials),
             'unit' => $originalOrder->unit ?? null,
-            'item_number' => $originalOrder->item_number,
+            'item_number' => $nextItemNumber,
             'source_type' => 'inventory',
             'inventory_item_id' => $split['inventory_item_id'] ?? null,
             'reference_price' => floatval($split['reference_price'] ?? 0),
@@ -514,5 +571,17 @@ class ApprovalController extends Controller
             'inventory_count' => $inventoryCount,
             'purchase_count' => $purchaseCount,
         ];
+    }
+
+    /**
+     * Obtener cantidad total de una orden de compra desde su JSON de materiales
+     */
+    private function getOrderQuantity(object $order): int
+    {
+        $materials = $order->materials ? json_decode($order->materials, true) : [];
+        if (!empty($materials) && is_array($materials)) {
+            return array_sum(array_map(fn($m) => intval($m['qty'] ?? 1), $materials));
+        }
+        return 1;
     }
 }
