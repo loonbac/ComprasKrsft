@@ -5,6 +5,7 @@
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
+import { formatProjectDisplay } from '../../utils';
 
 /**
  * @param {{
@@ -48,7 +49,7 @@ export default function RejectModal({
           <div className="rounded-lg bg-gray-50 p-4 space-y-2">
             <div className="text-sm">
               <span className="font-medium text-gray-900">Proyecto:</span>
-              <span className="ml-2 text-gray-700">{orderInfo.project_name}</span>
+              <span className="ml-2 text-gray-700">{formatProjectDisplay(orderInfo)}</span>
             </div>
             {orderInfo.description && (
               <div className="text-sm">

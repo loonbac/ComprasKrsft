@@ -158,6 +158,9 @@ export function useToPayTab(ctx) {
           map[order.project_id] = {
             id: order.project_id,
             name: order.project_name,
+                        project_name: order.project_name,
+                        project_abbreviation: order.project_abbreviation,
+                        ceco_codigo: order.ceco_codigo,
             status: order.project_status,
             estado: order.project_estado,
           };

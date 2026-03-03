@@ -9,6 +9,7 @@ import LoadingSpinner from './LoadingSpinner';
 import EmptyState from './EmptyState';
 import {
   getProjectColor,
+  formatProjectDisplay,
   getOrderTitle,
   getOrderQty,
   formatNumber,
@@ -90,6 +91,8 @@ export default function RecopilacionTab({
         cdp: null,
         project_id: order.project_id,
         project_name: order.project_name,
+        project_abbreviation: order.project_abbreviation,
+        ceco_codigo: order.ceco_codigo,
         order_title: getOrderTitle(order),
         order_qty: getOrderQty(order),
         currency: order.currency || 'PEN',
@@ -115,6 +118,8 @@ export default function RecopilacionTab({
           cdp: null,
           project_id: order.project_id,
           project_name: order.project_name,
+          project_abbreviation: order.project_abbreviation,
+          ceco_codigo: order.ceco_codigo,
           order_title: getOrderTitle(order),
           order_qty: getOrderQty(order),
           currency: batch.currency || 'PEN',
@@ -145,6 +150,8 @@ export default function RecopilacionTab({
           cdp,
           project_id: order.project_id,
           project_name: order.project_name,
+          project_abbreviation: order.project_abbreviation,
+          ceco_codigo: order.ceco_codigo,
           order_title: getOrderTitle(order),
           order_qty: getOrderQty(order),
           currency: batch.currency || 'PEN',
@@ -176,7 +183,7 @@ export default function RecopilacionTab({
         (r) =>
           (r.seller_name || '').toLowerCase().includes(term) ||
           (r.order_title || '').toLowerCase().includes(term) ||
-          (r.project_name || '').toLowerCase().includes(term),
+          (formatProjectDisplay(r) || '').toLowerCase().includes(term),
       );
     }
 
@@ -363,7 +370,7 @@ export default function RecopilacionTab({
                         className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white whitespace-nowrap"
                         style={{ background: getProjectColor(row.project_id) }}
                       >
-                        {row.project_name || '-'}
+                        {formatProjectDisplay(row)}
                       </span>
                     </td>
                   </tr>

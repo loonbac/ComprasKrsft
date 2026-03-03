@@ -1,7 +1,8 @@
 /**
  * @file Utilidades compartidas del módulo Compras
  * @module compraskrsft/utils
- */import {
+ */
+import {
   formatDate as _fmtDate,
   getLocalDateString as _getLocalDateString,
 } from '@/services/DateTimeService';
@@ -129,6 +130,19 @@ export const getCsrfToken = () =>
 export const getProjectColor = (projectId) => {
   const index = Number(projectId || 0) % PROJECT_COLORS.length;
   return PROJECT_COLORS[index];
+};
+
+/**
+ * Formatea el nombre del proyecto para mostrar: abbreviation - ceco_codigo
+ * Si no tiene abbreviation o ceco_codigo, retorna el project_name completo
+ * @param {Object} item - Objeto que puede tener project_abbreviation, ceco_codigo y project_name
+ * @returns {string} Nombre formateado del proyecto
+ */
+export const formatProjectDisplay = (item) => {
+  if (item?.project_abbreviation && item?.ceco_codigo) {
+    return `${item.project_abbreviation} – ${item.ceco_codigo}`;
+  }
+  return item?.project_name || '-';
 };
 
 /**

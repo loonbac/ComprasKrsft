@@ -13,6 +13,7 @@ import Badge from './ui/Badge';
 import EmptyState from './EmptyState';
 import {
   getProjectColor,
+    formatProjectDisplay,
   getOrderTitle,
   getOrderQty,
   batchAllDelivered,
@@ -142,7 +143,7 @@ export default function PaidTab({
 
                         return (
                           <div key={order.id} className={`flex items-center gap-3 py-2 text-sm ${isFromInventory ? 'bg-primary-50/30' : ''}`}>
-                            <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{order.project_name}</span>
+                            <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{formatProjectDisplay(order)}</span>
                             <span className="flex-1 truncate text-gray-700">{getOrderTitle(order)}</span>
                             {isFromInventory && (
                               <Badge variant="cyan">De Almacén</Badge>

@@ -15,7 +15,7 @@ import Button from './ui/Button';
 import Badge from './ui/Badge';
 import LoadingSpinner from './LoadingSpinner';
 import EmptyState from './EmptyState';
-import { getProjectColor, getOrderTitle, getOrderQty } from '../utils';
+import { getProjectColor, formatProjectDisplay, getOrderTitle, getOrderQty } from '../utils';
 
 /**
  * Checkbox que soporta el estado indeterminate correctamente mediante ref.
@@ -120,7 +120,7 @@ export default function PendingTab({
                 onClick={() => toggleProjectExpanded(proj.id)}
               >
                 <ChevronRightIcon className={`size-4 shrink-0 text-gray-400 transition-transform ${expandedProjects[proj.id] ? 'rotate-90' : ''}`} />
-                <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: getProjectColor(proj.id) }}>{proj.name}</span>
+                <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: getProjectColor(proj.id) }}>{formatProjectDisplay(proj)}</span>
                 <Badge variant="gray">{proj.count} items</Badge>
               </button>
 

@@ -16,6 +16,7 @@ import LoadingSpinner from './LoadingSpinner';
 import EmptyState from './EmptyState';
 import {
   getProjectColor,
+    formatProjectDisplay,
   getOrderTitle,
   getOrderQty,
   getPaymentAlertStatus,
@@ -124,7 +125,7 @@ export default function ToPayTab({
         <select value={toPayFilterProject} onChange={(e) => setToPayFilterProject(e.target.value)} className="rounded border border-gray-300 py-2 pl-3 pr-8 text-sm shadow-sm focus:border-primary focus:ring-primary">
           <option value="">Todos proyectos</option>
           {toPayProjects.map((proj) => (
-            <option key={proj.id} value={proj.id}>{proj.name}</option>
+            <option key={proj.id} value={proj.id}>{formatProjectDisplay(proj)}</option>
           ))}
         </select>
         <select value={toPayFilterCurrency} onChange={(e) => setToPayFilterCurrency(e.target.value)} className="rounded border border-gray-300 py-2 pl-3 pr-8 text-sm shadow-sm focus:border-primary focus:ring-primary">
@@ -213,7 +214,7 @@ export default function ToPayTab({
                             onChange={() => toggleOrderSelect(order.id)}
                             className="rounded border-gray-300 text-primary focus:ring-primary"
                           />
-                          <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{order.project_name}</span>
+                          <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{formatProjectDisplay(order)}</span>
                           <span className="flex-1 truncate text-gray-700">{getOrderTitle(order)}</span>
                           {qty !== '-' && qty > 0 && <span className="text-gray-500">Cant: {qty}</span>}
                           {amount > 0 ? (

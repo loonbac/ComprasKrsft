@@ -78,7 +78,14 @@ export function usePendingTab(ctx) {
     const map = {};
     pendingOrders.forEach((order) => {
       if (!map[order.project_id]) {
-        map[order.project_id] = { id: order.project_id, name: order.project_name, count: 0 };
+        map[order.project_id] = { 
+          id: order.project_id, 
+          name: order.project_name,
+          project_name: order.project_name,
+          project_abbreviation: order.project_abbreviation,
+          ceco_codigo: order.ceco_codigo,
+          count: 0 
+        };
       }
       map[order.project_id].count += 1;
     });

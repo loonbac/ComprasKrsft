@@ -8,7 +8,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import SupplierAutocomplete from '../ui/SupplierAutocomplete';
-import { getProjectColor, getOrderTitle, getOrderQty, formatNumber } from '../../utils';
+import { getProjectColor, formatProjectDisplay, getOrderTitle, getOrderQty, formatNumber } from '../../utils';
 
 /**
  * @param {{
@@ -123,7 +123,13 @@ export default function BulkPayModal({
             const seen = new Map();
             selectedOrdersData.forEach((order) => {
               if (!seen.has(order.project_id)) {
-                const g = { project_id: order.project_id, project_name: order.project_name, orders: [] };
+                const g = { 
+                  project_id: order.project_id, 
+                  project_name: order.project_name,
+                  project_abbreviation: order.project_abbreviation,
+                  ceco_codigo: order.ceco_codigo,
+                  orders: [] 
+                };
                 seen.set(order.project_id, g);
                 groups.push(g);
               }
@@ -133,7 +139,7 @@ export default function BulkPayModal({
               <div key={group.project_id} className="rounded-lg border border-gray-200 overflow-hidden">
                 {/* Project header */}
                 <div className="flex items-center gap-2 px-3 py-2" style={{ background: getProjectColor(group.project_id) }}>
-                  <span className="text-sm font-semibold text-white break-words leading-snug">{group.project_name}</span>
+                  <span className="text-sm font-semibold text-white break-words leading-snug">{formatProjectDisplay(group)}</span>
                 </div>
                 {/* Material rows */}
                 <div className="divide-y divide-gray-100">

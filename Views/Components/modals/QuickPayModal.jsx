@@ -14,7 +14,7 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Badge from '../ui/Badge';
 import SupplierAutocomplete from '../ui/SupplierAutocomplete';
-import { getProjectColor, formatNumber } from '../../utils';
+import { getProjectColor, formatProjectDisplay, formatNumber } from '../../utils';
 
 const AlertIcon = <ExclamationTriangleIcon className="size-3.5" />;
 
@@ -113,7 +113,7 @@ export default function QuickPayModal({
                   >
                     <div className="flex items-center gap-3">
                       <span className="size-3 rounded-full" style={{ background: getProjectColor(project.id) }} />
-                      <span className="font-medium text-gray-900">{project.name}</span>
+                      <span className="font-medium text-gray-900">{formatProjectDisplay(project)}</span>
                     </div>
                     <Badge variant="amber" border>{project.currency}</Badge>
                   </button>

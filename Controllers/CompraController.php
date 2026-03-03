@@ -38,7 +38,13 @@ class CompraController extends Controller
 
         $query = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
-            ->select(['purchase_orders.*', 'projects.name as project_name'])
+            ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
+            ->select([
+                'purchase_orders.*',
+                'projects.name as project_name',
+                'projects.abbreviation as project_abbreviation',
+                'cecos.codigo as ceco_codigo'
+            ])
             ->orderBy('purchase_orders.item_number', 'asc')
             ->orderBy('purchase_orders.created_at', 'desc');
 
@@ -64,10 +70,13 @@ class CompraController extends Controller
     {
         $orders = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
             ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
+                'projects.abbreviation as project_abbreviation',
+                'cecos.codigo as ceco_codigo',
                 'approver.name as approved_by_name',
             ])
             ->where('purchase_orders.status', 'pending')
@@ -88,10 +97,13 @@ class CompraController extends Controller
     {
         $orders = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
             ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
+                'projects.abbreviation as project_abbreviation',
+                'cecos.codigo as ceco_codigo',
                 'approver.name as approved_by_name',
             ])
             ->where('purchase_orders.status', 'to_pay')
@@ -112,9 +124,12 @@ class CompraController extends Controller
     {
         $order = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
+                'projects.abbreviation as project_abbreviation',
+                'cecos.codigo as ceco_codigo',
                 'projects.available_amount as project_available',
             ])
             ->where('purchase_orders.id', $id)
