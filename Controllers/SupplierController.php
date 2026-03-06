@@ -135,6 +135,50 @@ class SupplierController extends Controller
     }
 
     /**
+     * Crear un nuevo proveedor manualmente
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'document' => 'nullable|string|max:20',
+            'document_type' => 'nullable|string|in:RUC,DNI,CE',
+            'type' => 'nullable|string|in:normal,servicios',
+            'contact_phone' => 'nullable|string|max:30',
+            'contact_email' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $exists = DB::table($this->suppliersTable)
+            ->where('name', $request->input('name'))
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['success' => false, 'message' => 'Ya existe un proveedor con este nombre'], 400);
+        }
+
+        $now = now();
+        $id = DB::table($this->suppliersTable)->insertGetId([
+            'name' => $request->input('name'),
+            'document' => $request->input('document', ''),
+            'document_type' => $request->input('document_type', 'RUC'),
+            'type' => $request->input('type', 'normal'),
+            'contact_phone' => $request->input('contact_phone', null),
+            'contact_email' => $request->input('contact_email', null),
+            'address' => $request->input('address', null),
+            'notes' => $request->input('notes', null),
+            'active' => true,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        $supplier = DB::table($this->suppliersTable)->find($id);
+
+        return response()->json(['success' => true, 'message' => 'Proveedor creado', 'supplier' => $supplier]);
+    }
+
+    /**
      * Actualizar datos de un proveedor
      */
     public function update(Request $request, $id)
@@ -143,6 +187,7 @@ class SupplierController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'document' => 'sometimes|nullable|string|max:20',
             'document_type' => 'sometimes|nullable|string|in:RUC,DNI,CE',
+            'type' => 'sometimes|nullable|string|in:normal,servicios',
             'contact_phone' => 'sometimes|nullable|string|max:30',
             'contact_email' => 'sometimes|nullable|string|max:100',
             'address' => 'sometimes|nullable|string|max:500',
@@ -154,7 +199,7 @@ class SupplierController extends Controller
             return response()->json(['success' => false, 'message' => 'Proveedor no encontrado'], 404);
         }
 
-        $fields = ['name', 'document', 'document_type', 'contact_phone',
+        $fields = ['name', 'document', 'document_type', 'type', 'contact_phone',
                     'contact_email', 'address', 'notes'];
 
         $updateData = [];
@@ -273,6 +318,7 @@ class SupplierController extends Controller
             'name' => $sellerName,
             'document' => $sellerDocument,
             'document_type' => $documentType,
+            'type' => 'normal',
             'active' => true,
             'created_at' => $now,
             'updated_at' => $now,

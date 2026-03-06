@@ -157,7 +157,7 @@ export default function PaidTab({
                               ) : null
                             ) : (
                               order.amount > 0 ? (
-                                <span className="font-medium text-gray-900">{order.currency || batch.currency} {formatNumber(order.amount)}</span>
+                                <span className="font-medium text-gray-900">{order.currency || batch.currency} {formatNumber(order.igv_enabled ? parseFloat(order.amount || 0) + parseFloat(order.igv_amount || 0) : order.amount)}</span>
                               ) : null
                             )}
                             {!!order.delivery_confirmed && <Badge variant="emerald">Entregado</Badge>}

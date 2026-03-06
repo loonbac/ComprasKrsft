@@ -19,7 +19,7 @@ export const CACHE_PREFIX = `compras_${CACHE_VERSION}_`;
 
 /** Paleta de colores asignada a proyectos por índice */
 export const PROJECT_COLORS = [
-  '#0AA4A4', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b',
+  '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b',
   '#10b981', '#ef4444', '#06b6d4', '#6366f1', '#84cc16',
 ];
 
@@ -140,7 +140,13 @@ export const getProjectColor = (projectId) => {
  */
 export const formatProjectDisplay = (item) => {
   if (item?.project_abbreviation && item?.ceco_codigo) {
-    return `${item.project_abbreviation} – ${item.ceco_codigo}`;
+    let code = item.ceco_codigo;
+    // Append expense type suffix to CECO code
+    const suffix = { mo: '01', direct: '02', indirect: '03' };
+    if (item.expense_type && suffix[item.expense_type]) {
+      code = code + suffix[item.expense_type];
+    }
+    return `${item.project_abbreviation} – ${code}`;
   }
   return item?.project_name || '-';
 };
@@ -176,6 +182,8 @@ export const isProjectInProgress = (project) => {
  */
 export const getOrderTitle = (order) => {
   if (order.type === 'service') return order.description;
+  // For materials: prefer TIPO DE MATERIAL, fall back to ESPECIFICACION TECNICA
+  if (order.material_type) return order.material_type;
   if (order.materials?.length > 0) {
     const mat = order.materials[0];
     return typeof mat === 'object' ? mat.name : mat;

@@ -59,11 +59,12 @@ export default function EditComprobanteModal({
             <Input label="Serie *" value={editComprobanteForm.cdp_serie} onChange={(e) => setEditComprobanteForm((p) => ({ ...p, cdp_serie: e.target.value }))} placeholder="F001" required />
             <Input label="Número *" value={editComprobanteForm.cdp_number} onChange={(e) => setEditComprobanteForm((p) => ({ ...p, cdp_number: e.target.value }))} placeholder="00001234" required />
           </div>
+          <p className="text-xs text-amber-600 font-medium">* Debe proporcionar al menos un archivo o un link de comprobante</p>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-0.5">Comprobante (archivo)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-0.5">Comprobante (archivo) *</label>
             <input type="file" onChange={onEditComprobanteFileChange} accept="image/*,.pdf" className="block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200" />
           </div>
-          <Input label="Link de comprobante (opcional)" type="url" value={editComprobanteForm.payment_proof_link} onChange={(e) => setEditComprobanteForm((p) => ({ ...p, payment_proof_link: e.target.value }))} placeholder="https://..." />
+          <Input label="Link de comprobante *" type="url" value={editComprobanteForm.payment_proof_link} onChange={(e) => setEditComprobanteForm((p) => ({ ...p, payment_proof_link: e.target.value }))} placeholder="https://..." />
         </div>
       )}
     </Modal>

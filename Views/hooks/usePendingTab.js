@@ -3,7 +3,7 @@
  * @module compraskrsft/hooks/usePendingTab
  */
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { getCsrfToken, getLocalDateString } from '../utils';
+import { getCsrfToken, getLocalDateString, getOrderQtyNum } from '../utils';
 
 /**
  * @typedef {Object} UsePendingTabParams
@@ -55,6 +55,7 @@ export function usePendingTab(ctx) {
     seller_name: '',
     seller_document: '',
     payment_type: 'cash',
+    expense_type: 'direct',
     currency: 'PEN',
     issue_date: getLocalDateString(),
     due_date: '',
@@ -78,13 +79,13 @@ export function usePendingTab(ctx) {
     const map = {};
     pendingOrders.forEach((order) => {
       if (!map[order.project_id]) {
-        map[order.project_id] = { 
-          id: order.project_id, 
+        map[order.project_id] = {
+          id: order.project_id,
           name: order.project_name,
           project_name: order.project_name,
           project_abbreviation: order.project_abbreviation,
           ceco_codigo: order.ceco_codigo,
-          count: 0 
+          count: 0
         };
       }
       map[order.project_id].count += 1;
@@ -117,12 +118,25 @@ export function usePendingTab(ctx) {
 
   const approvalTotal = approvalCashflowTotal + approvalIgv;
 
+  // ── Detección: todas las órdenes cubiertas 100% por inventario ────────
+  const allFromInventory = useMemo(() => {
+    if (selectedApprovalOrdersData.length === 0) return false;
+    return selectedApprovalOrdersData.every((order) => {
+      const assignment = stockAssignments[order.id];
+      if (!assignment || !assignment.qty) return false;
+      return assignment.qty >= getOrderQtyNum(order);
+    });
+  }, [selectedApprovalOrdersData, stockAssignments]);
+
   const canSubmitApproval = useMemo(() => {
+    // Caso inventario completo: solo verificar que haya órdenes seleccionadas
+    if (allFromInventory) return selectedApprovalOrdersData.length > 0;
+    // Caso normal: validación completa de facturación
     if (!approvalForm.seller_name) return false;
     if (approvalCashflowTotal <= 0) return false;
     if (approvalForm.currency === 'USD' && currentExchangeRate <= 0) return false;
     return true;
-  }, [approvalForm.seller_name, approvalForm.currency, approvalCashflowTotal, currentExchangeRate]);
+  }, [allFromInventory, selectedApprovalOrdersData.length, approvalForm.seller_name, approvalForm.currency, approvalCashflowTotal, currentExchangeRate]);
 
   // ── Helpers ───────────────────────────────────────────────────────────
   const getListKey = useCallback(
@@ -213,6 +227,7 @@ export function usePendingTab(ctx) {
       seller_name: '',
       seller_document: '',
       payment_type: 'cash',
+      expense_type: 'direct',
       currency: 'PEN',
       issue_date: getLocalDateString(),
       due_date: '',
@@ -281,7 +296,8 @@ export function usePendingTab(ctx) {
           return data.items
             .map((item) => ({
               id: item.id,
-              name: item.name || item.nombre || item.description || item.descripcion || '',
+              name: item.material_type || item.name || item.nombre || item.description || item.descripcion || '',
+              especificacion: item.description || item.descripcion || '',
               location: item.location || item.ubicacion || '',
               unitPrice: Math.round(parseFloat(item.unit_price || item.precio_unitario || item.costo_unitario || 0) * 100) / 100,
               available: parseInt(item.stock_available || item.cantidad_disponible || 0, 10),
@@ -330,6 +346,7 @@ export function usePendingTab(ctx) {
         seller_name: approvalForm.seller_name,
         seller_document: approvalForm.seller_document,
         payment_type: approvalForm.payment_type,
+        expense_type: approvalForm.expense_type,
         issue_date: approvalForm.issue_date,
         due_date: approvalForm.payment_type === 'loan' ? approvalForm.due_date : null,
         igv_enabled: approvalForm.igv_enabled,
@@ -447,6 +464,7 @@ export function usePendingTab(ctx) {
     approvalIgv,
     approvalTotal,
     canSubmitApproval,
+    allFromInventory,
     // Callbacks
     getListKey,
     isPendingSelected,

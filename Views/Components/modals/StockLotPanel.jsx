@@ -152,7 +152,10 @@ export default function StockLotPanel({
                       {isSelected && <span className="size-2 rounded-full bg-primary" />}
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{lot.name}</p>
+                      <p className="text-sm font-semibold text-gray-900">{lot.name || '—'}</p>
+                      {lot.especificacion && (
+                        <p className="text-xs text-primary/80 font-medium">{lot.especificacion}</p>
+                      )}
                       <p className="text-xs text-gray-500">Ubicación: {lot.location || 'N/A'}</p>
                     </div>
                   </div>

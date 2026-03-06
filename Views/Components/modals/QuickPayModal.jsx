@@ -79,7 +79,7 @@ export default function QuickPayModal({
       onClose={closeQuickPayModal}
       title="PAGO RÁPIDO"
       titleIcon={<CurrencyDollarIcon className="size-5 text-primary" />}
-      size="lg"
+      size="xl"
       footer={
         <>
           <Button variant="danger" onClick={closeQuickPayModal}>Cancelar</Button>
@@ -128,20 +128,20 @@ export default function QuickPayModal({
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Proyecto:</span>
-              <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: getProjectColor(quickPaySelectedProject.id) }}>{quickPaySelectedProject.name}</span>
+              <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: getProjectColor(quickPaySelectedProject.id) }}>{formatProjectDisplay(quickPaySelectedProject)}</span>
             </div>
 
             <div className="rounded-lg border border-gray-100 p-4 space-y-3">
               <h5 className="text-sm font-semibold text-gray-900">Agregar Material</h5>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <Input label="Descripción *" value={quickPayMaterialForm.description} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, description: e.target.value }))} placeholder="Ej: BRIDA ANILLO" />
-                <Input label="Cantidad" type="number" min="1" value={quickPayMaterialForm.qty} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, qty: parseInt(e.target.value) || 1 }))} />
-                <Input label="Unidad" value={quickPayMaterialForm.unit} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, unit: e.target.value }))} placeholder="UND" />
+                <Input label="Cant. *" type="number" min="1" value={quickPayMaterialForm.qty} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, qty: parseInt(e.target.value) || 1 }))} />
+                <Input label="Tipo de Material *" value={quickPayMaterialForm.material_type} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, material_type: e.target.value }))} placeholder="Ej: ángulo, brida..." />
+                <Input label="Especificación Técnica" value={quickPayMaterialForm.description} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, description: e.target.value }))} placeholder="Ej: ángulos de 2&quot; x 3/16&quot;" />
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <Input label="Diámetro" value={quickPayMaterialForm.diameter} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, diameter: e.target.value }))} placeholder={'Φ1/2 INCH'} />
-                <Input label="Serie" value={quickPayMaterialForm.series} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, series: e.target.value }))} placeholder="CLASE 150" />
-                <Input label="Material" value={quickPayMaterialForm.material_type} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, material_type: e.target.value }))} placeholder="ACERO INOX" />
+                <Input label="Medida" value={quickPayMaterialForm.diameter} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, diameter: e.target.value }))} placeholder="Ej: und, kg, m..." />
+                <Input label="Tipo de Conexión" value={quickPayMaterialForm.series} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, series: e.target.value }))} placeholder="Ej: soldable, roscado..." />
+                <Input label="Observaciones" value={quickPayMaterialForm.notes} onChange={(e) => setQuickPayMaterialForm((p) => ({ ...p, notes: e.target.value }))} placeholder="Notas adicionales..." />
               </div>
               <Button variant="primary" size="sm" onClick={addQuickPayItem} className="gap-1.5">
                 <PlusIcon className="size-4" />
@@ -155,12 +155,13 @@ export default function QuickPayModal({
                 {quickPayItems.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{item.description}</p>
+                      <p className="text-sm font-medium text-gray-900">{item.material_type}</p>
                       <p className="text-xs text-gray-500">
-                        Cant: {item.qty} · Und: {item.unit}
-                        {item.diameter && ` · Φ: ${item.diameter}`}
-                        {item.series && ` · Serie: ${item.series}`}
-                        {item.material_type && ` · Mat: ${item.material_type}`}
+                        Cant: {item.qty}
+                        {item.description && item.description !== item.material_type && ` · ${item.description}`}
+                        {item.diameter && ` · Medida: ${item.diameter}`}
+                        {item.series && ` · Conex: ${item.series}`}
+                        {item.notes && ` · ${item.notes}`}
                       </p>
                     </div>
                     <button onClick={() => removeQuickPayItem(idx)} className="rounded p-1 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600">
@@ -219,17 +220,24 @@ export default function QuickPayModal({
                     }}
                     suggestions={suppliers?.suggestions || []}
                     showSuggestions={suppliers?.showSuggestions || false}
-                    onSearch={suppliers?.searchSuppliers || (() => {})}
-                    onBlur={suppliers?.hideSuggestions || (() => {})}
+                    onSearch={suppliers?.searchSuppliers || (() => { })}
+                    onBlur={suppliers?.hideSuggestions || (() => { })}
                     placeholder="Razón social"
                   />
                   <Input label="RUC *" value={quickPayApprovalForm.seller_document} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, seller_document: e.target.value }))} placeholder="201..." />
                 </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3">
                   <Select label="Moneda" value={quickPayApprovalForm.currency} onChange={(e) => { const v = e.target.value; setQuickPayApprovalForm((p) => ({ ...p, currency: v })); onQuickPayApprovalCurrencyChange(v); }} placeholder="">
                     <option value="PEN">Soles</option>
                     <option value="USD">Dólares</option>
                   </Select>
+                  <Select label="Tipo de Gasto" value={quickPayApprovalForm.expense_type} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, expense_type: e.target.value }))} placeholder="">
+                    <option value="MO">MO</option>
+                    <option value="directo">Directo</option>
+                    <option value="indirecto">Indirecto</option>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <Select label="Tipo Pago" value={quickPayApprovalForm.payment_type} onChange={(e) => setQuickPayApprovalForm((p) => ({ ...p, payment_type: e.target.value }))} placeholder="">
                     <option value="cash">Al Contado</option>
                     <option value="loan">Crédito</option>

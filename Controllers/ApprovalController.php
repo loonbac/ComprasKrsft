@@ -57,13 +57,16 @@ class ApprovalController extends Controller
      */
     public function markToPayBulk(Request $request)
     {
+        // Determinar si TODAS las órdenes son 100% inventario para relajar validación
+        $allInventory = $this->isAllInventoryOnly($request);
+
         $request->validate([
             'order_ids' => 'required|array|min:1',
             'order_ids.*' => 'required|integer',
             'prices' => 'required|array',
-            'prices.*' => 'required|numeric|min:0.01',
+            'prices.*' => 'required|numeric|min:0',
             'currency' => 'required|in:PEN,USD',
-            'seller_name' => 'required|string',
+            'seller_name' => $allInventory ? 'nullable|string' : 'required|string',
         ]);
 
         try {
@@ -127,14 +130,17 @@ class ApprovalController extends Controller
 
                 // NO crear items de inventario aquí — se crean al confirmar pago (payBatch/confirmPayment)
 
-                // Registrar proveedor automáticamente
-                try {
-                    SupplierController::upsertFromApproval(
-                        $request->input('seller_name'),
-                        $request->input('seller_document')
-                    );
-                } catch (\Throwable $e) {
-                    Log::warning('Error al registrar proveedor en markToPayBulk', ['error' => $e->getMessage()]);
+                // Registrar proveedor automáticamente (solo si hay datos de proveedor)
+                $sellerName = $request->input('seller_name');
+                if ($sellerName) {
+                    try {
+                        SupplierController::upsertFromApproval(
+                            $sellerName,
+                            $request->input('seller_document')
+                        );
+                    } catch (\Throwable $e) {
+                        Log::warning('Error al registrar proveedor en markToPayBulk', ['error' => $e->getMessage()]);
+                    }
                 }
 
                 return $this->buildBulkResponse($orderIds, $inventoryOrderIds, $batchId);
@@ -203,6 +209,7 @@ class ApprovalController extends Controller
                 'due_date' => $request->input('payment_type') === 'loan' ? $request->input('due_date') : null,
                 'seller_name' => $request->input('seller_name'),
                 'seller_document' => $request->input('seller_document'),
+                'expense_type' => $request->input('expense_type'),
                 'updated_at' => now(),
             ]);
 
@@ -212,15 +219,15 @@ class ApprovalController extends Controller
                 $materials = $approvedOrder->materials ? json_decode($approvedOrder->materials, true) : [];
                 if (!empty($materials)) {
                     $inventoryItems = array_map(fn($m) => [
-                        'description' => $m['description'] ?? $approvedOrder->description,
-                        'qty' => $m['qty'] ?? 1,
-                        'unit' => $m['unit'] ?? $approvedOrder->unit ?? 'UND',
-                        'subtotal' => $amount,
-                        'currency' => $currency,
-                        'diameter' => $m['diameter'] ?? null,
-                        'series' => $m['series'] ?? null,
-                        'material_type' => $m['material_type'] ?? null,
-                        'amount_pen' => $amountPen,
+                        'description'   => $m['description'] ?? $m['name'] ?? $approvedOrder->description,
+                        'qty'           => $m['qty'] ?? 1,
+                        'unit'          => $m['unit'] ?? $approvedOrder->unit ?? 'UND',
+                        'subtotal'      => $amount,
+                        'currency'      => $currency,
+                        'diameter'      => $m['diameter'] ?? $approvedOrder->diameter ?? null,
+                        'series'        => $m['series']   ?? $approvedOrder->series   ?? null,
+                        'material_type' => $m['material_type'] ?? $approvedOrder->material_type ?? null,
+                        'amount_pen'    => $amountPen,
                     ], $materials);
 
                     $this->inventoryService->sendItems(
@@ -375,32 +382,73 @@ class ApprovalController extends Controller
 
     /**
      * CASO 1: Orden 100% cubierta desde inventario
+     * NO se mezcla con $sharedData (facturación) — es transferencia interna pura.
      */
     private function processInventoryOnly(int $orderId, array $split, array $prices, array $sharedData, string $currency, ?float $exchangeRate): void
     {
         $referencePrice = floatval($split['reference_price'] ?? $prices[$orderId] ?? 0);
+        $order = DB::table($this->ordersTable)->find($orderId);
+        $qtyFromInventory = intval($split['qty_from_inventory'] ?? 0);
+        $inventoryCost = round($referencePrice * $qtyFromInventory, 2);
+        $inventoryCostPen = ($currency === 'USD' && $exchangeRate > 0)
+            ? round($inventoryCost * $exchangeRate, 2)
+            : $inventoryCost;
 
-        DB::table($this->ordersTable)->where('id', $orderId)->update(array_merge($sharedData, [
+        // Enriquecer con datos del item de inventario si la orden no los tiene
+        $enrichData = $this->enrichFromInventoryItem($split['inventory_item_id'] ?? null, $order);
+
+        DB::table($this->ordersTable)->where('id', $orderId)->update(array_merge($enrichData, [
             'status' => 'approved',
             'source_type' => 'inventory',
             'inventory_item_id' => $split['inventory_item_id'] ?? null,
             'reference_price' => $referencePrice,
-            'amount' => 0,
-            'amount_pen' => 0,
+            'amount' => $inventoryCost,
+            'amount_pen' => $inventoryCostPen,
             'igv_amount' => 0,
-            'total_with_igv' => 0,
+            'total_with_igv' => $inventoryCost,
+            'igv_enabled' => false,
             'payment_confirmed' => true,
             'payment_confirmed_at' => now(),
             'payment_confirmed_by' => auth()->id(),
             'delivery_confirmed' => true,
             'delivery_confirmed_at' => now(),
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+            'updated_at' => now(),
         ]));
 
         $this->inventoryService->deductStock(
             $split['inventory_item_id'] ?? null,
             $split['qty_from_inventory'] ?? 0,
-            $orderId
+            $orderId,
+            $order->project_id ?? null
         );
+    }
+
+    /**
+     * Obtener datos de visualización del item de inventario para enriquecer la orden.
+     * Solo rellena campos vacíos — nunca sobrescribe datos existentes del pedido original.
+     */
+    private function enrichFromInventoryItem(?int $inventoryItemId, ?object $order): array
+    {
+        $data = [];
+        if (!$inventoryItemId) return $data;
+
+        $invItem = DB::table('inventario_productos')->find($inventoryItemId);
+        if (!$invItem) return $data;
+
+        // descripcion del inventario = Especificación Técnica = description en purchase_orders
+        if (empty($order->description ?? '') && !empty($invItem->descripcion)) {
+            $data['description'] = $invItem->descripcion;
+        }
+        // material_type del inventario (o nombre, que es el Tipo de Material)
+        if (empty($order->material_type ?? '') && !empty($invItem->material_type)) {
+            $data['material_type'] = $invItem->material_type;
+        } elseif (empty($order->material_type ?? '') && !empty($invItem->nombre)) {
+            $data['material_type'] = $invItem->nombre;
+        }
+
+        return $data;
     }
 
     /**
@@ -459,10 +507,15 @@ class ApprovalController extends Controller
             ->max('item_number') ?? 0;
         $nextItemNumber = $maxItemNumber + 1;
 
+        // Enriquecer con datos del item de inventario si la orden original no los tiene
+        $invEnrich = $this->enrichFromInventoryItem($split['inventory_item_id'] ?? null, $originalOrder);
+        $invDescription = $invEnrich['description'] ?? $originalOrder->description;
+        $invMaterialType = $invEnrich['material_type'] ?? $originalOrder->material_type ?? null;
+
         $newOrderId = DB::table($this->ordersTable)->insertGetId([
             'project_id' => $originalOrder->project_id,
             'type' => $originalOrder->type,
-            'description' => $originalOrder->description . ' [De Inventario]',
+            'description' => $invDescription,
             'materials' => json_encode($inventoryMaterials),
             'unit' => $originalOrder->unit ?? null,
             'item_number' => $nextItemNumber,
@@ -470,20 +523,25 @@ class ApprovalController extends Controller
             'inventory_item_id' => $split['inventory_item_id'] ?? null,
             'reference_price' => floatval($split['reference_price'] ?? 0),
             'parent_order_id' => $orderId,
-            'amount' => 0,
-            'amount_pen' => 0,
+            'amount' => round($referencePrice * $qtyFromInventory, 2),
+            'amount_pen' => ($currency === 'USD' && $exchangeRate > 0)
+                ? round($referencePrice * $qtyFromInventory * $exchangeRate, 2)
+                : round($referencePrice * $qtyFromInventory, 2),
             'currency' => $currency,
             'exchange_rate' => $exchangeRate,
             'igv_amount' => 0,
-            'total_with_igv' => 0,
+            'total_with_igv' => round($referencePrice * $qtyFromInventory, 2),
+            'igv_enabled' => false,
             'status' => 'approved',
             'approved_by' => auth()->id(),
             'approved_at' => now(),
-            'batch_id' => $batchId,
-            'seller_name' => $request->input('seller_name'),
-            'seller_document' => $request->input('seller_document'),
-            'payment_type' => $request->input('payment_type', 'cash'),
-            'issue_date' => $request->input('issue_date'),
+            // Copiar datos de visualización del pedido original (enriquecido con inventario)
+            'source_filename' => $originalOrder->source_filename ?? null,
+            'imported_at' => $originalOrder->imported_at ?? null,
+            'material_type' => $invMaterialType,
+            'diameter' => $originalOrder->diameter ?? null,
+            'series' => $originalOrder->series ?? null,
+            'notes' => $originalOrder->notes ?? null,
             'payment_confirmed' => true,
             'payment_confirmed_at' => now(),
             'payment_confirmed_by' => auth()->id(),
@@ -497,7 +555,8 @@ class ApprovalController extends Controller
         $this->inventoryService->deductStock(
             $split['inventory_item_id'] ?? null,
             $qtyFromInventory,
-            $newOrderId
+            $newOrderId,
+            $originalOrder->project_id ?? null
         );
 
         return $newOrderId;
@@ -583,5 +642,32 @@ class ApprovalController extends Controller
             return array_sum(array_map(fn($m) => intval($m['qty'] ?? 1), $materials));
         }
         return 1;
+    }
+
+    /**
+     * Verifica si TODAS las órdenes del request están 100% cubiertas por inventario.
+     * Se usa para relajar la validación de seller_name.
+     */
+    private function isAllInventoryOnly(Request $request): bool
+    {
+        $orderIds = $request->input('order_ids', []);
+        $splits = $request->input('splits', []);
+
+        if (empty($orderIds) || empty($splits)) return false;
+
+        foreach ($orderIds as $orderId) {
+            $split = $splits[$orderId] ?? null;
+            if (!$split || empty($split['inventory_item_id'])) return false;
+
+            $order = DB::table($this->ordersTable)->find($orderId);
+            if (!$order) return false;
+
+            $totalQty = $this->getOrderQuantity($order);
+            $qtyFromInventory = intval($split['qty_from_inventory'] ?? 0);
+
+            if ($qtyFromInventory < $totalQty) return false;
+        }
+
+        return true;
     }
 }

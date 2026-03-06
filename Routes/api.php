@@ -47,6 +47,7 @@ Route::get('/export-paid', "{$export}@exportPaidExcel");
 
 // ── Proveedores (SupplierController) ────────────────────────────────
 Route::get('/suppliers', "{$supplier}@index");
+Route::post('/suppliers', "{$supplier}@store");
 Route::get('/suppliers/search', "{$supplier}@search");
 Route::get('/suppliers/with-spending', "{$supplier}@indexWithSpending");
 Route::get('/suppliers/{id}', "{$supplier}@show")->where('id', '[0-9]+');

@@ -25,7 +25,7 @@ class InventoryService
                 $unitPrice = $qty > 0 ? round($subtotal / $qty, 2) : 0;
 
                 DB::table('inventario_productos')->insert([
-                    'nombre' => $item['description'] ?? 'Material sin descripción',
+                    'nombre' => $item['material_type'] ?? 'Material sin tipo',
                     'sku' => $sku,
                     'descripcion' => $item['description'] ?? '',
                     'cantidad' => $qty,
@@ -115,9 +115,11 @@ class InventoryService
     }
 
     /**
-     * Descontar stock del inventario cuando se usa para cumplir un pedido
+     * Reservar stock del inventario cuando se usa para cumplir un pedido.
+     * Crea un registro en inventory_reservations para que el material
+     * aparezca en el flujo de recuento al finalizar el proyecto.
      */
-    public function deductStock(?int $inventoryItemId, int $qty, int $orderId): void
+    public function deductStock(?int $inventoryItemId, int $qty, int $orderId, ?int $projectId = null): void
     {
         if (!$inventoryItemId || $qty <= 0) {
             return;
@@ -135,23 +137,62 @@ class InventoryService
                 return;
             }
 
-            $newQty = max(0, $item->cantidad - $qty);
+            // Precio unitario histórico del inventario
+            $unitPrice = $item->precio_unitario
+                ?? ($item->cantidad > 0 ? $item->precio / $item->cantidad : 0);
+            $totalCost = round($qty * $unitPrice, 2);
 
-            DB::table('inventario_productos')
-                ->where('id', $inventoryItemId)
-                ->update([
-                    'cantidad' => $newQty,
-                    'updated_at' => now(),
+            // Crear reserva de inventario para el flujo de recuento
+            if ($projectId && DB::getSchemaBuilder()->hasTable('inventory_reservations')) {
+                DB::table('inventory_reservations')->insert([
+                    'inventory_item_id'         => $inventoryItemId,
+                    'project_id'                => $projectId,
+                    'purchase_order_id'         => $orderId,
+                    'quantity_reserved'         => $qty,
+                    'unit_price_at_reservation' => round($unitPrice, 2),
+                    'total_cost'                => $totalCost,
+                    'currency'                  => $item->moneda ?? 'PEN',
+                    'status'                    => 'active',
+                    'reserved_by'               => auth()->id(),
+                    'created_at'                => now(),
+                    'updated_at'                => now(),
                 ]);
 
-            Log::info('Stock descontado de inventario', [
-                'inventory_item_id' => $inventoryItemId,
-                'qty_deducted' => $qty,
-                'new_qty' => $newQty,
-                'purchase_order_id' => $orderId,
-            ]);
+                // Incrementar cantidad_reservada (el stock físico no cambia, solo se marca como reservado)
+                DB::table('inventario_productos')
+                    ->where('id', $inventoryItemId)
+                    ->update([
+                        'cantidad_reservada' => DB::raw("COALESCE(cantidad_reservada, 0) + {$qty}"),
+                        'updated_at' => now(),
+                    ]);
+
+                Log::info('Stock reservado de inventario con reservation', [
+                    'inventory_item_id' => $inventoryItemId,
+                    'qty_reserved' => $qty,
+                    'unit_price' => $unitPrice,
+                    'project_id' => $projectId,
+                    'purchase_order_id' => $orderId,
+                ]);
+            } else {
+                // Fallback: sin proyecto, descontar directamente (comportamiento legacy)
+                $newQty = max(0, $item->cantidad - $qty);
+
+                DB::table('inventario_productos')
+                    ->where('id', $inventoryItemId)
+                    ->update([
+                        'cantidad' => $newQty,
+                        'updated_at' => now(),
+                    ]);
+
+                Log::info('Stock descontado de inventario (sin proyecto)', [
+                    'inventory_item_id' => $inventoryItemId,
+                    'qty_deducted' => $qty,
+                    'new_qty' => $newQty,
+                    'purchase_order_id' => $orderId,
+                ]);
+            }
         } catch (\Exception $e) {
-            Log::error('Error al descontar inventario: ' . $e->getMessage());
+            Log::error('Error al descontar/reservar inventario: ' . $e->getMessage());
         }
     }
 

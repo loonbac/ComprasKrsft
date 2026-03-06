@@ -151,6 +151,7 @@ export default function ComprasIndex() {
         submitting={pending.approvingPending}
         suppliers={suppliers}
         onSearchInventory={pending.searchInventory}
+        allFromInventory={pending.allFromInventory}
       />
       <RejectModal
         showRejectModal={pending.showRejectModal}

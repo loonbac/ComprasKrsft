@@ -30,11 +30,11 @@ export function useQuickPay(ctx) {
 
   const [quickPayMaterialForm, setQuickPayMaterialForm] = useState({
     qty: 1,
-    unit: '',
+    material_type: '',
     description: '',
     diameter: '',
     series: '',
-    material_type: '',
+    notes: '',
   });
 
   const [quickPayApprovalForm, setQuickPayApprovalForm] = useState({
@@ -42,6 +42,7 @@ export function useQuickPay(ctx) {
     seller_document: '',
     payment_type: 'cash',
     currency: 'PEN',
+    expense_type: 'directo',
     issue_date: getLocalDateString(),
     due_date: '',
   });
@@ -71,7 +72,7 @@ export function useQuickPay(ctx) {
     setQuickPayStep(1);
     setQuickPaySelectedProject(null);
     setQuickPayItems([]);
-    setQuickPayMaterialForm({ qty: 1, unit: '', description: '', diameter: '', series: '', material_type: '' });
+    setQuickPayMaterialForm({ qty: 1, material_type: '', description: '', diameter: '', series: '', notes: '' });
     try {
       const res = await fetch(`${apiBase}/projects`);
       const data = await res.json();
@@ -94,24 +95,24 @@ export function useQuickPay(ctx) {
   }, []);
 
   const addQuickPayItem = useCallback(() => {
-    if (!quickPayMaterialForm.description || !quickPayMaterialForm.qty) {
-      showToast('Completa descripción y cantidad', 'error');
+    if (!quickPayMaterialForm.material_type || !quickPayMaterialForm.qty) {
+      showToast('Completa tipo de material y cantidad', 'error');
       return;
     }
     setQuickPayItems((prev) => [
       ...prev,
       {
         qty: quickPayMaterialForm.qty,
-        unit: quickPayMaterialForm.unit || 'UND',
-        description: quickPayMaterialForm.description.trim(),
+        material_type: quickPayMaterialForm.material_type.trim(),
+        description: quickPayMaterialForm.description.trim() || '-',
         diameter: quickPayMaterialForm.diameter || '',
         series: quickPayMaterialForm.series || '',
-        material_type: quickPayMaterialForm.material_type || '',
+        notes: quickPayMaterialForm.notes || '',
         price: 0,
         subtotal: 0,
       },
     ]);
-    setQuickPayMaterialForm({ qty: 1, unit: '', description: '', diameter: '', series: '', material_type: '' });
+    setQuickPayMaterialForm({ qty: 1, material_type: '', description: '', diameter: '', series: '', notes: '' });
     showToast('Item agregado', 'success');
   }, [quickPayMaterialForm, showToast]);
 
@@ -164,6 +165,7 @@ export function useQuickPay(ctx) {
       formData.append('seller_document', quickPayApprovalForm.seller_document);
       formData.append('payment_type', quickPayApprovalForm.payment_type);
       formData.append('currency', quickPayApprovalForm.currency);
+      formData.append('expense_type', quickPayApprovalForm.expense_type || 'directo');
       formData.append('issue_date', quickPayApprovalForm.issue_date);
       if (quickPayApprovalForm.payment_type === 'loan') {
         formData.append('due_date', quickPayApprovalForm.due_date);

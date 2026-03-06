@@ -114,7 +114,11 @@ class ExportController extends Controller
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
             ->select(['purchase_orders.*', 'projects.name as project_name'])
             ->where('purchase_orders.status', 'approved')
-            ->where('purchase_orders.payment_confirmed', true);
+            ->where('purchase_orders.payment_confirmed', true)
+            ->where(function ($q) {
+                $q->whereNull('purchase_orders.source_type')
+                  ->orWhere('purchase_orders.source_type', '!=', 'inventory');
+            });
 
         if ($startDate) {
             $query->whereDate('purchase_orders.payment_confirmed_at', '>=', $startDate);

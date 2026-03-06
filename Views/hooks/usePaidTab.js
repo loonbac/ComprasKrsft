@@ -121,6 +121,10 @@ export function usePaidTab(ctx) {
       showToast('Complete tipo, serie y número de comprobante', 'error');
       return;
     }
+    if (!editComprobanteForm.payment_proof && !editComprobanteForm.payment_proof_link) {
+      showToast('Debe adjuntar un archivo o ingresar un link de comprobante', 'error');
+      return;
+    }
     setSavingComprobante(true);
     try {
       const formData = new FormData();

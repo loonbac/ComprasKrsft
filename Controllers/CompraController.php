@@ -43,7 +43,8 @@ class CompraController extends Controller
                 'purchase_orders.*',
                 'projects.name as project_name',
                 'projects.abbreviation as project_abbreviation',
-                'cecos.codigo as ceco_codigo'
+                'cecos.codigo as ceco_codigo',
+                'purchase_orders.expense_type'
             ])
             ->orderBy('purchase_orders.item_number', 'asc')
             ->orderBy('purchase_orders.created_at', 'desc');
@@ -77,6 +78,7 @@ class CompraController extends Controller
                 'projects.name as project_name',
                 'projects.abbreviation as project_abbreviation',
                 'cecos.codigo as ceco_codigo',
+                'purchase_orders.expense_type',
                 'approver.name as approved_by_name',
             ])
             ->where('purchase_orders.status', 'pending')
@@ -104,9 +106,14 @@ class CompraController extends Controller
                 'projects.name as project_name',
                 'projects.abbreviation as project_abbreviation',
                 'cecos.codigo as ceco_codigo',
+                'purchase_orders.expense_type',
                 'approver.name as approved_by_name',
             ])
             ->where('purchase_orders.status', 'to_pay')
+            ->where(function ($q) {
+                $q->whereNull('purchase_orders.source_type')
+                  ->orWhere('purchase_orders.source_type', '!=', 'inventory');
+            })
             ->orderBy('purchase_orders.created_at', 'asc')
             ->get()
             ->map(function ($order) {
@@ -130,6 +137,7 @@ class CompraController extends Controller
                 'projects.name as project_name',
                 'projects.abbreviation as project_abbreviation',
                 'cecos.codigo as ceco_codigo',
+                'purchase_orders.expense_type',
                 'projects.available_amount as project_available',
             ])
             ->where('purchase_orders.id', $id)
@@ -146,6 +154,7 @@ class CompraController extends Controller
 
     /**
      * Vendedores únicos de órdenes aprobadas (autocompletado)
+     * Excluye órdenes de inventario.
      */
     public function getSellers()
     {
@@ -153,6 +162,10 @@ class CompraController extends Controller
             ->whereNotNull('seller_name')
             ->where('seller_name', '!=', '')
             ->where('status', 'approved')
+            ->where(function ($q) {
+                $q->whereNull('source_type')
+                  ->orWhere('source_type', '!=', 'inventory');
+            })
             ->select('seller_name', 'seller_document')
             ->distinct()
             ->orderBy('seller_name')
@@ -168,8 +181,17 @@ class CompraController extends Controller
     {
         try {
             $projects = DB::table($this->projectsTable)
-                ->select('id', 'name', 'currency', 'available_amount', 'status')
-                ->orderBy('name', 'asc')
+                ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
+                ->select(
+                    'projects.id',
+                    'projects.name',
+                    'projects.currency',
+                    'projects.available_amount',
+                    'projects.status',
+                    'projects.abbreviation as project_abbreviation',
+                    'cecos.codigo as ceco_codigo'
+                )
+                ->orderBy('projects.name', 'asc')
                 ->get();
 
             return response()->json(['success' => true, 'projects' => $projects]);

@@ -30,6 +30,11 @@ export function useSuppliers({ apiBase }) {
   const [editForm, setEditForm] = useState({});
   const [savingSupplier, setSavingSupplier] = useState(false);
 
+  // ── Creación de proveedor ──────────────────────────────────────────────
+  const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
+  const [createForm, setCreateForm] = useState({});
+  const [savingNewSupplier, setSavingNewSupplier] = useState(false);
+
   /**
    * Busca proveedores para autocompletado predictivo.
    * Se activa al escribir en los campos Proveedor/RUC.
@@ -139,12 +144,69 @@ export function useSuppliers({ apiBase }) {
       name: supplier.name || '',
       document: supplier.document || '',
       document_type: supplier.document_type || 'RUC',
+      type: supplier.type || 'normal',
       contact_phone: supplier.contact_phone || '',
       contact_email: supplier.contact_email || '',
       address: supplier.address || '',
       notes: supplier.notes || '',
     });
   }, []);
+
+  /**
+   * Inicia la creación de un nuevo proveedor
+   */
+  const startCreateSupplier = useCallback(() => {
+    setIsCreatingSupplier(true);
+    setCreateForm({
+      name: '',
+      document: '',
+      document_type: 'RUC',
+      type: 'normal',
+      contact_phone: '',
+      contact_email: '',
+      address: '',
+      notes: '',
+    });
+    // Si estuviéramos editando a alguien, lo cancelamos
+    setEditingSupplier(null);
+  }, []);
+
+  /**
+   * Cancela la creación
+   */
+  const cancelCreateSupplier = useCallback(() => {
+    setIsCreatingSupplier(false);
+    setCreateForm({});
+  }, []);
+
+  /**
+   * Guarda el nuevo proveedor
+   */
+  const saveNewSupplier = useCallback(async () => {
+    setSavingNewSupplier(true);
+    try {
+      const res = await fetch(`${apiBase}/suppliers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': getCsrfToken(),
+        },
+        body: JSON.stringify(createForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsCreatingSupplier(false);
+        setCreateForm({});
+        await loadSuppliersWithSpending();
+      } else {
+        alert(`Error al crear proveedor: ${data.message}`);
+      }
+    } catch (e) {
+      console.error('Error creando proveedor:', e);
+      alert('Error de conexión al crear proveedor');
+    }
+    setSavingNewSupplier(false);
+  }, [apiBase, createForm, loadSuppliersWithSpending]);
 
   /**
    * Cancela la edición
@@ -205,5 +267,13 @@ export function useSuppliers({ apiBase }) {
     startEditSupplier,
     cancelEditSupplier,
     saveSupplier,
+    // Creación
+    isCreatingSupplier,
+    createForm,
+    setCreateForm,
+    savingNewSupplier,
+    startCreateSupplier,
+    cancelCreateSupplier,
+    saveNewSupplier,
   };
 }

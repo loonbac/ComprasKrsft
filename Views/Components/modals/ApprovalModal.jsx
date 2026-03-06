@@ -81,14 +81,14 @@ export default function ApprovalModal({
             }}
             suggestions={suppliers?.suggestions || []}
             showSuggestions={suppliers?.showSuggestions || false}
-            onSearch={suppliers?.searchSuppliers || (() => {})}
-            onBlur={suppliers?.hideSuggestions || (() => {})}
+            onSearch={suppliers?.searchSuppliers || (() => { })}
+            onBlur={suppliers?.hideSuggestions || (() => { })}
             placeholder="Nombre o Razón Social"
             className="sm:col-span-2"
           />
           <Input label="RUC/DNI" value={approvalForm.seller_document} onChange={(e) => setApprovalForm((p) => ({ ...p, seller_document: e.target.value }))} placeholder="20123456789" />
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Select label="Tipo de Pago *" value={approvalForm.payment_type} onChange={(e) => setApprovalForm((p) => ({ ...p, payment_type: e.target.value }))} placeholder="">
             <option value="cash">Pago Directo</option>
             <option value="loan">Pago a Crédito</option>
@@ -96,6 +96,11 @@ export default function ApprovalModal({
           <Select label="Moneda" value={approvalForm.currency} onChange={(e) => { const v = e.target.value; setApprovalForm((p) => ({ ...p, currency: v })); onApprovalCurrencyChange(v); }} placeholder="">
             <option value="PEN">PEN - Soles</option>
             <option value="USD">USD - Dólares</option>
+          </Select>
+          <Select label="Tipo de Gasto" value={approvalForm.expense_type} onChange={(e) => setApprovalForm((p) => ({ ...p, expense_type: e.target.value }))} placeholder="">
+            <option value="mo">MO (Mano de Obra)</option>
+            <option value="direct">Gasto Directo</option>
+            <option value="indirect">Gasto Indirecto</option>
           </Select>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -129,12 +134,12 @@ export default function ApprovalModal({
             const seen = new Map();
             selectedApprovalOrdersData.forEach((order) => {
               if (!seen.has(order.project_id)) {
-                const g = { 
-                  project_id: order.project_id, 
+                const g = {
+                  project_id: order.project_id,
                   project_name: order.project_name,
                   project_abbreviation: order.project_abbreviation,
                   ceco_codigo: order.ceco_codigo,
-                  orders: [] 
+                  orders: []
                 };
                 seen.set(order.project_id, g);
                 groups.push(g);

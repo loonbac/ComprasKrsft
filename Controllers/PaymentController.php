@@ -185,6 +185,25 @@ class PaymentController extends Controller
 
         try {
             $batchId = $request->input('batch_id');
+
+            // Verificar que se proporcione al menos un archivo o link de comprobante
+            $hasNewFile = $request->hasFile('payment_proof');
+            $hasNewLink = $request->filled('payment_proof_link');
+            if (!$hasNewFile && !$hasNewLink) {
+                // Verificar si el batch ya tiene comprobante guardado previamente
+                $existing = DB::table($this->ordersTable)
+                    ->where('batch_id', $batchId)
+                    ->where('payment_confirmed', true)
+                    ->first();
+                $hasExisting = $existing && ($existing->payment_proof || $existing->payment_proof_link);
+                if (!$hasExisting) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Debe adjuntar un archivo o ingresar un link de comprobante',
+                    ], 422);
+                }
+            }
+
             $proofPath = $this->orderService->handlePaymentProof($request, $batchId);
             $proofLink = $request->input('payment_proof_link');
 
@@ -230,6 +249,7 @@ class PaymentController extends Controller
                 $sellerDocument = $request->input('seller_document');
                 $paymentType = $request->input('payment_type');
                 $currency = $request->input('currency');
+                $expenseType = $request->input('expense_type', 'directo');
                 $issueDate = $request->input('issue_date');
                 $dueDate = $request->input('due_date');
                 $items = json_decode($request->input('items'), true);
@@ -285,6 +305,7 @@ class PaymentController extends Controller
                         'amount' => $subtotal,
                         'amount_pen' => $amountPen,
                         'currency' => $currency,
+                        'expense_type' => $expenseType,
                         'exchange_rate' => $exchangeRate,
                         'total_with_igv' => $amountPen,
                         'status' => 'approved',
@@ -404,6 +425,10 @@ class PaymentController extends Controller
             ->select(['purchase_orders.*', 'projects.name as project_name', 'projects.abbreviation as project_abbreviation', 'cecos.codigo as ceco_codigo'])
             ->where('purchase_orders.status', 'approved')
             ->where('purchase_orders.payment_confirmed', false)
+            ->where(function ($q) {
+                $q->whereNull('purchase_orders.source_type')
+                  ->orWhere('purchase_orders.source_type', '!=', 'inventory');
+            })
             ->orderBy('purchase_orders.approved_at', 'desc')
             ->get()
             ->map(function ($order) {
@@ -416,6 +441,7 @@ class PaymentController extends Controller
 
     /**
      * Órdenes pagadas (payment_confirmed = true)
+     * Excluye órdenes de inventario (source_type = 'inventory') que no son compras reales.
      */
     public function paidOrders()
     {
@@ -434,6 +460,10 @@ class PaymentController extends Controller
             ])
             ->where('purchase_orders.status', 'approved')
             ->where('purchase_orders.payment_confirmed', true)
+            ->where(function ($q) {
+                $q->whereNull('purchase_orders.source_type')
+                  ->orWhere('purchase_orders.source_type', '!=', 'inventory');
+            })
             ->orderBy('purchase_orders.payment_confirmed_at', 'desc')
             ->get()
             ->map(function ($order) {

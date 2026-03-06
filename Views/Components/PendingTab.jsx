@@ -93,9 +93,9 @@ export default function PendingTab({
 
   return (
     <>
-      {/* Floating selection panel — bottom-right */}
+      {/* Floating selection panel — bottom-center */}
       {selectedPendingIds.length > 0 && createPortal(
-        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-xl border border-primary-200 bg-white px-5 py-3 shadow-2xl ring-1 ring-primary-100">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-xl border border-primary-200 bg-white px-5 py-3 shadow-2xl ring-1 ring-primary-100">
           <CheckCircleIcon className="size-5 text-primary shrink-0" />
           <span className="text-sm font-semibold text-gray-800">
             {selectedPendingIds.length} seleccionado{selectedPendingIds.length !== 1 ? 's' : ''}
@@ -224,25 +224,25 @@ export default function PendingTab({
                               <table className="w-full table-fixed divide-y divide-gray-200 text-sm">
                                 <colgroup>
                                   <col style={{ width: '4%' }} />
-                                  <col style={{ width: '6%' }} />
+                                  <col style={{ width: '5%' }} />
+                                  <col style={{ width: '7%' }} />
+                                  <col style={{ width: '14%' }} />
                                   <col style={{ width: '22%' }} />
-                                  <col style={{ width: '7%' }} />
-                                  <col style={{ width: '7%' }} />
+                                  <col style={{ width: '8%' }} />
                                   <col style={{ width: '10%' }} />
-                                  <col style={{ width: '10%' }} />
-                                  <col style={{ width: '10%' }} />
-                                  <col style={{ width: '18%' }} />
+                                  <col style={{ width: '16%' }} />
+                                  <col style={{ width: '14%' }} />
                                 </colgroup>
                                 <thead className="bg-gray-50">
                                   <tr className="*:px-3 *:py-2 *:text-xs *:font-medium *:uppercase *:text-gray-500 *:text-center">
                                     <th></th>
                                     <th>ITEM</th>
-                                    <th className="!text-left">DESCRIPCIÓN</th>
-                                    <th>CANT</th>
-                                    <th>UND</th>
-                                    <th>DIÁMETRO</th>
-                                    <th>SERIE</th>
-                                    <th>MATERIAL</th>
+                                    <th>CANTIDAD</th>
+                                    <th className="!text-left">TIPO DE MATERIAL</th>
+                                    <th className="!text-left">ESPECIFICACION TECNICA</th>
+                                    <th>MEDIDA</th>
+                                    <th>TIPO DE CONEXIÓN</th>
+                                    <th className="!text-left">OBSERVACIONES</th>
                                     <th>ACCIONES</th>
                                   </tr>
                                 </thead>
@@ -253,12 +253,12 @@ export default function PendingTab({
                                         <input type="checkbox" checked={isPendingSelected(order.id)} onChange={() => togglePendingSelect(order.id)} className="rounded border-gray-300" />
                                       </td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center font-medium cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.item_number || '-'}</td>
-                                      <td className="px-3 py-2 text-gray-700 align-middle text-left truncate cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{getOrderTitle(order)}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{getOrderQty(order)}</td>
-                                      <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.unit || 'UND'}</td>
+                                      <td className="px-3 py-2 text-gray-700 align-middle text-left cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.material_type || '-'}</td>
+                                      <td className="px-3 py-2 text-gray-700 align-middle text-left truncate cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{getOrderTitle(order)}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.diameter || '-'}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.series || '-'}</td>
-                                      <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.material_type || '-'}</td>
+                                      <td className="px-3 py-2 text-gray-700 align-middle text-left cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.notes || '-'}</td>
                                       <td className="px-2 py-2 align-middle" onClick={(e) => e.stopPropagation()}>
                                         <div className="flex justify-center gap-1.5 w-4/5 mx-auto">
                                           <button onClick={() => approveSinglePending(order.id)} title="Aprobar" className="flex-1 flex items-center justify-center rounded-lg py-1.5 bg-emerald-100 text-emerald-600 transition-colors hover:bg-emerald-200 hover:text-emerald-700 font-semibold"><CheckIcon className="size-4" /></button>

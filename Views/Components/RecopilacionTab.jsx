@@ -81,6 +81,8 @@ export default function RecopilacionTab({
     const results = [];
 
     pendingOrders.forEach((order) => {
+      const pendingBase = parseFloat(order.amount || 0);
+      const pendingIgv = order.igv_enabled ? pendingBase * (parseFloat(order.igv_rate ?? 18) / 100) : 0;
       results.push({
         id: `pending-${order.id}`,
         type: 'pending',
@@ -93,11 +95,12 @@ export default function RecopilacionTab({
         project_name: order.project_name,
         project_abbreviation: order.project_abbreviation,
         ceco_codigo: order.ceco_codigo,
+        expense_type: order.expense_type,
         order_title: getOrderTitle(order),
         order_qty: getOrderQty(order),
         currency: order.currency || 'PEN',
-        amount: order.amount || 0,
-        amount_with_igv: order.amount_with_igv || 0,
+        amount: pendingBase,
+        amount_with_igv: order.amount_with_igv || (pendingBase + pendingIgv),
         igv_enabled: !!order.igv_enabled,
         payment_type: order.payment_type || null,
         issue_date: order.issue_date || order.created_at,
@@ -108,6 +111,8 @@ export default function RecopilacionTab({
 
     toPayBatches.forEach((batch) => {
       batch.orders.forEach((order) => {
+        const toPayBase = parseFloat(order.amount || 0);
+        const toPayIgv = batch.igv_enabled ? toPayBase * (parseFloat(order.igv_rate ?? 18) / 100) : 0;
         results.push({
           id: `topay-${batch.batch_id}-${order.id}`,
           type: 'to_pay',
@@ -120,11 +125,12 @@ export default function RecopilacionTab({
           project_name: order.project_name,
           project_abbreviation: order.project_abbreviation,
           ceco_codigo: order.ceco_codigo,
+          expense_type: order.expense_type,
           order_title: getOrderTitle(order),
           order_qty: getOrderQty(order),
           currency: batch.currency || 'PEN',
-          amount: order.amount || 0,
-          amount_with_igv: order.amount_with_igv ?? order.amount ?? 0,
+          amount: toPayBase,
+          amount_with_igv: order.amount_with_igv ?? (toPayBase + toPayIgv),
           igv_enabled: !!batch.igv_enabled,
           payment_type: batch.payment_type || null,
           issue_date: batch.issue_date || null,
@@ -140,6 +146,8 @@ export default function RecopilacionTab({
           ? `${batch.cdp_type} ${batch.cdp_serie}-${batch.cdp_number}`
           : null;
       batch.orders.forEach((order) => {
+        const paidBase = parseFloat(order.amount || 0);
+        const paidIgv = (order.igv_enabled || batch.igv_enabled) ? paidBase * (parseFloat(order.igv_rate ?? 18) / 100) : 0;
         results.push({
           id: `paid-${batch.batch_id}-${order.id}`,
           type: 'paid',
@@ -152,12 +160,13 @@ export default function RecopilacionTab({
           project_name: order.project_name,
           project_abbreviation: order.project_abbreviation,
           ceco_codigo: order.ceco_codigo,
+          expense_type: order.expense_type,
           order_title: getOrderTitle(order),
           order_qty: getOrderQty(order),
           currency: batch.currency || 'PEN',
-          amount: order.amount || 0,
-          amount_with_igv: order.amount_with_igv ?? order.amount ?? 0,
-          igv_enabled: !!batch.igv_enabled,
+          amount: paidBase,
+          amount_with_igv: paidBase + paidIgv,
+          igv_enabled: !!(order.igv_enabled || batch.igv_enabled),
           payment_type: batch.payment_type || null,
           issue_date: batch.issue_date || null,
           due_date: batch.payment_type === 'cash' ? (batch.issue_date || null) : (batch.due_date || null),
@@ -216,8 +225,8 @@ export default function RecopilacionTab({
           <button
             onClick={() => setSelectedMonth(null)}
             className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${selectedMonth === null
-                ? 'border-primary bg-primary text-white shadow-sm'
-                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:text-gray-800'
+              ? 'border-primary bg-primary text-white shadow-sm'
+              : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:text-gray-800'
               }`}
           >
             Todos
@@ -229,8 +238,8 @@ export default function RecopilacionTab({
               key={monthKey}
               onClick={() => setSelectedMonth(monthKey)}
               className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${selectedMonth === monthKey
-                  ? 'border-primary bg-primary text-white shadow-sm'
-                  : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:text-gray-800'
+                ? 'border-primary bg-primary text-white shadow-sm'
+                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:text-gray-800'
                 }`}
             >
               {formatMonthKey(monthKey)}

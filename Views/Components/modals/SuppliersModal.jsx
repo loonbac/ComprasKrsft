@@ -28,6 +28,10 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { formatNumber } from '../../utils';
+import { useState, useCallback } from 'react';
+import ConfirmModal from './ConfirmModal';
+
+
 
 /**
  * Campo de información del proveedor (lectura)
@@ -46,9 +50,9 @@ function InfoField({ icon: Icon, label, value }) {
 }
 
 /**
- * Formulario de edición inline
+ * Formulario de edición/creación inline
  */
-function EditForm({ editForm, setEditForm, onSave, onCancel, saving }) {
+function EditForm({ title = 'Editar Proveedor', editForm, setEditForm, onSave, onCancel, saving }) {
   const handleChange = (field) => (e) => {
     setEditForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
@@ -56,8 +60,8 @@ function EditForm({ editForm, setEditForm, onSave, onCancel, saving }) {
   return (
     <div className="space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-        <PencilSquareIcon className="size-4" />
-        Editar Proveedor
+        {title === 'Nuevo Proveedor' ? <BuildingStorefrontIcon className="size-4" /> : <PencilSquareIcon className="size-4" />}
+        {title}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -89,6 +93,19 @@ function EditForm({ editForm, setEditForm, onSave, onCancel, saving }) {
               onChange={handleChange('document')}
             />
           </div>
+        </div>
+        <div>
+          <label className="block">
+            <span className="text-sm font-medium text-gray-700">Tipo de Proveedor</span>
+            <select
+              value={editForm.type}
+              onChange={handleChange('type')}
+              className="mt-0.5 w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            >
+              <option value="normal">Normal</option>
+              <option value="servicios">Servicios</option>
+            </select>
+          </label>
         </div>
         <Input
           label="Teléfono"
@@ -157,8 +174,23 @@ export default function SuppliersModal({
   startEditSupplier,
   cancelEditSupplier,
   saveSupplier,
+  // Props de creación manual
+  isCreatingSupplier,
+  createForm,
+  setCreateForm,
+  savingNewSupplier,
+  startCreateSupplier,
+  cancelCreateSupplier,
+  saveNewSupplier,
 }) {
+  const [deactivateTarget, setDeactivateTarget] = useState(null);
+  const closeDeactivateConfirm = useCallback(() => setDeactivateTarget(null), []);
+  const handleDeactivateConfirmed = useCallback(() => {
+    if (deactivateTarget) { deactivateSupplier(deactivateTarget.id); setDeactivateTarget(null); }
+  }, [deactivateTarget, deactivateSupplier]);
+
   return (
+    <>
     <Modal
       open={showSuppliersModal}
       onClose={closeSuppliersModal}
@@ -184,15 +216,40 @@ export default function SuppliersModal({
         </div>
       ) : (
         <div className="space-y-2">
-          {/* Resumen global */}
+          {/* Resumen global con botón de crear */}
           <div className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
-            <span className="text-sm font-medium text-gray-700">
-              {suppliersWithSpending.length} proveedor{suppliersWithSpending.length !== 1 ? 'es' : ''} registrado{suppliersWithSpending.length !== 1 ? 's' : ''}
-            </span>
-            <span className="text-sm font-semibold text-gray-900">
-              Total: S/ {formatNumber(suppliersWithSpending.reduce((sum, s) => sum + (s.total_pen || 0), 0))}
-            </span>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-gray-700">
+                {suppliersWithSpending.length} proveedor{suppliersWithSpending.length !== 1 ? 'es' : ''} registrado{suppliersWithSpending.length !== 1 ? 's' : ''}
+              </span>
+              <span className="text-sm font-semibold text-gray-900">
+                Total: S/ {formatNumber(suppliersWithSpending.reduce((sum, s) => sum + (s.total_pen || 0), 0))}
+              </span>
+            </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={startCreateSupplier}
+              disabled={isCreatingSupplier}
+            >
+              Nuevo Proveedor
+            </Button>
           </div>
+
+          {/* Formulario de creación (arriba de la lista) */}
+          {isCreatingSupplier && (
+            <div className="mb-4">
+              <EditForm
+                title="Nuevo Proveedor"
+                editForm={createForm}
+                setEditForm={setCreateForm}
+                onSave={saveNewSupplier}
+                onCancel={cancelCreateSupplier}
+                saving={savingNewSupplier}
+              />
+            </div>
+          )}
 
           {/* Lista de proveedores */}
           <div className="divide-y divide-gray-100 rounded-lg border border-gray-200">
@@ -212,7 +269,19 @@ export default function SuppliersModal({
                       <BuildingStorefrontIcon className="size-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{supplier.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{supplier.name}</p>
+                        {supplier.type === 'normal' && (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">
+                            normales
+                          </span>
+                        )}
+                        {supplier.type === 'servicios' && (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200">
+                            servicios
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500">
                         {supplier.document_type || 'RUC'}: {supplier.document || '—'} · {supplier.order_count || 0} compra{(supplier.order_count || 0) !== 1 ? 's' : ''}
                       </p>
@@ -254,9 +323,9 @@ export default function SuppliersModal({
                                   e.stopPropagation();
                                   startEditSupplier(supplier);
                                 }}
-                                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                               >
-                                <PencilSquareIcon className="size-3.5" />
+                                <PencilSquareIcon className="size-4" />
                                 Editar
                               </button>
                             </div>
@@ -291,11 +360,7 @@ export default function SuppliersModal({
                           <Button
                             variant="danger"
                             size="sm"
-                            onClick={() => {
-                              if (window.confirm(`¿Desactivar al proveedor "${supplier.name}"?`)) {
-                                deactivateSupplier(supplier.id);
-                              }
-                            }}
+                            onClick={() => setDeactivateTarget(supplier)}
                           >
                             Desactivar
                           </Button>
@@ -310,5 +375,16 @@ export default function SuppliersModal({
         </div>
       )}
     </Modal>
+
+    <ConfirmModal
+      open={!!deactivateTarget}
+      onClose={closeDeactivateConfirm}
+      title="¿Desactivar proveedor?"
+      message={deactivateTarget ? `Se desactivará al proveedor "${deactivateTarget.name}". Podrás reactivarlo más adelante.` : ''}
+      actionLabel="Sí, desactivar"
+      actionVariant="danger"
+      onConfirm={handleDeactivateConfirmed}
+    />
+    </>
   );
 }

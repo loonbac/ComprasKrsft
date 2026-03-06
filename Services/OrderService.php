@@ -36,6 +36,7 @@ class OrderService
             'due_date' => $request->input('due_date'),
             'igv_enabled' => $request->boolean('igv_enabled', false),
             'igv_rate' => floatval($request->input('igv_rate', 18.00)),
+            'expense_type' => $request->input('expense_type'),
             'updated_at' => now(),
         ];
 

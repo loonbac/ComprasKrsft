@@ -19,6 +19,7 @@ import {
   PencilSquareIcon,
   XMarkIcon,
   ArchiveBoxIcon,
+  ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -89,6 +90,8 @@ export default function ApprovalOrderModal({
   suppliers,
   // Inventory search callback – receives (orderId, searchText) → Promise<lots[]>
   onSearchInventory,
+  // Flag: todas las órdenes cubiertas al 100% por inventario
+  allFromInventory = false,
 }) {
   // ── Local state ───────────────────────────────────────────────────────
   const [activeMaterialId, setActiveMaterialId] = useState(null); // which mat has stock panel open
@@ -205,24 +208,37 @@ export default function ApprovalOrderModal({
 
         {/* Body */}
         <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-          {/* ── Facturación ── */}
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-gray-900">Datos de Facturación</h4>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <SupplierAutocomplete
-                label="Proveedor"
-                value={approvalForm.seller_name}
-                onChange={(e) => setApprovalForm((p) => ({ ...p, seller_name: e.target.value }))}
-                onSelect={(s) => setApprovalForm((p) => ({ ...p, seller_name: s.name, seller_document: s.document || p.seller_document }))}
-                suggestions={suppliers?.suggestions || []}
-                showSuggestions={suppliers?.showSuggestions || false}
-                onSearch={suppliers?.searchSuppliers || (() => { })}
-                onBlur={suppliers?.hideSuggestions || (() => { })}
-                placeholder="Nombre o Razón Social"
-              />
-              <Input label="RUC / DNI" value={approvalForm.seller_document} onChange={(e) => setApprovalForm((p) => ({ ...p, seller_document: e.target.value }))} placeholder="20100055234" />
+          {/* ── Banner Inventario Completo ── */}
+          {allFromInventory && (
+            <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <ArrowsRightLeftIcon className="size-5 shrink-0 text-emerald-600" />
+              <div>
+                <p className="text-sm font-semibold text-emerald-800">Transferencia interna de inventario</p>
+                <p className="text-xs text-emerald-600">Todas las órdenes están cubiertas al 100% por stock existente. Se procesará sin facturación.</p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* ── Facturación (oculto si todo es inventario) ── */}
+          {!allFromInventory && (
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900">Datos de Facturación</h4>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <SupplierAutocomplete
+                  label="Proveedor"
+                  value={approvalForm.seller_name}
+                  onChange={(e) => setApprovalForm((p) => ({ ...p, seller_name: e.target.value }))}
+                  onSelect={(s) => setApprovalForm((p) => ({ ...p, seller_name: s.name, seller_document: s.document || p.seller_document }))}
+                  suggestions={suppliers?.suggestions || []}
+                  showSuggestions={suppliers?.showSuggestions || false}
+                  onSearch={suppliers?.searchSuppliers || (() => { })}
+                  onBlur={suppliers?.hideSuggestions || (() => { })}
+                  placeholder="Nombre o Razón Social"
+                />
+                <Input label="RUC / DNI" value={approvalForm.seller_document} onChange={(e) => setApprovalForm((p) => ({ ...p, seller_document: e.target.value }))} placeholder="20100055234" />
+              </div>
+            </div>
+          )}
 
           {/* ── Materiales ── */}
           <div>
@@ -375,54 +391,65 @@ export default function ApprovalOrderModal({
             </div>
           </div>
 
-          {/* ── Payment details ── */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Select label="Tipo de Pago" value={approvalForm.payment_type} onChange={(e) => setApprovalForm((p) => ({ ...p, payment_type: e.target.value }))} placeholder="">
-              <option value="cash">Pago Directo</option>
-              <option value="loan">Pago a Crédito</option>
-            </Select>
-            <Select label="Moneda" value={approvalForm.currency} onChange={(e) => { const v = e.target.value; setApprovalForm((p) => ({ ...p, currency: v })); onCurrencyChange?.(v); }} placeholder="">
-              <option value="PEN">PEN - Soles</option>
-              <option value="USD">USD - Dólares</option>
-            </Select>
-            <Input label="Fecha Emisión" type="date" value={approvalForm.issue_date} onChange={(e) => setApprovalForm((p) => ({ ...p, issue_date: e.target.value }))} />
-          </div>
-
-          {approvalForm.payment_type === 'loan' && (
-            <Input label="Fecha Vencimiento" type="date" value={approvalForm.due_date} onChange={(e) => setApprovalForm((p) => ({ ...p, due_date: e.target.value }))} className="max-w-xs" />
-          )}
-
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input type="checkbox" checked={approvalForm.igv_enabled} onChange={(e) => setApprovalForm((p) => ({ ...p, igv_enabled: e.target.checked }))} className="rounded border-gray-300 text-primary focus:ring-primary" />
-              Aplicar IGV
-            </label>
-            {approvalForm.igv_enabled && (
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number" step="0.01" min="0"
-                  value={approvalForm.igv_rate || ''}
-                  onChange={(e) => setApprovalForm((p) => ({ ...p, igv_rate: parseFloat(e.target.value) || 0 }))}
-                  placeholder="18"
-                  className="w-20 rounded border border-gray-300 px-2 py-1.5 text-right text-sm shadow-sm focus:border-primary focus:ring-primary"
-                />
-                <span className="text-sm text-gray-500">%</span>
+          {/* ── Payment details (oculto si todo es inventario) ── */}
+          {!allFromInventory && (
+            <>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Select label="Tipo de Pago" value={approvalForm.payment_type} onChange={(e) => setApprovalForm((p) => ({ ...p, payment_type: e.target.value }))} placeholder="">
+                  <option value="cash">Pago Directo</option>
+                  <option value="loan">Pago a Crédito</option>
+                </Select>
+                <Select label="Moneda" value={approvalForm.currency} onChange={(e) => { const v = e.target.value; setApprovalForm((p) => ({ ...p, currency: v })); onCurrencyChange?.(v); }} placeholder="">
+                  <option value="PEN">PEN - Soles</option>
+                  <option value="USD">USD - Dólares</option>
+                </Select>
+                <Select label="Tipo de Gasto" value={approvalForm.expense_type} onChange={(e) => setApprovalForm((p) => ({ ...p, expense_type: e.target.value }))} placeholder="">
+                  <option value="mo">MO (Mano de Obra)</option>
+                  <option value="direct">Gasto Directo</option>
+                  <option value="indirect">Gasto Indirecto</option>
+                </Select>
+                <Input label="Fecha Emisión" type="date" value={approvalForm.issue_date} onChange={(e) => setApprovalForm((p) => ({ ...p, issue_date: e.target.value }))} />
               </div>
-            )}
-          </div>
 
-          {approvalForm.currency === 'USD' && (
-            <div className="rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700">
-              {loadingRate ? 'Obteniendo tipo de cambio...' : currentExchangeRate > 0 ? `T.C: 1 USD = S/ ${currentExchangeRate.toFixed(4)}` : <span className="text-red-600">No se pudo obtener tipo de cambio</span>}
-            </div>
+              {approvalForm.payment_type === 'loan' && (
+                <Input label="Fecha Vencimiento" type="date" value={approvalForm.due_date} onChange={(e) => setApprovalForm((p) => ({ ...p, due_date: e.target.value }))} className="max-w-xs" />
+              )}
+
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={approvalForm.igv_enabled} onChange={(e) => setApprovalForm((p) => ({ ...p, igv_enabled: e.target.checked }))} className="rounded border-gray-300 text-primary focus:ring-primary" />
+                  Aplicar IGV
+                </label>
+                {approvalForm.igv_enabled && (
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number" step="0.01" min="0"
+                      value={approvalForm.igv_rate || ''}
+                      onChange={(e) => setApprovalForm((p) => ({ ...p, igv_rate: parseFloat(e.target.value) || 0 }))}
+                      placeholder="18"
+                      className="w-20 rounded border border-gray-300 px-2 py-1.5 text-right text-sm shadow-sm focus:border-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-gray-500">%</span>
+                  </div>
+                )}
+              </div>
+
+              {approvalForm.currency === 'USD' && (
+                <div className="rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700">
+                  {loadingRate ? 'Obteniendo tipo de cambio...' : currentExchangeRate > 0 ? `T.C: 1 USD = S/ ${currentExchangeRate.toFixed(4)}` : <span className="text-red-600">No se pudo obtener tipo de cambio</span>}
+                </div>
+              )}
+            </>
           )}
 
           {/* ── Totals ── */}
           <div className="space-y-2 rounded-xl bg-gray-50 p-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Costo Compra Directa</span>
-              <span className="font-medium text-gray-900">{sym(approvalForm.currency)} {formatNumber(totalPurchase)}</span>
-            </div>
+            {!allFromInventory && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Costo Compra Directa</span>
+                <span className="font-medium text-gray-900">{sym(approvalForm.currency)} {formatNumber(totalPurchase)}</span>
+              </div>
+            )}
             {totalStock > 0 && (
               <div className="flex justify-between">
                 <span className="flex items-center gap-1 text-primary">
@@ -431,15 +458,15 @@ export default function ApprovalOrderModal({
                 <span className="font-medium text-primary">{sym(approvalForm.currency)} {formatNumber(totalStock)}</span>
               </div>
             )}
-            {approvalForm.igv_enabled && totalPurchase > 0 && (
+            {!allFromInventory && approvalForm.igv_enabled && totalPurchase > 0 && (
               <div className="flex justify-between text-gray-500">
                 <span>IGV ({approvalForm.igv_rate}%)</span>
                 <span>{sym(approvalForm.currency)} {formatNumber(igv)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-gray-200 pt-2">
-              <span className="text-base font-bold text-gray-900">Gasto Real Total</span>
-              <span className="text-lg font-bold text-gray-900">{sym(approvalForm.currency)} {formatNumber(grandTotal + igv)}</span>
+              <span className="text-base font-bold text-gray-900">{allFromInventory ? 'Total Transferencia Interna' : 'Gasto Real Total'}</span>
+              <span className="text-lg font-bold text-gray-900">{sym(approvalForm.currency)} {formatNumber(allFromInventory ? totalStock : grandTotal + igv)}</span>
             </div>
           </div>
         </div>
@@ -447,8 +474,8 @@ export default function ApprovalOrderModal({
         {/* Footer */}
         <div className="flex shrink-0 items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
           <Button variant="danger" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={onSubmit} disabled={!canSubmit || submitting} loading={submitting}>
-            {submitting ? 'Procesando...' : `Enviar ${orders.length} a Por Pagar`}
+          <Button variant={allFromInventory ? 'success' : 'primary'} onClick={onSubmit} disabled={!canSubmit || submitting} loading={submitting}>
+            {submitting ? 'Procesando...' : allFromInventory ? `Transferir ${orders.length} desde Inventario` : `Enviar ${orders.length} a Por Pagar`}
           </Button>
         </div>
       </div>
