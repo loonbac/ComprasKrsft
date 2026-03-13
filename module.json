@@ -2,8 +2,8 @@
     "name": "ComprasKrsft",
     "slug": "compras_krsft",
     "display_name": "COMPRAS",
-    "version": "6.2.0",
-    "description": "Sistema de gestión de órdenes y pagos. v6.1.9: Fix columna source_type en mark-to-pay-bulk",
+    "version": "6.3.0",
+    "description": "Sistema de gestión de órdenes y pagos. v6.3.0: Divide permiso Pagadas en paid_full (completo) y paid_limited (limitado)",
     "icon": "icon.svg",
     "color": "#10b981",
     "gradient": "#10b981",
@@ -12,5 +12,48 @@
     "dependencies": [
         "ProyectosKrsft",
         "InventarioKrsft"
-    ]
+    ],
+    "permissions": [
+        { "action": "access",       "display_name": "Compras: Ver",                  "description": "Accede al módulo de Compras, visualiza el resumen ejecutivo, estadísticas de gasto y gestiona el catálogo de proveedores" },
+        { "action": "view",         "display_name": "Compras: Por Cotizar",          "description": "Accede a la sección Por Cotizar: crea nuevas órdenes de compra, edita ítems y montos, y elimina borradores" },
+        { "action": "approve",      "display_name": "Compras: Por Aprobar",          "description": "Accede a la sección Por Aprobar: aprueba, rechaza y marca para pago las órdenes cotizadas, de forma individual o masiva" },
+        { "action": "pay",          "display_name": "Compras: Por Pagar",            "description": "Accede a la sección Por Pagar: registra pagos individuales y masivos, gestiona créditos y usa el pago rápido" },
+        { "action": "paid_full",    "display_name": "Compras: Pagadas (Completo)",   "description": "Acceso completo a Pagadas: verifica facturas, inicia y gestiona anulaciones, confirma datos y finaliza flujos de anulación" },
+        { "action": "paid_limited", "display_name": "Compras: Pagadas (Limitado)",   "description": "Acceso limitado a Pagadas: visualiza facturas pagadas, edita comprobantes e ingresa datos de Nota de Crédito cuando se solicita una anulación" },
+        { "action": "export",       "display_name": "Compras: Recopilación",         "description": "Accede a la sección Recopilación: visualiza y exporta el consolidado de órdenes de compra en formato Excel" },
+        { "action": "finalize",     "display_name": "Compras: CONTASIS",             "description": "Accede a la sección CONTASIS: verifica asientos contables, finaliza flujos y gestiona la integración contable" }
+    ],
+    "permission_implies": {
+        "paid_full": ["paid_limited"]
+    },
+    "segment_permissions": {
+        "pending":              "view",
+        "quoted":               "approve",
+        "reject":               "view",
+        "reject_quoted":        "approve",
+        "reject_quoted_bulk":   "approve",
+        "approve_bulk":         "approve",
+        "approve_quoted_bulk":  "approve",
+        "to_pay":               "pay",
+        "mark_to_pay":          "view",
+        "mark_to_pay_bulk":     "view",
+        "pay_bulk":             "pay",
+        "pay_batch":            "pay",
+        "quick_pay":            "pay",
+        "extend_credit":        "pay",
+        "approved_unpaid":      "pay",
+        "mark_purchased":       "pay",
+        "preview_mixed":        "pay",
+        "process_mixed":        "pay",
+        "paid_orders":          "paid_limited",
+        "delivered_orders":     "paid_limited",
+        "payment_proof_file":   "paid_limited",
+        "update_comprobante":   "paid_limited",
+        "confirm_payment":      "paid_limited",
+        "verify_batch":         "paid_full",
+        "cancel":               "paid_limited",
+        "confirm_receipt":      "paid_limited",
+        "finalize_project":     "finalize",
+        "suppliers":            "access"
+    }
 }

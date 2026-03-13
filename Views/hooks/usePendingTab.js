@@ -35,6 +35,7 @@ export function usePendingTab(ctx) {
     currentExchangeRate,
     loadingRate,
     fetchExchangeRate,
+    permissions = {},
   } = ctx;
 
   // ── State ─────────────────────────────────────────────────────────────
@@ -368,7 +369,10 @@ export function usePendingTab(ctx) {
         closeApprovalModal();
         setSelectedPendingIds([]);
         setApprovalPrices({});
-        await Promise.all([loadPendingOrders(), loadToPayOrders()]);
+        await Promise.all([
+          loadPendingOrders(),
+          permissions.approve ? loadToPayOrders() : Promise.resolve(),
+        ]);
       } else {
         showToast(data.message || 'Error al aprobar', 'error');
       }
@@ -430,7 +434,10 @@ export function usePendingTab(ctx) {
       if (data.success) {
         showToast('Orden rechazada', 'success');
         closeRejectModal();
-        await Promise.all([loadPendingOrders(), loadToPayOrders()]);
+        await Promise.all([
+          loadPendingOrders(),
+          permissions.approve ? loadToPayOrders() : Promise.resolve(),
+        ]);
       } else {
         showToast(data.message || 'Error', 'error');
       }

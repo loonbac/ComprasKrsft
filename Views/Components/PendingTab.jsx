@@ -255,7 +255,7 @@ export default function PendingTab({
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center font-medium cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.item_number || '-'}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{getOrderQty(order)}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-left cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.material_type || '-'}</td>
-                                      <td className="px-3 py-2 text-gray-700 align-middle text-left truncate cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{getOrderTitle(order)}</td>
+                                      <td className="px-3 py-2 text-gray-700 align-middle text-left truncate cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.description || '-'}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.diameter || '-'}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.series || '-'}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-left cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.notes || '-'}</td>

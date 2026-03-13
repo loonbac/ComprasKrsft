@@ -3,11 +3,7 @@
  * @module compraskrsft/hooks/usePaidTab
  */
 import { useState, useCallback, useMemo } from 'react';
-import { getCsrfToken, getLocalDateString } from '../utils';
-import { formatDate as _fmtDate } from '@/services/DateTimeService';
-
-/** Convierte una Date arbitraria a YYYY-MM-DD respetando la zona horaria configurada */
-const formatDateIso = (d) => _fmtDate(d, 'iso');
+import { getCsrfToken } from '../utils';
 
 /**
  * @typedef {Object} UsePaidTabParams
@@ -21,7 +17,6 @@ const formatDateIso = (d) => _fmtDate(d, 'iso');
  * Estado y lógica del tab "Pagadas":
  * - Filtro por fechas, expansión de lotes
  * - Edición de comprobante
- * - Exportación a Excel
  *
  * @param {UsePaidTabParams} ctx
  */
@@ -32,6 +27,10 @@ export function usePaidTab(ctx) {
   const [paidFilterStartDate, setPaidFilterStartDate] = useState('');
   const [paidFilterEndDate, setPaidFilterEndDate] = useState('');
   const [expandedPaidBatches, setExpandedPaidBatches] = useState({});
+  // 'all' | 'verified' | 'unverified'
+  const [verificationFilter, setVerificationFilter] = useState('all');
+  // '' = todos, o el valor de cdp_type (p.ej. '104103 - BANCO DE CREDITO M.N. ...')
+  const [bankFilter, setBankFilter] = useState('');
 
   // ── Comprobante modal ─────────────────────────────────────────────────
   const [showEditComprobanteModal, setShowEditComprobanteModal] = useState(false);
@@ -45,33 +44,41 @@ export function usePaidTab(ctx) {
   });
   const [savingComprobante, setSavingComprobante] = useState(false);
 
-  // ── Export modal ──────────────────────────────────────────────────────
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [exportFilter, setExportFilter] = useState({
-    startDate: '',
-    endDate: '',
-    preset: '30days',
-  });
-
   // ── Derived ───────────────────────────────────────────────────────────
+  /** Lista de bancos únicos disponibles en los lotes pagados */
+  const uniqueBanks = useMemo(() => {
+    const banks = new Set();
+    (paidBatches || []).forEach((b) => {
+      if (b.payment_bank) banks.add(b.payment_bank.trim());
+    });
+    return Array.from(banks).sort();
+  }, [paidBatches]);
+
   const filteredPaidBatches = useMemo(() => {
-    if (!paidFilterStartDate && !paidFilterEndDate) return paidBatches;
-    return paidBatches.filter((batch) => {
-      const paymentDate = new Date(batch.payment_confirmed_at);
-      paymentDate.setHours(0, 0, 0, 0);
-      if (paidFilterStartDate) {
-        const startDate = new Date(paidFilterStartDate);
-        startDate.setHours(0, 0, 0, 0);
-        if (paymentDate < startDate) return false;
+    return (paidBatches || []).filter((batch) => {
+      // Filtro por fecha
+      if (paidFilterStartDate || paidFilterEndDate) {
+        const paymentDate = new Date(batch.payment_confirmed_at);
+        paymentDate.setHours(0, 0, 0, 0);
+        if (paidFilterStartDate) {
+          const startDate = new Date(paidFilterStartDate);
+          startDate.setHours(0, 0, 0, 0);
+          if (paymentDate < startDate) return false;
+        }
+        if (paidFilterEndDate) {
+          const endDate = new Date(paidFilterEndDate);
+          endDate.setHours(23, 59, 59, 999);
+          if (paymentDate > endDate) return false;
+        }
       }
-      if (paidFilterEndDate) {
-        const endDate = new Date(paidFilterEndDate);
-        endDate.setHours(23, 59, 59, 999);
-        if (paymentDate > endDate) return false;
-      }
+      // Filtro por verificación
+      if (verificationFilter === 'verified' && !batch.contasis_verified) return false;
+      if (verificationFilter === 'unverified' && batch.contasis_verified) return false;
+      // Filtro por banco
+      if (bankFilter && (batch.payment_bank || '').trim() !== bankFilter) return false;
       return true;
     });
-  }, [paidBatches, paidFilterStartDate, paidFilterEndDate]);
+  }, [paidBatches, paidFilterStartDate, paidFilterEndDate, verificationFilter, bankFilter]);
 
   /** Total consolidado de lotes pagados (en PEN para stats) */
   const totalPaidAmount = useMemo(
@@ -83,6 +90,8 @@ export function usePaidTab(ctx) {
   const resetPaidFilter = useCallback(() => {
     setPaidFilterStartDate('');
     setPaidFilterEndDate('');
+    setVerificationFilter('all');
+    setBankFilter('');
   }, []);
 
   const togglePaidBatchExpanded = useCallback((batchId) => {
@@ -153,48 +162,36 @@ export function usePaidTab(ctx) {
     setSavingComprobante(false);
   }, [apiBase, closeEditComprobante, editComprobanteBatch, editComprobanteForm, loadPaidBatches, showToast]);
 
-  // Export
-  const openExportModal = useCallback(() => {
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    setExportFilter({
-      startDate: formatDateIso(thirtyDaysAgo),
-      endDate: getLocalDateString(),
-      preset: '30days',
-    });
-    setShowExportModal(true);
-  }, []);
-
-  const closeExportModal = useCallback(() => setShowExportModal(false), []);
-
-  const setExportPreset = useCallback((preset) => {
-    const now = new Date();
-    const startDate = new Date(now);
-    switch (preset) {
-      case '7days':  startDate.setDate(now.getDate() - 7);  break;
-      case '30days': startDate.setDate(now.getDate() - 30); break;
-      case '90days': startDate.setDate(now.getDate() - 90); break;
-      case 'custom': setExportFilter((prev) => ({ ...prev, preset: 'custom' })); return;
+  // ── Verificar batch ─────────────────────────────────────────────────
+  const [verifying, setVerifying] = useState(false);
+  const verifyBatch = useCallback(async (batchId) => {
+    setVerifying(true);
+    try {
+      const res = await fetch(`${apiBase}/verify-batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+        body: JSON.stringify({ batch_id: batchId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Factura verificada correctamente', 'success');
+        await loadPaidBatches();
+      } else {
+        showToast(data.message || 'Error al verificar', 'error');
+      }
+    } catch {
+      showToast('Error al verificar factura', 'error');
     }
-    setExportFilter({
-      startDate: formatDateIso(startDate),
-      endDate: getLocalDateString(),
-      preset,
-    });
-  }, []);
-
-  const exportPaidExcelWithFilter = useCallback(() => {
-    const params = new URLSearchParams();
-    params.append('start_date', exportFilter.startDate);
-    params.append('end_date', exportFilter.endDate);
-    window.location.href = `${apiBase}/export-paid?${params.toString()}`;
-    closeExportModal();
-  }, [apiBase, closeExportModal, exportFilter]);
+    setVerifying(false);
+  }, [apiBase, loadPaidBatches, showToast]);
 
   return {
     // Filters
     paidFilterStartDate, setPaidFilterStartDate,
     paidFilterEndDate, setPaidFilterEndDate,
+    verificationFilter, setVerificationFilter,
+    bankFilter, setBankFilter,
+    uniqueBanks,
     expandedPaidBatches,
     // Derived
     filteredPaidBatches, totalPaidAmount,
@@ -204,11 +201,11 @@ export function usePaidTab(ctx) {
     savingComprobante,
     openEditComprobante, closeEditComprobante,
     onEditComprobanteFileChange, saveComprobante,
-    // Export
-    showExportModal, exportFilter, setExportFilter,
-    openExportModal, closeExportModal,
-    setExportPreset, exportPaidExcelWithFilter,
+    // Verificación
+    verifyBatch, verifying,
     // Batch expand
     resetPaidFilter, togglePaidBatchExpanded,
+    // Cancellation support (passthrough)
+    showToast, loadPaidBatches,
   };
 }

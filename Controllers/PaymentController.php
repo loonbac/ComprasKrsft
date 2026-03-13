@@ -110,6 +110,7 @@ class PaymentController extends Controller
             'cdp_serie' => 'nullable|string|max:20',
             'cdp_number' => 'nullable|string|max:20',
             'payment_proof_link' => 'nullable|string|max:2048',
+            'payment_bank' => 'required|string|max:150',
         ]);
 
         try {
@@ -130,6 +131,7 @@ class PaymentController extends Controller
                     'cdp_number' => $request->input('cdp_number') ?: null,
                     'payment_proof' => $proofPath,
                     'payment_proof_link' => $proofLink,
+                    'payment_bank' => $request->input('payment_bank'),
                     'updated_at' => now(),
                 ]);
 
@@ -211,6 +213,8 @@ class PaymentController extends Controller
                 'cdp_type' => $request->input('cdp_type'),
                 'cdp_serie' => $request->input('cdp_serie'),
                 'cdp_number' => $request->input('cdp_number'),
+                'edited_by' => auth()->id(),
+                'edited_at' => now(),
                 'updated_at' => now(),
             ];
 
@@ -320,6 +324,7 @@ class PaymentController extends Controller
                         'cdp_number' => $request->input('cdp_number'),
                         'payment_proof' => $proofPath,
                         'payment_proof_link' => $proofLink,
+                        'payment_bank' => $request->input('payment_bank', null),
                         'supervisor_approved' => true,
                         'supervisor_approved_by' => auth()->id(),
                         'supervisor_approved_at' => now(),
@@ -450,6 +455,8 @@ class PaymentController extends Controller
             ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
             ->leftJoin('users as payer', 'purchase_orders.payment_confirmed_by', '=', 'payer.id')
             ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
+            ->leftJoin('users as editor', 'purchase_orders.edited_by', '=', 'editor.id')
+            ->leftJoin('users as verifier', 'purchase_orders.contasis_verified_by', '=', 'verifier.id')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
@@ -457,6 +464,8 @@ class PaymentController extends Controller
                 'cecos.codigo as ceco_codigo',
                 'payer.name as payment_confirmed_by_name',
                 'approver.name as approved_by_name',
+                'editor.name as edited_by_name',
+                'verifier.name as verified_by_name',
             ])
             ->where('purchase_orders.status', 'approved')
             ->where('purchase_orders.payment_confirmed', true)
@@ -472,6 +481,44 @@ class PaymentController extends Controller
             });
 
         return response()->json(['success' => true, 'orders' => $orders, 'total' => $orders->count()]);
+    }
+
+    /**
+     * Verificar un batch (marcar como revisado por contabilidad)
+     */
+    public function verifyBatch(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->isAdmin() && !$user->hasPermission('module.compraskrsft.paid_full')) {
+            abort(403, 'No tienes permiso para verificar facturas.');
+        }
+
+        $request->validate([
+            'batch_id' => 'required|string',
+        ]);
+
+        try {
+            $batchId = $request->input('batch_id');
+
+            $updated = DB::table($this->ordersTable)
+                ->where('batch_id', $batchId)
+                ->where('payment_confirmed', true)
+                ->update([
+                    'contasis_verified' => true,
+                    'contasis_verified_at' => now(),
+                    'contasis_verified_by' => auth()->id(),
+                    'updated_at' => now(),
+                ]);
+
+            if ($updated === 0) {
+                return response()->json(['success' => false, 'message' => 'No se encontraron órdenes para verificar'], 404);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Factura verificada correctamente']);
+        } catch (\Exception $e) {
+            Log::error('Error en verifyBatch', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error interno al verificar'], 500);
+        }
     }
 
     /**
@@ -561,5 +608,38 @@ class PaymentController extends Controller
             Log::error('Error en extendCredit', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'Error interno: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Servir un archivo de comprobante de pago directamente desde Laravel.
+     * Acepta la ruta completa o parcial almacenada en payment_proof.
+     * GET /payment-proof-file?path=payment_proofs/proof_XXX.jpg
+     */
+    public function servePaymentProof(Request $request)
+    {
+        $path = $request->query('path');
+
+        if (!$path) {
+            return response()->json(['error' => 'Ruta requerida'], 400);
+        }
+
+        // Normalizar la ruta: quitar prefijos /storage/ o storage/
+        $path = ltrim($path, '/');
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, strlen('storage/'));
+        }
+
+        // Verificar que el archivo exista en el disco público
+        if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return response()->json(['error' => 'Archivo no encontrado'], 404);
+        }
+
+        $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
+        $mimeType = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($path) ?: 'application/octet-stream';
+
+        return response()->file($fullPath, [
+            'Content-Type'  => $mimeType,
+            'Cache-Control' => 'private, max-age=3600',
+        ]);
     }
 }

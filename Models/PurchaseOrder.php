@@ -61,6 +61,17 @@ class PurchaseOrder extends Model
         'warehouse_status',
         'purchased_at',
         'purchased_by',
+        // Cancellation / Nota de Crédito fields
+        'cancellation_status',
+        'nc_type',
+        'nc_serie',
+        'nc_number',
+        'nc_document',
+        'nc_document_link',
+        'cancellation_requested_by',
+        'cancellation_requested_at',
+        'cancelled_by',
+        'cancelled_at',
     ];
 
     protected $casts = [
@@ -85,6 +96,8 @@ class PurchaseOrder extends Model
         'manager_approved_at' => 'datetime',
         'purchased_at' => 'datetime',
         'qty_purchased' => 'integer',
+        'cancellation_requested_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     public function project()
@@ -100,6 +113,21 @@ class PurchaseOrder extends Model
     public function isApproved()
     {
         return $this->status === 'approved';
+    }
+
+    public function isCancelled()
+    {
+        return $this->cancellation_status === 'anulada';
+    }
+
+    public function isPendingCancellation()
+    {
+        return $this->cancellation_status === 'solicitando_anulacion';
+    }
+
+    public function isAwaitingCancellationApproval()
+    {
+        return $this->cancellation_status === 'finalizar_anulacion';
     }
 
     public function isService()

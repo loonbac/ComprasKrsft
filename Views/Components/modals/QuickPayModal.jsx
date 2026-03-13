@@ -86,7 +86,7 @@ export default function QuickPayModal({
           {quickPayStep > 1 && <Button variant="secondary" onClick={() => setQuickPayStep((s) => s - 1)}>Atrás</Button>}
           {quickPayStep < 3 && <Button variant="primary" onClick={proceedToQuickPayReview}>Siguiente</Button>}
           {quickPayStep === 3 && (
-            <Button variant="primary" onClick={completeQuickPay} disabled={quickPayLoading} loading={quickPayLoading}>
+            <Button variant="primary" onClick={completeQuickPay} disabled={quickPayLoading || !quickPayPaymentForm.payment_bank} loading={quickPayLoading}>
               {quickPayLoading ? 'Procesando...' : 'Confirmar Pago Rápido'}
             </Button>
           )}
@@ -256,6 +256,27 @@ export default function QuickPayModal({
 
               <div className="rounded-lg border border-gray-100 p-4 space-y-3">
                 <h5 className="text-sm font-semibold text-gray-900">Comprobante (Opcional)</h5>
+                <Select
+                  required
+                  label="Banco de pago"
+                  placeholder="— Seleccionar banco —"
+                  value={quickPayPaymentForm.payment_bank}
+                  onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, payment_bank: e.target.value }))}
+                >
+                  <option value="1011 - CAJA MN">Cuenta 1011 - CAJA MN</option>
+                  <option value="10112 - CAJA CHICA MN - ADMINISTRACION">Cuenta 10112 - CAJA CHICA MN - ADMINISTRACION</option>
+                  <option value="104103 - BANCO DE CREDITO M.N. 191-2617376-0-40">Cuenta 104103 - BANCO DE CREDITO M.N. 191-2617376-0-40</option>
+                  <option value="104104 - BANCO DE CREDITO M.E. 191-2480078-1-01">Cuenta 104104 - BANCO DE CREDITO M.E. 191-2480078-1-01</option>
+                  <option value="104105 - BANCO CONTINENTAL M.N. 0201128681">Cuenta 104105 - BANCO CONTINENTAL M.N. 0201128681</option>
+                  <option value="104106 - BANCO CONTINENTAL M.N. 0100035070">Cuenta 104106 - BANCO CONTINENTAL M.N. 0100035070</option>
+                  <option value="104107 - BANCO CONTINENTAL M.N. 0201046030">Cuenta 104107 - BANCO CONTINENTAL M.N. 0201046030</option>
+                  <option value="104108 - BANCO CONTINENTAL M.E. 0100035321">Cuenta 104108 - BANCO CONTINENTAL M.E. 0100035321</option>
+                  <option value="104109 - BANCO SCOTIABANK M.N. 000-6320600">Cuenta 104109 - BANCO SCOTIABANK M.N. 000-6320600</option>
+                  <option value="104110 - BANCO INTERBANK M.N. 200-3004605533">Cuenta 104110 - BANCO INTERBANK M.N. 200-3004605533</option>
+                  <option value="104111 - BANCO INTERBANK M.E. 200-3004605540">Cuenta 104111 - BANCO INTERBANK M.E. 200-3004605540</option>
+                  <option value="104112 - BANCO DE LA NACION 072-050428">Cuenta 104112 - BANCO DE LA NACION 072-050428</option>
+                  <option value="104113 - BANCO INTERAMERICANO DE FINANZAS MN 0070">Cuenta 104113 - BANCO INTERAMERICANO DE FINANZAS MN 0070</option>
+                </Select>
                 <div className="grid grid-cols-3 gap-3">
                   <Input label="Tipo" value={quickPayPaymentForm.cdp_type} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_type: e.target.value }))} placeholder="01" />
                   <Input label="Serie" value={quickPayPaymentForm.cdp_serie} onChange={(e) => setQuickPayPaymentForm((p) => ({ ...p, cdp_serie: e.target.value }))} placeholder="F001" />

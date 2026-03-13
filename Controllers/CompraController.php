@@ -125,6 +125,38 @@ class CompraController extends Controller
     }
 
     /**
+     * Órdenes cotizadas pendientes de aprobación gerencial (quoted)
+     */
+    public function quotedOrders()
+    {
+        $orders = DB::table($this->ordersTable)
+            ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
+            ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
+            ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
+            ->select([
+                'purchase_orders.*',
+                'projects.name as project_name',
+                'projects.abbreviation as project_abbreviation',
+                'cecos.codigo as ceco_codigo',
+                'purchase_orders.expense_type',
+                'approver.name as approved_by_name',
+            ])
+            ->where('purchase_orders.status', 'quoted')
+            ->where(function ($q) {
+                $q->whereNull('purchase_orders.source_type')
+                  ->orWhere('purchase_orders.source_type', '!=', 'inventory');
+            })
+            ->orderBy('purchase_orders.created_at', 'asc')
+            ->get()
+            ->map(function ($order) {
+                $order->materials = $order->materials ? json_decode($order->materials, true) : [];
+                return $order;
+            });
+
+        return response()->json(['success' => true, 'orders' => $orders, 'total' => $orders->count()]);
+    }
+
+    /**
      * Detalle de una orden
      */
     public function show($id)

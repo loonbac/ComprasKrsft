@@ -426,8 +426,9 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Obtener datos de visualización del item de inventario para enriquecer la orden.
-     * Solo rellena campos vacíos — nunca sobrescribe datos existentes del pedido original.
+     * Obtener datos de visualización del item de inventario.
+     * SIEMPRE sobreescribe todos los campos con los datos exactos del inventario,
+     * incluyendo vacíos (si inventario no tiene un dato, se deja vacío).
      */
     private function enrichFromInventoryItem(?int $inventoryItemId, ?object $order): array
     {
@@ -437,16 +438,11 @@ class ApprovalController extends Controller
         $invItem = DB::table('inventario_productos')->find($inventoryItemId);
         if (!$invItem) return $data;
 
-        // descripcion del inventario = Especificación Técnica = description en purchase_orders
-        if (empty($order->description ?? '') && !empty($invItem->descripcion)) {
-            $data['description'] = $invItem->descripcion;
-        }
-        // material_type del inventario (o nombre, que es el Tipo de Material)
-        if (empty($order->material_type ?? '') && !empty($invItem->material_type)) {
-            $data['material_type'] = $invItem->material_type;
-        } elseif (empty($order->material_type ?? '') && !empty($invItem->nombre)) {
-            $data['material_type'] = $invItem->nombre;
-        }
+        $data['description'] = $invItem->descripcion ?? '';
+        $data['material_type'] = $invItem->material_type ?? $invItem->nombre ?? null;
+        $data['diameter'] = $invItem->diameter ?? null;
+        $data['series'] = $invItem->series ?? null;
+        $data['unit'] = $invItem->unidad ?? null;
 
         return $data;
     }
@@ -483,7 +479,7 @@ class ApprovalController extends Controller
         }
 
         DB::table($this->ordersTable)->where('id', $orderId)->update(array_merge($sharedData, [
-            'status' => 'to_pay',
+            'status' => 'quoted',
             'source_type' => 'external',
             'amount' => $purchaseAmount,
             'amount_pen' => $amounts['amount_pen'],
@@ -507,17 +503,20 @@ class ApprovalController extends Controller
             ->max('item_number') ?? 0;
         $nextItemNumber = $maxItemNumber + 1;
 
-        // Enriquecer con datos del item de inventario si la orden original no los tiene
+        // Enriquecer con datos del item de inventario (siempre prioriza inventario)
         $invEnrich = $this->enrichFromInventoryItem($split['inventory_item_id'] ?? null, $originalOrder);
         $invDescription = $invEnrich['description'] ?? $originalOrder->description;
         $invMaterialType = $invEnrich['material_type'] ?? $originalOrder->material_type ?? null;
+        $invDiameter = $invEnrich['diameter'] ?? $originalOrder->diameter ?? null;
+        $invSeries = $invEnrich['series'] ?? $originalOrder->series ?? null;
+        $invUnit = $invEnrich['unit'] ?? $originalOrder->unit ?? null;
 
         $newOrderId = DB::table($this->ordersTable)->insertGetId([
             'project_id' => $originalOrder->project_id,
             'type' => $originalOrder->type,
             'description' => $invDescription,
             'materials' => json_encode($inventoryMaterials),
-            'unit' => $originalOrder->unit ?? null,
+            'unit' => $invUnit,
             'item_number' => $nextItemNumber,
             'source_type' => 'inventory',
             'inventory_item_id' => $split['inventory_item_id'] ?? null,
@@ -535,12 +534,11 @@ class ApprovalController extends Controller
             'status' => 'approved',
             'approved_by' => auth()->id(),
             'approved_at' => now(),
-            // Copiar datos de visualización del pedido original (enriquecido con inventario)
             'source_filename' => $originalOrder->source_filename ?? null,
             'imported_at' => $originalOrder->imported_at ?? null,
             'material_type' => $invMaterialType,
-            'diameter' => $originalOrder->diameter ?? null,
-            'series' => $originalOrder->series ?? null,
+            'diameter' => $invDiameter,
+            'series' => $invSeries,
             'notes' => $originalOrder->notes ?? null,
             'payment_confirmed' => true,
             'payment_confirmed_at' => now(),
@@ -575,7 +573,7 @@ class ApprovalController extends Controller
         $amounts = $this->orderService->calculateAmounts($amount, $currency, $exchangeRate, $igvEnabled, $igvRate);
 
         DB::table($this->ordersTable)->where('id', $orderId)->update(array_merge($sharedData, [
-            'status' => 'to_pay',
+            'status' => 'quoted',
             'amount' => $amount,
             'amount_pen' => $amounts['amount_pen'],
             'igv_amount' => $amounts['igv_amount'],
@@ -616,11 +614,11 @@ class ApprovalController extends Controller
         $purchaseCount = $totalProcessed - $inventoryCount;
 
         if ($inventoryCount > 0 && $purchaseCount > 0) {
-            $message = "{$purchaseCount} a Por Pagar, {$inventoryCount} de Inventario (entregadas)";
+            $message = "{$purchaseCount} cotizadas para revisión, {$inventoryCount} de Inventario (entregadas)";
         } elseif ($inventoryCount > 0) {
             $message = "{$inventoryCount} órdenes cubiertas con inventario";
         } else {
-            $message = "{$purchaseCount} órdenes enviadas a Por Pagar";
+            $message = "{$purchaseCount} órdenes enviadas a Por Aprobar";
         }
 
         return [
@@ -630,6 +628,140 @@ class ApprovalController extends Controller
             'inventory_count' => $inventoryCount,
             'purchase_count' => $purchaseCount,
         ];
+    }
+
+    // ====================================================================
+    // APROBACIÓN GERENCIAL DE COTIZACIONES (quoted → to_pay)
+    // ====================================================================
+
+    /**
+     * Aprobar en lote las órdenes cotizadas y enviarlas a Por Pagar.
+     * No requiere re-ingresar precios — ya fueron fijados en la cotización.
+     */
+    public function approveQuotedBulk(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'required|integer',
+        ]);
+
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $orderIds = $request->input('order_ids');
+
+                $orders = DB::table($this->ordersTable)
+                    ->whereIn('id', $orderIds)
+                    ->get();
+
+                foreach ($orders as $order) {
+                    if ($order->status !== 'quoted') {
+                        return ['success' => false, 'message' => "La orden #{$order->id} no está en estado cotizado"];
+                    }
+                }
+
+                DB::table($this->ordersTable)
+                    ->whereIn('id', $orderIds)
+                    ->where('status', 'quoted')
+                    ->update([
+                        'status'      => 'to_pay',
+                        'approved_by' => auth()->id(),
+                        'approved_at' => now(),
+                        'updated_at'  => now(),
+                    ]);
+
+                $count = count($orderIds);
+                return [
+                    'success' => true,
+                    'message' => "{$count} orden" . ($count !== 1 ? 'es' : '') . " enviada" . ($count !== 1 ? 's' : '') . " a Por Pagar",
+                ];
+            });
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('Error en approveQuotedBulk', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error interno al aprobar las cotizaciones'], 500);
+        }
+    }
+
+    /**
+     * Rechazar una cotización y devolverla a Pendiente para corrección.
+     */
+    public function rejectQuoted(Request $request, $id)
+    {
+        $order = DB::table($this->ordersTable)->find($id);
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
+        }
+
+        if ($order->status !== 'quoted') {
+            return response()->json(['success' => false, 'message' => 'La orden no está en estado cotizado'], 400);
+        }
+
+        try {
+            DB::table($this->ordersTable)->where('id', $id)->update([
+                'status'     => 'pending',
+                'updated_at' => now(),
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Cotización devuelta a Pendiente para corrección']);
+        } catch (\Exception $e) {
+            Log::error('Error en rejectQuoted', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * Rechazar en lote las cotizaciones y devolverlas a Por Cotizar.
+     */
+    public function rejectQuotedBulk(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array|min:1',
+            'order_ids.*' => 'required|integer',
+        ]);
+
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $orderIds = $request->input('order_ids');
+
+                $orders = DB::table($this->ordersTable)
+                    ->whereIn('id', $orderIds)
+                    ->get();
+
+                foreach ($orders as $order) {
+                    if ($order->status !== 'quoted') {
+                        return ['success' => false, 'message' => "La orden #{$order->id} no está en estado cotizado"];
+                    }
+                }
+
+                DB::table($this->ordersTable)
+                    ->whereIn('id', $orderIds)
+                    ->where('status', 'quoted')
+                    ->update([
+                        'status'      => 'pending',
+                        'amount'      => null,
+                        'currency'    => 'PEN',
+                        'seller_name' => null,
+                        'seller_document' => null,
+                        'batch_id'    => null,
+                        'approved_by' => null,
+                        'approved_at' => null,
+                        'updated_at'  => now(),
+                    ]);
+
+                $count = count($orderIds);
+                return [
+                    'success' => true,
+                    'message' => "{$count} orden" . ($count !== 1 ? 'es' : '') . " devuelta" . ($count !== 1 ? 's' : '') . " a Por Cotizar",
+                ];
+            });
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('Error en rejectQuotedBulk', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error interno al rechazar las cotizaciones'], 500);
+        }
     }
 
     /**

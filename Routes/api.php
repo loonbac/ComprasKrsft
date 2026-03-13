@@ -11,10 +11,12 @@ $payment   = "{$ns}\\PaymentController";
 $export    = "{$ns}\\ExportController";
 $supplier  = "{$ns}\\SupplierController";
 $crossFlow = "{$ns}\\CrossFlowController";
+$cancel    = "{$ns}\\CancellationController";
 
 // ── Consultas generales (CompraController) ──────────────────────────
 Route::get('/list', "{$compra}@list");
 Route::get('/pending', "{$compra}@pending");
+Route::get('/quoted', "{$compra}@quotedOrders");
 Route::get('/to-pay', "{$compra}@toPayOrders");
 Route::get('/stats', "{$compra}@stats");
 Route::get('/projects', "{$compra}@projects");
@@ -29,6 +31,9 @@ Route::put('/{id}/reject', "{$approval}@reject")->where('id', '[0-9]+');
 Route::put('/{id}/mark-to-pay', "{$approval}@markToPay")->where('id', '[0-9]+');
 Route::post('/mark-to-pay-bulk', "{$approval}@markToPayBulk");
 Route::post('/approve-bulk', "{$approval}@approveBulk");
+Route::post('/approve-quoted-bulk', "{$approval}@approveQuotedBulk");
+Route::post('/reject-quoted-bulk', "{$approval}@rejectQuotedBulk");
+Route::put('/{id}/reject-quoted', "{$approval}@rejectQuoted")->where('id', '[0-9]+');
 
 // ── Pagos (PaymentController) ───────────────────────────────────────
 Route::post('/pay-bulk', "{$payment}@payBulk");
@@ -40,10 +45,18 @@ Route::get('/approved-unpaid', "{$payment}@approvedUnpaid");
 Route::get('/paid-orders', "{$payment}@paidOrders");
 Route::get('/delivered-orders', "{$payment}@deliveredOrders");
 Route::post('/{id}/confirm-payment', "{$payment}@confirmPayment")->where('id', '[0-9]+');
+Route::post('/verify-batch', "{$payment}@verifyBatch");
+Route::get('/payment-proof-file', "{$payment}@servePaymentProof");
+
+// ── Anulación de Facturas (CancellationController) ──────────────────
+Route::post('/cancel/init', "{$cancel}@initCancellation");
+Route::post('/cancel/request', "{$cancel}@requestCancellation");
+Route::post('/cancel/confirm', "{$cancel}@confirmCancellation");
+Route::post('/cancel/finalize', "{$cancel}@finalizeCancellation");
+Route::post('/cancel/reject', "{$cancel}@rejectCancellation");
 
 // ── Exportaciones (ExportController) ────────────────────────────────
 Route::get('/export', "{$export}@exportExcel");
-Route::get('/export-paid', "{$export}@exportPaidExcel");
 
 // ── Proveedores (SupplierController) ────────────────────────────────
 Route::get('/suppliers', "{$supplier}@index");

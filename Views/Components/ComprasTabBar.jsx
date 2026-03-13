@@ -7,6 +7,8 @@ import {
   CurrencyDollarIcon,
   CheckBadgeIcon,
   TableCellsIcon,
+  DocumentTextIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 
 /**
@@ -14,10 +16,12 @@ import {
  *   activeTab: string,
  *   setActiveTab: (tab: string) => void,
  *   pendingCount: number,
+ *   quotedCount: number,
  *   toPayCount: number,
  *   paidCount: number,
  *   totalCount: number,
  *   loadPendingOrders: Function,
+ *   loadQuotedOrders: Function,
  *   loadToPayOrders: Function,
  *   loadPaidBatches: Function,
  *   loadAllData: Function,
@@ -27,18 +31,22 @@ export default function ComprasTabBar({
   activeTab,
   setActiveTab,
   pendingCount,
+  quotedCount,
   toPayCount,
   paidCount,
   totalCount,
   loadPendingOrders,
+  loadQuotedOrders,
   loadToPayOrders,
   loadPaidBatches,
   loadAllData,
+  permissions = {},
 }) {
   const tabs = [
     {
       key: 'pending',
-      label: 'POR APROBAR',
+      permKey: 'view',
+      label: 'POR COTIZAR',
       count: pendingCount,
       load: loadPendingOrders,
       icon: ClockIcon,
@@ -46,7 +54,18 @@ export default function ComprasTabBar({
       textActiveColor: 'text-amber-600',
     },
     {
+      key: 'quoted',
+      permKey: 'approve',
+      label: 'POR APROBAR',
+      count: quotedCount,
+      load: loadQuotedOrders,
+      icon: ShieldCheckIcon,
+      activeColor: 'border-violet-500',
+      textActiveColor: 'text-violet-600',
+    },
+    {
       key: 'to_pay',
+      permKey: 'pay',
       label: 'POR PAGAR',
       count: toPayCount,
       load: loadToPayOrders,
@@ -56,6 +75,7 @@ export default function ComprasTabBar({
     },
     {
       key: 'paid',
+      permKey: 'paid_limited',
       label: 'PAGADAS',
       count: paidCount,
       load: loadPaidBatches,
@@ -65,6 +85,7 @@ export default function ComprasTabBar({
     },
     {
       key: 'recopilacion',
+      permKey: 'export',
       label: 'RECOPILACIÓN',
       count: totalCount,
       load: loadAllData,
@@ -72,7 +93,17 @@ export default function ComprasTabBar({
       activeColor: 'border-blue-500',
       textActiveColor: 'text-blue-600',
     },
-  ];
+    {
+      key: 'contasis',
+      permKey: 'finalize',
+      label: 'CONTASIS',
+      count: 0,
+      load: loadAllData,
+      icon: DocumentTextIcon,
+      activeColor: 'border-purple-500',
+      textActiveColor: 'text-purple-600',
+    },
+  ].filter((tab) => permissions[tab.permKey]);
 
   return (
     <div className="flex gap-6 border-b border-gray-200" role="tablist" aria-label="Secciones de compras">

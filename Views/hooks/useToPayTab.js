@@ -33,6 +33,7 @@ export function useToPayTab(ctx) {
     loadPaidBatches,
     currentExchangeRate,
     fetchExchangeRate,
+    permissions = {},
   } = ctx;
 
   // ── Filters ───────────────────────────────────────────────────────────
@@ -70,6 +71,7 @@ export function useToPayTab(ctx) {
     cdp_number: '',
     payment_proof: null,
     payment_proof_link: '',
+    payment_bank: '',
   });
 
   // ── Edit credit modal state ───────────────────────────────────────────
@@ -217,7 +219,7 @@ export function useToPayTab(ctx) {
   // Payment modal
   const openPaymentModal = useCallback((batch) => {
     setPaymentBatch(batch);
-    setPaymentForm({ cdp_type: '', cdp_serie: '', cdp_number: '', payment_proof: null, payment_proof_link: '' });
+    setPaymentForm({ cdp_type: '', cdp_serie: '', cdp_number: '', payment_proof: null, payment_proof_link: '', payment_bank: '' });
     setShowPaymentModal(true);
   }, []);
 
@@ -238,6 +240,7 @@ export function useToPayTab(ctx) {
       formData.append('cdp_type', paymentForm.cdp_type);
       formData.append('cdp_serie', paymentForm.cdp_serie);
       formData.append('cdp_number', paymentForm.cdp_number);
+      formData.append('payment_bank', paymentForm.payment_bank);
       if (paymentForm.payment_proof_link) formData.append('payment_proof_link', paymentForm.payment_proof_link);
       if (paymentForm.payment_proof) formData.append('payment_proof', paymentForm.payment_proof);
       const res = await fetch(`${apiBase}/pay-batch`, {
@@ -249,7 +252,10 @@ export function useToPayTab(ctx) {
       if (data.success) {
         showToast('Pago confirmado', 'success');
         closePaymentModal();
-        await Promise.all([loadToPayOrders(), loadPaidBatches()]);
+        await Promise.all([
+          loadToPayOrders(),
+          permissions.paid_limited ? loadPaidBatches() : Promise.resolve(),
+        ]);
       } else {
         showToast(data.message || 'Error', 'error');
       }
@@ -343,7 +349,10 @@ export function useToPayTab(ctx) {
         closeBulkModal();
         setSelectedOrders([]);
         setPrices({});
-        await Promise.all([loadToPayOrders(), loadPaidBatches()]);
+        await Promise.all([
+          loadToPayOrders(),
+          permissions.paid_limited ? loadPaidBatches() : Promise.resolve(),
+        ]);
       } else {
         showToast(data.message || 'Error', 'error');
       }

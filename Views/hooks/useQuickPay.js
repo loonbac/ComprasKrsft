@@ -19,7 +19,7 @@ import { getCsrfToken, isProjectInProgress, getLocalDateString } from '../utils'
  * @param {UseQuickPayParams} ctx
  */
 export function useQuickPay(ctx) {
-  const { apiBase, showToast, loadPaidBatches, setActiveTab, fetchExchangeRate, currentExchangeRate, loadingRate } = ctx;
+  const { apiBase, showToast, loadPaidBatches, setActiveTab, fetchExchangeRate, currentExchangeRate, loadingRate, permissions = {} } = ctx;
 
   const [showQuickPayModal, setShowQuickPayModal] = useState(false);
   const [quickPayStep, setQuickPayStep] = useState(1);
@@ -53,6 +53,7 @@ export function useQuickPay(ctx) {
     cdp_number: '',
     payment_proof: null,
     payment_proof_link: '',
+    payment_bank: '',
   });
 
   // ── Derived ───────────────────────────────────────────────────────────
@@ -175,6 +176,7 @@ export function useQuickPay(ctx) {
       formData.append('cdp_number', quickPayPaymentForm.cdp_number || '');
       if (quickPayPaymentForm.payment_proof_link) formData.append('payment_proof_link', quickPayPaymentForm.payment_proof_link);
       if (quickPayPaymentForm.payment_proof) formData.append('payment_proof', quickPayPaymentForm.payment_proof);
+      formData.append('payment_bank', quickPayPaymentForm.payment_bank || '');
       formData.append(
         'items',
         JSON.stringify(
@@ -199,8 +201,10 @@ export function useQuickPay(ctx) {
       if (data.success) {
         showToast('Pago rápido completado', 'success');
         closeQuickPayModal();
-        await loadPaidBatches();
-        setActiveTab('paid');
+        if (permissions.paid_limited) {
+          await loadPaidBatches();
+          setActiveTab('paid');
+        }
       } else {
         showToast(data.message || 'Error', 'error');
       }

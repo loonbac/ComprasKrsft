@@ -2,13 +2,14 @@
  * @file Hook de datos centrales – carga, caché y polling
  * @module compraskrsft/hooks/useComprasData
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   POLLING_INTERVAL_MS,
   arraysEqual,
   saveToCache,
   loadFromCache,
 } from '../utils';
+import { hasPermission } from '@/utils/permissions';
 
 /**
  * @typedef {Object} UseComprasDataParams
@@ -23,15 +24,37 @@ import {
  *
  * @param {UseComprasDataParams} params
  */
-export function useComprasData({ apiBase }) {
+export function useComprasData({ apiBase, auth }) {
+  const permissions = useMemo(() => ({
+    view:            hasPermission(auth, 'module.compraskrsft.view'),
+    approve:         hasPermission(auth, 'module.compraskrsft.approve'),
+    pay:             hasPermission(auth, 'module.compraskrsft.pay'),
+    paid_full:       hasPermission(auth, 'module.compraskrsft.paid_full'),
+    paid_limited:    hasPermission(auth, 'module.compraskrsft.paid_limited')
+                     || hasPermission(auth, 'module.compraskrsft.paid_full'),
+    export:          hasPermission(auth, 'module.compraskrsft.export'),
+    finalize:        hasPermission(auth, 'module.compraskrsft.finalize'),
+  }), [auth]);
+
+  const firstAllowedTab = useMemo(() => {
+    if (permissions.view)            return 'pending';
+    if (permissions.approve)         return 'quoted';
+    if (permissions.pay)             return 'to_pay';
+    if (permissions.paid_limited)    return 'paid';
+    if (permissions.export)          return 'recopilacion';
+    if (permissions.finalize)        return 'contasis';
+    return 'pending';
+  }, [permissions]);
+
   const pollingRef = useRef(null);
 
   // ── Core state ──────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
   const [pendingOrders, setPendingOrders] = useState([]);
+  const [quotedOrders, setQuotedOrders] = useState([]);
   const [paidBatches, setPaidBatches] = useState([]);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState(firstAllowedTab);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   // ── Toast ───────────────────────────────────────────────────────────────
@@ -52,6 +75,7 @@ export function useComprasData({ apiBase }) {
       if (showLoading) setLoading(true);
       try {
         const res = await fetch(`${apiBase}/pending`);
+        if (!res.ok) return;
         const data = await res.json();
         if (data.success) {
           const newOrders = data.orders || [];
@@ -69,11 +93,35 @@ export function useComprasData({ apiBase }) {
     [apiBase],
   );
 
+  const loadQuotedOrders = useCallback(
+    async (showLoading = false) => {
+      if (showLoading) setLoading(true);
+      try {
+        const res = await fetch(`${apiBase}/quoted`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+          const newOrders = data.orders || [];
+          setQuotedOrders((prev) => {
+            if (arraysEqual(prev, newOrders)) return prev;
+            saveToCache('quotedOrders', newOrders);
+            return newOrders;
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      if (showLoading) setLoading(false);
+    },
+    [apiBase],
+  );
+
   const loadToPayOrders = useCallback(
     async (showLoading = false) => {
       if (showLoading) setLoading(true);
       try {
         const res = await fetch(`${apiBase}/to-pay`);
+        if (!res.ok) return;
         const data = await res.json();
         if (data.success) {
           const newOrders = data.orders || [];
@@ -94,6 +142,7 @@ export function useComprasData({ apiBase }) {
   const loadPaidBatches = useCallback(async () => {
     try {
       const res = await fetch(`${apiBase}/paid-orders`);
+      if (!res.ok) return;
       const data = await res.json();
       if (data.success) {
         const batchMap = {};
@@ -114,8 +163,21 @@ export function useComprasData({ apiBase }) {
               cdp_number: order.cdp_number,
               payment_proof: order.payment_proof,
               payment_proof_link: order.payment_proof_link,
+              payment_bank: order.payment_bank || null,
               payment_confirmed_by_name: order.payment_confirmed_by_name,
               approved_by_name: order.approved_by_name,
+              edited_by_name: order.edited_by_name || null,
+              edited_at: order.edited_at || null,
+              contasis_verified: !!order.contasis_verified,
+              contasis_verified_at: order.contasis_verified_at || null,
+              verified_by_name: order.verified_by_name || null,
+              // Cancellation / Nota de Crédito fields
+              cancellation_status: order.cancellation_status || null,
+              nc_type: order.nc_type || null,
+              nc_serie: order.nc_serie || null,
+              nc_number: order.nc_number || null,
+              nc_document: order.nc_document || null,
+              nc_document_link: order.nc_document_link || null,
               orders: [],
               total: 0,
               total_pen: 0,
@@ -157,9 +219,11 @@ export function useComprasData({ apiBase }) {
   // ── Cache bootstrap ─────────────────────────────────────────────────────
   const initFromCache = useCallback(() => {
     const cachedPending = loadFromCache('pendingOrders');
+    const cachedQuoted = loadFromCache('quotedOrders');
     const cachedToPay = loadFromCache('toPayOrders');
     const cachedPaid = loadFromCache('paidBatches');
     if (cachedPending) setPendingOrders(cachedPending);
+    if (cachedQuoted) setQuotedOrders(cachedQuoted);
     if (cachedToPay) setOrders(cachedToPay);
     if (cachedPaid) setPaidBatches(cachedPaid);
   }, []);
@@ -167,13 +231,18 @@ export function useComprasData({ apiBase }) {
   // ── Initial load ────────────────────────────────────────────────────────
   useEffect(() => {
     initFromCache();
-    Promise.all([loadPendingOrders(), loadToPayOrders()]);
+    Promise.all([
+      permissions.view            ? loadPendingOrders() : Promise.resolve(),
+      permissions.approve         ? loadQuotedOrders()  : Promise.resolve(),
+      permissions.pay             ? loadToPayOrders()   : Promise.resolve(),
+    ]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Polling (reinicia al cambiar de tab) ────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
       if (activeTab === 'pending') loadPendingOrders();
+      else if (activeTab === 'quoted') loadQuotedOrders();
       else if (activeTab === 'to_pay') loadToPayOrders();
       else if (activeTab === 'paid') loadPaidBatches();
     }, POLLING_INTERVAL_MS);
@@ -182,13 +251,14 @@ export function useComprasData({ apiBase }) {
       clearInterval(interval);
       pollingRef.current = null;
     };
-  }, [activeTab, loadPendingOrders, loadToPayOrders, loadPaidBatches]);
+  }, [activeTab, loadPendingOrders, loadQuotedOrders, loadToPayOrders, loadPaidBatches]);
 
   return {
     loading,
     setLoading,
     orders,
     pendingOrders,
+    quotedOrders,
     paidBatches,
     activeTab,
     setActiveTab,
@@ -197,7 +267,9 @@ export function useComprasData({ apiBase }) {
     showToast,
     goBack,
     loadPendingOrders,
+    loadQuotedOrders,
     loadToPayOrders,
     loadPaidBatches,
+    permissions,
   };
 }
