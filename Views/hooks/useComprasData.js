@@ -54,6 +54,7 @@ export function useComprasData({ apiBase, auth }) {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [quotedOrders, setQuotedOrders] = useState([]);
   const [paidBatches, setPaidBatches] = useState([]);
+  const [banks, setBanks] = useState([]);
   const [activeTab, setActiveTab] = useState(firstAllowedTab);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
@@ -216,6 +217,19 @@ export function useComprasData({ apiBase, auth }) {
     }
   }, [apiBase]);
 
+  const loadBanks = useCallback(async () => {
+    try {
+      const res = await fetch(`${apiBase}/banks`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success) {
+        setBanks(Array.isArray(data.banks) ? data.banks : []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [apiBase]);
+
   // ── Cache bootstrap ─────────────────────────────────────────────────────
   const initFromCache = useCallback(() => {
     const cachedPending = loadFromCache('pendingOrders');
@@ -235,6 +249,7 @@ export function useComprasData({ apiBase, auth }) {
       permissions.view            ? loadPendingOrders() : Promise.resolve(),
       permissions.approve         ? loadQuotedOrders()  : Promise.resolve(),
       permissions.pay             ? loadToPayOrders()   : Promise.resolve(),
+      permissions.pay             ? loadBanks()         : Promise.resolve(),
     ]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -260,6 +275,7 @@ export function useComprasData({ apiBase, auth }) {
     pendingOrders,
     quotedOrders,
     paidBatches,
+    banks,
     activeTab,
     setActiveTab,
     toast,
@@ -270,6 +286,7 @@ export function useComprasData({ apiBase, auth }) {
     loadQuotedOrders,
     loadToPayOrders,
     loadPaidBatches,
+    loadBanks,
     permissions,
   };
 }

@@ -30,6 +30,24 @@ class CompraController extends Controller
     }
 
     /**
+     * Catálogo de bancos activos para pagos.
+     */
+    public function banks()
+    {
+        $banks = DB::table('purchase_banks')
+            ->select('id', 'code', 'name')
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'banks' => $banks,
+            'total' => $banks->count(),
+        ]);
+    }
+
+    /**
      * Listar todas las órdenes de compra con info del proyecto
      */
     public function list(Request $request)

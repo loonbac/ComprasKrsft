@@ -190,9 +190,9 @@ export default function ComprasIndex({ auth }) {
         orderInfo={data.pendingOrders.find(o => o.id === pending.rejectingOrderId)}
       />
       <BulkPayModal {...toPay} loadingRate={api.loadingRate} currentExchangeRate={api.currentExchangeRate} suppliers={suppliers} />
-      <PaymentModal {...toPay} />
+      <PaymentModal {...toPay} banks={data.banks} />
       <EditComprobanteModal {...paid} />
-      <QuickPayModal {...quickPay} suppliers={suppliers} />
+      <QuickPayModal {...quickPay} suppliers={suppliers} banks={data.banks} />
       {toPay.showEditCreditModal && (
         <EditCreditModal
           batch={toPay.editCreditBatch}

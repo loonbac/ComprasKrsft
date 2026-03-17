@@ -20,6 +20,7 @@ Route::get('/quoted', "{$compra}@quotedOrders");
 Route::get('/to-pay', "{$compra}@toPayOrders");
 Route::get('/stats', "{$compra}@stats");
 Route::get('/projects', "{$compra}@projects");
+Route::get('/banks', "{$compra}@banks");
 Route::get('/sellers', "{$compra}@getSellers");
 Route::get('/exchange-rate', "{$compra}@exchangeRate");
 Route::get('/search-inventory', "{$compra}@searchInventory");

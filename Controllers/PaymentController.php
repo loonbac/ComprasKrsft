@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Modulos_ERP\ComprasKrsft\Controllers\SupplierController;
 use Modulos_ERP\ComprasKrsft\Services\ExchangeRateService;
 use Modulos_ERP\ComprasKrsft\Services\InventoryService;
@@ -110,7 +111,12 @@ class PaymentController extends Controller
             'cdp_serie' => 'nullable|string|max:20',
             'cdp_number' => 'nullable|string|max:20',
             'payment_proof_link' => 'nullable|string|max:2048',
-            'payment_bank' => 'required|string|max:150',
+            'payment_bank' => [
+                'required',
+                'string',
+                'max:150',
+                Rule::exists('purchase_banks', 'name')->where(fn ($q) => $q->where('is_active', true)),
+            ],
         ]);
 
         try {
@@ -247,6 +253,15 @@ class PaymentController extends Controller
     public function quickPay(Request $request)
     {
         try {
+            $request->validate([
+                'payment_bank' => [
+                    'required',
+                    'string',
+                    'max:150',
+                    Rule::exists('purchase_banks', 'name')->where(fn ($q) => $q->where('is_active', true)),
+                ],
+            ]);
+
             return DB::transaction(function () use ($request) {
                 $projectId = $request->input('project_id');
                 $sellerName = $request->input('seller_name');
@@ -324,7 +339,7 @@ class PaymentController extends Controller
                         'cdp_number' => $request->input('cdp_number'),
                         'payment_proof' => $proofPath,
                         'payment_proof_link' => $proofLink,
-                        'payment_bank' => $request->input('payment_bank', null),
+                        'payment_bank' => $request->input('payment_bank'),
                         'supervisor_approved' => true,
                         'supervisor_approved_by' => auth()->id(),
                         'supervisor_approved_at' => now(),
