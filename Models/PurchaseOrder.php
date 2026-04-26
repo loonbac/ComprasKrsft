@@ -72,6 +72,11 @@ class PurchaseOrder extends Model
         'cancellation_requested_at',
         'cancelled_by',
         'cancelled_at',
+        // Metadata fields (fecha requerida, prioridad, solicitante, cargo)
+        'fecha_requerida',
+        'prioridad',
+        'solicitado_por',
+        'cargo',
     ];
 
     protected $casts = [
@@ -98,6 +103,7 @@ class PurchaseOrder extends Model
         'qty_purchased' => 'integer',
         'cancellation_requested_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'fecha_requerida' => 'date',
     ];
 
     public function project()

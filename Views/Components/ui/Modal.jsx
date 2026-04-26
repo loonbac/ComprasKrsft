@@ -26,7 +26,7 @@ export default function Modal({
     // Determine container classes based on position
     const containerClass = position === 'bottom-right'
         ? 'fixed bottom-4 right-4 z-50 flex items-end justify-end p-4 backdrop-blur-sm'
-        : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/25';
+        : 'fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4 backdrop-blur-sm';
 
     // Determine dialog classes based on position
     const dialogClass = position === 'bottom-right'
@@ -43,7 +43,7 @@ export default function Modal({
                 onClick={(e) => e.stopPropagation()}
             >
                 {title && (
-                    <div className="flex items-center border-b border-gray-100 px-6 py-4 shrink-0">
+                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 shrink-0">
                         <h2 className="flex items-center gap-2 text-lg font-medium text-gray-900">
                             {titleIcon}
                             {title}

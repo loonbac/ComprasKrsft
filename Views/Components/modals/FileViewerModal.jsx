@@ -394,7 +394,7 @@ function FileViewerModal({ isOpen, file, getDownloadUrl, onClose }) {
         if (!res.ok) throw new Error('No se pudo descargar el archivo Excel');
         const buf = await res.arrayBuffer();
         if (cancelled) return;
-        const XLSX = (await import('xlsx')).default || (await import('xlsx'));
+        const XLSX = (await import('xlsx-js-style')).default || (await import('xlsx-js-style'));
         const wb = XLSX.read(buf, { type: 'array' });
         const result = {};
         for (const name of wb.SheetNames) {
@@ -610,7 +610,7 @@ function FileViewerModal({ isOpen, file, getDownloadUrl, onClose }) {
               <Suspense fallback={<Spinner className="text-gray-400" />}>
                 <DocxErrorBoundary fallback={<ErrorFallback label="Error al renderizar el documento." downloadUrl={getDownloadUrl(file.id)} buttonLabel="Descargar archivo" />}>
                   <div className="w-full h-full overflow-auto">
-                    <DocxEditor document={parsedDoc} readOnly showToolbar={false} showRuler={false} showZoomControl={false} showPrintButton={false} />
+                    <DocxEditor documentBuffer={parsedDoc} mode="viewing" showToolbar={false} showRuler={false} showZoomControl={false} showPrintButton={false} />
                   </div>
                 </DocxErrorBoundary>
               </Suspense>

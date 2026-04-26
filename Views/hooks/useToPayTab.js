@@ -3,7 +3,7 @@
  * @module compraskrsft/hooks/useToPayTab
  */
 import { useState, useCallback, useMemo } from 'react';
-import { getCsrfToken, getLocalDateString, isProjectInProgress } from '../utils';
+import { getCsrfToken, getLocalDateString, isProjectInProgress, getPaymentAlertStatus } from '../utils';
 
 /**
  * @typedef {Object} UseToPayTabParams
@@ -14,7 +14,9 @@ import { getCsrfToken, getLocalDateString, isProjectInProgress } from '../utils'
  * @property {Function} loadPaidBatches
  * @property {number} currentExchangeRate
  * @property {boolean} loadingRate
+ * @property {boolean} loadingRate
  * @property {Function} fetchExchangeRate
+ * @property {Function} [loadPendingOrders]
  */
 
 /**
@@ -33,6 +35,7 @@ export function useToPayTab(ctx) {
     loadPaidBatches,
     currentExchangeRate,
     fetchExchangeRate,
+    loadPendingOrders,
     permissions = {},
   } = ctx;
 
@@ -42,6 +45,7 @@ export function useToPayTab(ctx) {
   const [toPayFilterCurrency, setToPayFilterCurrency] = useState('');
   const [toPayFilterPaymentType, setToPayFilterPaymentType] = useState('');
   const [toPayFilterIgv, setToPayFilterIgv] = useState('');
+  const [toPayFilterAlert, setToPayFilterAlert] = useState('');
   const [expandedToPayBatches, setExpandedToPayBatches] = useState({});
 
   // ── Bulk modal state ──────────────────────────────────────────────────
@@ -78,6 +82,24 @@ export function useToPayTab(ctx) {
   const [showEditCreditModal, setShowEditCreditModal] = useState(false);
   const [editCreditBatch, setEditCreditBatch] = useState(null);
   const [savingCredit, setSavingCredit] = useState(false);
+
+  // ── Return to Pending modal state ─────────────────────────────────────
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [returnOrder, setReturnOrder] = useState(null);
+
+  // ── Info modal state ──────────────────────────────────────────────────
+  const [infoOrder, setInfoOrder] = useState(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+
+  const openInfoModal = useCallback((order) => {
+    setInfoOrder(order);
+    setShowInfoModal(true);
+  }, []);
+
+  const closeInfoModal = useCallback(() => {
+    setShowInfoModal(false);
+    setInfoOrder(null);
+  }, []);
 
   // ── Batched view (derives from raw orders) ────────────────────────────
   const toPayBatches = useMemo(() => {
@@ -189,8 +211,11 @@ export function useToPayTab(ctx) {
       const hasIgv = toPayFilterIgv === 'true';
       result = result.filter((b) => b.igv_enabled === hasIgv);
     }
+    if (toPayFilterAlert === 'overdue') {
+      result = result.filter((b) => getPaymentAlertStatus(b) === 'overdue');
+    }
     return result;
-  }, [toPayBatches, toPaySearch, toPayFilterProject, toPayFilterCurrency, toPayFilterPaymentType, toPayFilterIgv]);
+  }, [toPayBatches, toPaySearch, toPayFilterProject, toPayFilterCurrency, toPayFilterPaymentType, toPayFilterIgv, toPayFilterAlert]);
 
   // ── Bulk derived ──────────────────────────────────────────────────────
   const selectedOrderSet = useMemo(() => new Set(selectedOrders), [selectedOrders]);
@@ -298,6 +323,42 @@ export function useToPayTab(ctx) {
     setSavingCredit(false);
   }, [apiBase, closeEditCreditModal, loadToPayOrders, showToast]);
 
+  // Return to Pending modal
+  const openReturnModal = useCallback((order) => {
+    setReturnOrder(order);
+    setShowReturnModal(true);
+  }, []);
+
+  const closeReturnModal = useCallback(() => {
+    setShowReturnModal(false);
+    setReturnOrder(null);
+  }, []);
+
+  const confirmReturnToPending = useCallback(async (observation) => {
+    if (!returnOrder) return;
+    try {
+      const res = await fetch(`${apiBase}/${returnOrder.id}/return-to-pending`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+        body: JSON.stringify({ observation }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Item devuelto a Por Cotizar', 'success');
+        closeReturnModal();
+        setSelectedOrders((prev) => prev.filter((id) => id !== returnOrder.id));
+        await loadToPayOrders();
+        if (loadPendingOrders) {
+          await loadPendingOrders();
+        }
+      } else {
+        showToast(data.message || 'Error al devolver el item', 'error');
+      }
+    } catch {
+      showToast('Error de conexión', 'error');
+    }
+  }, [apiBase, closeReturnModal, loadToPayOrders, returnOrder, showToast, loadPendingOrders]);
+
 
   // Bulk modal — showBulkModal is controlled by state
   const openBulkModal = useCallback(() => {
@@ -369,6 +430,7 @@ export function useToPayTab(ctx) {
     toPayFilterCurrency, setToPayFilterCurrency,
     toPayFilterPaymentType, setToPayFilterPaymentType,
     toPayFilterIgv, setToPayFilterIgv,
+    toPayFilterAlert, setToPayFilterAlert,
     expandedToPayBatches,
     toggleOrderSelect,
     // Derived
@@ -385,6 +447,10 @@ export function useToPayTab(ctx) {
     // Edit credit
     showEditCreditModal, editCreditBatch, savingCredit,
     openEditCreditModal, closeEditCreditModal, confirmExtendCredit,
+    // Return to Pending
+    showReturnModal, returnOrder, openReturnModal, closeReturnModal, confirmReturnToPending,
+    // Info modal
+    showInfoModal, infoOrder, openInfoModal, closeInfoModal,
     // Batch expand
     toggleToPayBatchExpanded,
   };

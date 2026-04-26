@@ -3,6 +3,7 @@
 namespace Modulos_ERP\ComprasKrsft\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\LogKrsftService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +45,18 @@ class CrossFlowController extends Controller
                 auth()->id()
             );
 
+            if ($result['success']) {
+                LogKrsftService::log(
+                    module: 'compraskrsft',
+                    action: 'orden_marcada_comprada',
+                    message: "Orden #{$id} marcada como comprada",
+                    level: 'info',
+                    userId: auth()->id(),
+                    userName: auth()->user()?->name,
+                    extra: ['order_id' => $id, 'total_price' => floatval($request->input('total_price'))]
+                );
+            }
+
             $status = $result['success'] ? 200 : 400;
             return response()->json($result, $status);
         } catch (\Exception $e) {
@@ -60,6 +73,19 @@ class CrossFlowController extends Controller
     {
         try {
             $result = $this->crossFlowService->confirmWarehouseReceipt($id, auth()->id());
+
+            if ($result['success']) {
+                LogKrsftService::log(
+                    module: 'compraskrsft',
+                    action: 'receipt_confirmado',
+                    message: "Recepciones confirmadas para orden #{$id}",
+                    level: 'info',
+                    userId: auth()->id(),
+                    userName: auth()->user()?->name,
+                    extra: ['order_id' => $id]
+                );
+            }
+
             $status = $result['success'] ? 200 : 400;
             return response()->json($result, $status);
         } catch (\Exception $e) {
@@ -76,6 +102,19 @@ class CrossFlowController extends Controller
     {
         try {
             $result = $this->crossFlowService->releaseProjectMaterials($id, auth()->id());
+
+            if ($result['success']) {
+                LogKrsftService::log(
+                    module: 'compraskrsft',
+                    action: 'proyecto_finalizado',
+                    message: "Proyecto #{$id} finalizado y materiales liberados",
+                    level: 'info',
+                    userId: auth()->id(),
+                    userName: auth()->user()?->name,
+                    extra: ['project_id' => $id]
+                );
+            }
+
             $status = $result['success'] ? 200 : 400;
             return response()->json($result, $status);
         } catch (\Exception $e) {
@@ -161,6 +200,23 @@ class CrossFlowController extends Controller
                 floatval($request->input('new_purchase_price')),
                 $request->input('project_id')
             );
+
+            if ($result['success']) {
+                LogKrsftService::log(
+                    module: 'compraskrsft',
+                    action: 'mixed_procesado',
+                    message: "Selección mixta procesada para orden #{$request->input('order_id')}",
+                    level: 'info',
+                    userId: auth()->id(),
+                    userName: auth()->user()?->name,
+                    extra: [
+                        'order_id' => $request->input('order_id'),
+                        'inventory_item_id' => $request->input('inventory_item_id'),
+                        'qty_from_stock' => $request->input('qty_from_stock'),
+                        'new_purchase_price' => floatval($request->input('new_purchase_price'))
+                    ]
+                );
+            }
 
             $status = $result['success'] ? 200 : 400;
             return response()->json($result, $status);

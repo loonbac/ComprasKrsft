@@ -22,9 +22,10 @@ import Badge from './ui/Badge';
 import EmptyState from './EmptyState';
 import {
   getProjectColor,
-    formatProjectDisplay,
+  formatProjectDisplay,
   getOrderTitle,
   getOrderQty,
+  getOrderQtyNum,
   batchAllDelivered,
   batchMissingComprobante,
   formatNumber,
@@ -248,24 +249,24 @@ export default function PaidTab({
         const hasFilters = paidFilterStartDate || paidFilterEndDate || verificationFilter !== 'all' || bankFilter;
         return (
           <div className="rounded-xl border-2 border-gray-200 bg-white shadow-sm">
-            <div className="flex flex-wrap items-center gap-3 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2.5 px-3 py-2.5">
               {/* Fechas */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Desde</span>
-                <input value={paidFilterStartDate} onChange={(e) => setPaidFilterStartDate(e.target.value)} type="date" className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Desde</span>
+                <input value={paidFilterStartDate} onChange={(e) => setPaidFilterStartDate(e.target.value)} type="date" className="rounded-lg border border-gray-300 px-2 py-1 text-[12.5px] shadow-sm focus:outline-none focus:ring-1 focus:ring-primary/30" />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Hasta</span>
-                <input value={paidFilterEndDate} onChange={(e) => setPaidFilterEndDate(e.target.value)} type="date" className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Hasta</span>
+                <input value={paidFilterEndDate} onChange={(e) => setPaidFilterEndDate(e.target.value)} type="date" className="rounded-lg border border-gray-300 px-2 py-1 text-[12.5px] shadow-sm focus:outline-none focus:ring-1 focus:ring-primary/30" />
               </div>
 
               {/* Separador */}
-              <div className="h-6 w-px bg-gray-200" />
+              <div className="h-5 w-px bg-gray-200" />
 
               {/* Estado de verificación */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Verificación</span>
-                <div className="flex rounded-lg border border-gray-300 overflow-hidden text-sm">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Verificación</span>
+                <div className="flex rounded-lg border border-gray-300 overflow-hidden text-xs">
                   {[
                     { value: 'all', label: 'Todas' },
                     { value: 'unverified', label: 'Sin verificar' },
@@ -274,7 +275,7 @@ export default function PaidTab({
                     <button
                       key={value}
                       onClick={() => setVerificationFilter(value)}
-                      className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                      className={`px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
                         verificationFilter === value
                           ? 'bg-primary text-white'
                           : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -289,13 +290,13 @@ export default function PaidTab({
               {/* Separador + Banco */}
               {uniqueBanks.length > 0 && (
                 <>
-                  <div className="h-6 w-px bg-gray-200" />
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Banco</span>
+                  <div className="h-5 w-px bg-gray-200" />
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Banco</span>
                     <select
                       value={bankFilter}
                       onChange={(e) => setBankFilter(e.target.value)}
-                      className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className="rounded-lg border border-gray-300 px-2 py-1 text-[12.5px] shadow-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
                     >
                       <option value="">Todos</option>
                       {uniqueBanks.map((bank) => (
@@ -309,14 +310,14 @@ export default function PaidTab({
               {/* Limpiar */}
               {hasFilters && (
                 <>
-                  <div className="h-6 w-px bg-gray-200" />
-                  <button onClick={resetPaidFilter} className="rounded-lg bg-red-600 hover:bg-red-700 active:bg-red-800 transition-colors text-white text-xs font-medium px-3 py-1.5">Limpiar filtros</button>
+                  <div className="h-5 w-px bg-gray-200" />
+                  <button onClick={resetPaidFilter} className="rounded-lg bg-red-600 hover:bg-red-700 active:bg-red-800 transition-colors text-white text-[11px] font-medium px-2.5 py-1.5">Limpiar filtros</button>
                 </>
               )}
 
               {/* Contador de resultados */}
               {hasFilters && (
-                <span className="ml-auto text-xs text-gray-400">
+                <span className="ml-auto text-[11px] text-gray-400">
                   {filteredPaidBatches.length} de {paidBatches.length} facturas
                 </span>
               )}
@@ -346,7 +347,7 @@ export default function PaidTab({
               {/* Header */}
               <button
                 onClick={() => togglePaidBatchExpanded(batch.batch_id)}
-                className={`flex w-full flex-wrap items-center gap-2 px-4 py-3 text-left text-sm transition-colors ${expandedPaidBatches[batch.batch_id] ? 'bg-gray-50' : 'hover:bg-gray-50'
+                className={`flex w-full flex-wrap items-center gap-2 px-4 py-3 text-left text-sm transition-colors ${expandedPaidBatches[batch.batch_id] ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'
                   }`}
               >
                 <ChevronDownIcon className={`size-4 shrink-0 text-gray-400 transition-transform ${expandedPaidBatches[batch.batch_id] ? 'rotate-180' : ''}`} />
@@ -441,6 +442,11 @@ export default function PaidTab({
                         const isFromInventory = order.source_type === 'inventory';
                         const refPrice = order.reference_price || 0;
                         const orderQty = getOrderQty(order);
+                        const qtyNum = getOrderQtyNum(order);
+                        const totalDirectCost = order.igv_enabled
+                          ? parseFloat(order.amount || 0) + parseFloat(order.igv_amount || 0)
+                          : parseFloat(order.amount || 0);
+                        const unitDirectPrice = qtyNum > 0 ? totalDirectCost / qtyNum : 0;
                         const stockCost = isFromInventory && orderQty > 0 ? (refPrice * orderQty) : 0;
 
                         return (
@@ -452,15 +458,25 @@ export default function PaidTab({
                             )}
                             <span className="text-gray-500">Cant: {orderQty}</span>
                             {isFromInventory ? (
-                              stockCost > 0 ? (
-                                <span className="font-medium text-primary-700">
-                                  Costo Ref: {order.currency || batch.currency} {formatNumber(stockCost)}
-                                </span>
-                              ) : null
+                              <>
+                                {refPrice > 0 && (
+                                  <span className="text-primary-700">P.Unit: {order.currency || batch.currency} {formatNumber(refPrice)}</span>
+                                )}
+                                {stockCost > 0 ? (
+                                  <span className="font-medium text-primary-700">
+                                    Costo Ref: {order.currency || batch.currency} {formatNumber(stockCost)}
+                                  </span>
+                                ) : null}
+                              </>
                             ) : (
-                              order.amount > 0 ? (
-                                <span className="font-medium text-gray-900">{order.currency || batch.currency} {formatNumber(order.igv_enabled ? parseFloat(order.amount || 0) + parseFloat(order.igv_amount || 0) : order.amount)}</span>
-                              ) : null
+                              <>
+                                {unitDirectPrice > 0 && (
+                                  <span className="text-gray-600">P.Unit: {order.currency || batch.currency} {formatNumber(unitDirectPrice)}</span>
+                                )}
+                                {totalDirectCost > 0 ? (
+                                  <span className="font-medium text-gray-900">{order.currency || batch.currency} {formatNumber(totalDirectCost)}</span>
+                                ) : null}
+                              </>
                             )}
                             {!!order.delivery_confirmed && <Badge variant="emerald">Entregado</Badge>}
                           </div>

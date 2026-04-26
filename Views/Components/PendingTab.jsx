@@ -8,6 +8,8 @@ import {
   CheckIcon,
   XMarkIcon,
   CheckCircleIcon,
+  ArrowDownTrayIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -75,10 +77,12 @@ export default function PendingTab({
   getListKey,
   toggleListExpanded,
   getListOrders,
+  downloadMaterialListTemplate,
   isPendingSelected,
   togglePendingSelect,
   approveSinglePending,
   rejectOrder,
+  openInfoModal,
 }) {
   if (loading) return <LoadingSpinner />;
 
@@ -112,16 +116,16 @@ export default function PendingTab({
         {/* Project accordion */}
         <div className="space-y-3">
           {pendingProjects.map((proj) => (
-            <div key={proj.id} className="overflow-hidden rounded-lg border-2 border-gray-200 bg-white shadow-sm">
+            <div key={proj.id} className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm">
               {/* Project Header */}
               <button
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${expandedProjects[proj.id] ? 'bg-gray-50' : 'hover:bg-gray-50'
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${expandedProjects[proj.id] ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'
                   }`}
                 onClick={() => toggleProjectExpanded(proj.id)}
               >
                 <ChevronRightIcon className={`size-4 shrink-0 text-gray-400 transition-transform ${expandedProjects[proj.id] ? 'rotate-90' : ''}`} />
-                <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: getProjectColor(proj.id) }}>{formatProjectDisplay(proj)}</span>
-                <Badge variant="gray">{proj.count} items</Badge>
+                <span className="rounded-full px-3 py-1 text-[11px] font-bold text-white uppercase tracking-wider" style={{ background: getProjectColor(proj.id) }}>{formatProjectDisplay(proj)}</span>
+                <Badge variant="gray" className="text-[11px]">{proj.count} items</Badge>
               </button>
 
               {/* Lists under project */}
@@ -132,17 +136,70 @@ export default function PendingTab({
                     return (
                       <div key={list.filename || 'manual'}>
                         {/* List Header */}
-                        <div>
+                        {/* List Header */}
+                        <div className={`flex w-full items-center gap-3 border-b border-gray-50 pr-6 transition-colors ${expandedLists[listKey] ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}>
                           <button
-                            className={`flex w-full items-center gap-3 border-b border-gray-50 px-6 py-2 text-left text-sm transition-colors hover:bg-gray-50 ${expandedLists[listKey] ? 'bg-gray-50' : ''
-                              }`}
+                            className="flex flex-1 items-center gap-3 px-6 py-2 text-left text-sm"
                             onClick={() => toggleListExpanded(proj.id, list.filename)}
                           >
                             <ChevronRightIcon className={`size-3.5 shrink-0 text-gray-400 transition-transform ${expandedLists[listKey] ? 'rotate-90' : ''}`} />
                             <DocumentTextIcon className="size-4 shrink-0 text-gray-400" />
                             <span className="truncate font-medium text-gray-600">{list.filename}</span>
                             <Badge variant="gray">{list.count}</Badge>
+
+                            {/* Metadata summary badges (inside toggle button for clicks) */}
+                            {(list.metadata?.fecha_requerida || list.metadata?.prioridad || list.metadata?.solicitado_por || list.metadata?.cargo || list.metadata?.numero_solicitud) && (
+                              <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-600 ml-2">
+                                {list.metadata.numero_solicitud && (
+                                  <Badge variant="blue" className="text-[11px]">N° {list.metadata.numero_solicitud}</Badge>
+                                )}
+                                {list.metadata.fecha_requerida && (() => {
+                                  const v = list.metadata.fecha_requerida;
+                                  const display = /^\d{4}-\d{2}-\d{2}$/.test(v)
+                                    ? new Date(`${v}T00:00:00`).toLocaleDateString('es-PE')
+                                    : v;
+                                  return <Badge variant="gray" className="text-[11px]">Req: {display}</Badge>;
+                                })()}
+                                {list.metadata.prioridad && (
+                                  <Badge variant="amber" className="text-[11px]">{String(list.metadata.prioridad).toUpperCase()}</Badge>
+                                )}
+                                {list.metadata.solicitado_por && (
+                                  <span className="hidden lg:inline">Solicitado por: <strong className="text-gray-800">{list.metadata.solicitado_por}</strong></span>
+                                )}
+                              </div>
+                            )}
                           </button>
+
+                          {/* Separate Action Buttons */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            {list.isImported && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => openInfoModal(list.metadata)}
+                                  className="inline-flex"
+                                  title="Ver información de importación"
+                                >
+                                  <Badge variant="blue" className="cursor-pointer text-[10px] font-bold hover:bg-blue-200">
+                                    <InformationCircleIcon className="size-3.5 me-1" />
+                                    INFO
+                                  </Badge>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => downloadMaterialListTemplate(proj.id, list.filename)}
+                                  className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700 transition-colors shadow-sm"
+                                  title="Descargar requerimiento"
+                                >
+                                  <ArrowDownTrayIcon className="size-3.5" />
+                                  Excel
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
                           {expandedLists[listKey] && (
                             <div className="border-b border-gray-50 px-6 py-2 flex items-center gap-3 bg-gray-50">
                               <IndeterminateCheckbox
@@ -163,7 +220,6 @@ export default function PendingTab({
                               <span className="text-sm text-gray-600 font-medium">Seleccionar todos</span>
                             </div>
                           )}
-                        </div>
 
                         {/* Table — layout differs for services vs materials */}
                         {expandedLists[listKey] && (() => {
@@ -206,9 +262,9 @@ export default function PendingTab({
                                           <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{timeVal} {timeUnit}</td>
                                           <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{location}</td>
                                           <td className="px-2 py-2 align-middle" onClick={(e) => e.stopPropagation()}>
-                                            <div className="flex justify-center gap-1.5 w-4/5 mx-auto">
-                                              <button onClick={() => approveSinglePending(order.id)} title="Aprobar" className="flex-1 flex items-center justify-center rounded-lg py-1.5 bg-emerald-100 text-emerald-600 transition-colors hover:bg-emerald-200 hover:text-emerald-700 font-semibold"><CheckIcon className="size-4" /></button>
-                                              <button onClick={() => rejectOrder(order.id)} title="Rechazar" className="flex-1 flex items-center justify-center rounded-lg py-1.5 bg-red-100 text-red-600 transition-colors hover:bg-red-200 hover:text-red-700 font-semibold"><XMarkIcon className="size-4" /></button>
+                                            <div className="flex justify-center gap-1.5 w-full">
+                                              <button onClick={() => approveSinglePending(order.id)} title="Aprobar" className="flex size-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white"><CheckIcon className="size-4" /></button>
+                                              <button onClick={() => rejectOrder(order.id)} title="Rechazar" className="flex size-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition-all hover:bg-red-500 hover:text-white"><XMarkIcon className="size-4" /></button>
                                             </div>
                                           </td>
                                         </tr>
@@ -260,9 +316,9 @@ export default function PendingTab({
                                       <td className="px-3 py-2 text-gray-700 align-middle text-center cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.series || '-'}</td>
                                       <td className="px-3 py-2 text-gray-700 align-middle text-left cursor-pointer" onClick={() => togglePendingSelect(order.id)}>{order.notes || '-'}</td>
                                       <td className="px-2 py-2 align-middle" onClick={(e) => e.stopPropagation()}>
-                                        <div className="flex justify-center gap-1.5 w-4/5 mx-auto">
-                                          <button onClick={() => approveSinglePending(order.id)} title="Aprobar" className="flex-1 flex items-center justify-center rounded-lg py-1.5 bg-emerald-100 text-emerald-600 transition-colors hover:bg-emerald-200 hover:text-emerald-700 font-semibold"><CheckIcon className="size-4" /></button>
-                                          <button onClick={() => rejectOrder(order.id)} title="Rechazar" className="flex-1 flex items-center justify-center rounded-lg py-1.5 bg-red-100 text-red-600 transition-colors hover:bg-red-200 hover:text-red-700 font-semibold"><XMarkIcon className="size-4" /></button>
+                                        <div className="flex justify-center gap-1.5 w-full">
+                                          <button onClick={() => approveSinglePending(order.id)} title="Aprobar" className="flex size-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white"><CheckIcon className="size-4" /></button>
+                                          <button onClick={() => rejectOrder(order.id)} title="Rechazar" className="flex size-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition-all hover:bg-red-500 hover:text-white"><XMarkIcon className="size-4" /></button>
                                         </div>
                                       </td>
                                     </tr>

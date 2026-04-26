@@ -1,6 +1,10 @@
 /**
  * @file Cabecera del módulo Compras
  * @module compraskrsft/components/ComprasHeader
+ *
+ * Synced with Proyectos PageHeader pattern:
+ *   - Same Volver button (Button primary md + gap-2)
+ *   - Same h1 with icon-in-rounded-xl pattern
  */
 import { ArrowLeftIcon, ShoppingCartIcon, BuildingStorefrontIcon } from '@heroicons/react/24/outline';
 import Button from './ui/Button';
@@ -17,24 +21,20 @@ export default function ComprasHeader({ onBack, onOpenSuppliers }) {
           Volver
         </Button>
         <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-900">
-          <span className="flex items-center justify-center rounded-xl bg-primary p-2.5">
-            <ShoppingCartIcon className="size-6 text-white" />
+          <span className="flex size-11 items-center justify-center rounded-xl bg-primary text-white">
+            <ShoppingCartIcon className="size-6" />
           </span>
-          <span>
-            GESTIÓN DE COMPRAS
-            <p className="text-sm font-normal text-gray-500">Administre las órdenes de compra y proveedores</p>
+          <span className="flex flex-col">
+            <span className="tracking-tight">GESTIÓN DE COMPRAS</span>
+            <span className="text-sm font-normal text-gray-500">Administre las órdenes de compra y proveedores</span>
           </span>
         </h1>
       </div>
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onOpenSuppliers}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-400"
-        >
+        <Button variant="secondary" size="md" onClick={onOpenSuppliers} className="gap-2">
           <BuildingStorefrontIcon className="size-4" />
           Gestión de Proveedores
-        </button>
+        </Button>
       </div>
     </header>
   );

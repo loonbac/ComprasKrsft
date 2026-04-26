@@ -38,10 +38,12 @@ import BulkPayModal from './Components/modals/BulkPayModal';
 import PaymentModal from './Components/modals/PaymentModal';
 import EditComprobanteModal from './Components/modals/EditComprobanteModal';
 import QuickPayModal from './Components/modals/QuickPayModal';
+import ReturnToPendingModal from './Components/modals/ReturnToPendingModal';
 
 import EditCreditModal from './Components/modals/EditCreditModal';
 import RejectModal from './Components/modals/RejectModal';
 import SuppliersModal from './Components/modals/SuppliersModal';
+import InfoMaterialListModal from './Components/modals/InfoMaterialListModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -80,6 +82,7 @@ export default function ComprasIndex({ auth }) {
     currentExchangeRate: api.currentExchangeRate,
     loadingRate: api.loadingRate,
     fetchExchangeRate: api.fetchExchangeRate,
+    loadPendingOrders: data.loadPendingOrders,
     permissions: data.permissions,
   });
 
@@ -106,7 +109,7 @@ export default function ComprasIndex({ auth }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="w-full px-12 py-4">
-        <div className="space-y-6">
+        <div className="space-y-5">
           <ComprasHeader onBack={data.goBack} onOpenSuppliers={suppliers.openSuppliersModal} />
 
           <ComprasStats
@@ -138,9 +141,9 @@ export default function ComprasIndex({ auth }) {
             permissions={data.permissions}
           />
 
-          {data.activeTab === 'pending' && data.permissions.view && <PendingTab loading={data.loading} {...pending} />}
+          {data.activeTab === 'pending' && data.permissions.view && <PendingTab loading={data.loading} {...pending} openInfoModal={pending.openInfoModal} />}
           {data.activeTab === 'quoted' && data.permissions.approve && <QuotedTab loading={data.loading} {...quoted} />}
-          {data.activeTab === 'to_pay' && data.permissions.pay && <ToPayTab loading={data.loading} {...toPay} onOpenQuickPay={quickPay.openQuickPayModal} onOpenEditCredit={toPay.openEditCreditModal} />}
+          {data.activeTab === 'to_pay' && data.permissions.pay && <ToPayTab loading={data.loading} {...toPay} onOpenQuickPay={quickPay.openQuickPayModal} onOpenEditCredit={toPay.openEditCreditModal} openReturnModal={toPay.openReturnModal} openInfoModal={toPay.openInfoModal} />}
           {data.activeTab === 'paid' && data.permissions.paid_limited && <PaidTab paidBatches={data.paidBatches} {...paid} apiBase={api.apiBase} permissions={data.permissions} />}
           {data.activeTab === 'recopilacion' && data.permissions.export && (
             <RecopilacionTab
@@ -203,6 +206,24 @@ export default function ComprasIndex({ auth }) {
       )}
 
       <SuppliersModal {...suppliers} />
+      
+      <ReturnToPendingModal
+        isOpen={toPay.showReturnModal}
+        onClose={toPay.closeReturnModal}
+        onConfirm={toPay.confirmReturnToPending}
+        orderTitle={toPay.returnOrder?.description || 'Item seleccionado'}
+      />
+
+      <InfoMaterialListModal
+        open={toPay.showInfoModal}
+        onClose={toPay.closeInfoModal}
+        order={toPay.infoOrder}
+      />
+      <InfoMaterialListModal
+        open={pending.showInfoModal}
+        onClose={pending.closeInfoModal}
+        order={pending.infoOrder}
+      />
 
       <Toast
         show={data.toast.show}

@@ -168,55 +168,51 @@ export default function ComprasStats({ pendingCount, toPayCount, totalToPay, tot
   return (
     <>
       <HistoryModal open={historyOpen} onClose={() => setHistoryOpen(false)} />
-      <section
-        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(0, 1fr))' }}
-      >
-        <div className="min-w-0">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <StatsCard
             title="Pendientes"
             value={pendingCount}
-            icon={<ClockIcon className="size-5" />}
+            icon={<ClockIcon className="size-4" />}
             iconBg="bg-amber-100"
             iconColor="text-amber-600"
           />
-        </div>
-        <div className="min-w-0">
           <StatsCard
             title="Por Pagar"
             value={toPayCount}
-            icon={<BanknotesIcon className="size-5" />}
+            icon={<BanknotesIcon className="size-4" />}
             iconBg="bg-red-100"
             iconColor="text-red-600"
           />
-        </div>
-        <div className="min-w-0">
           <StatsCard
             title="Total Por Pagar"
             value={`S/ ${formatNumber(totalToPay)}`}
-            icon={<CurrencyDollarIcon className="size-5" />}
+            icon={<CurrencyDollarIcon className="size-4" />}
             iconBg="bg-blue-100"
             iconColor="text-blue-600"
           />
-        </div>
-        <div className="min-w-0">
           <StatsCard
-            title={`Total Pagado — ${monthLabel}`}
+            title="Total Pagado"
+            value={`S/ ${formatNumber(totalPaid)}`}
+            icon={<CheckCircleIcon className="size-4" />}
+            iconBg="bg-green-100"
+            iconColor="text-green-600"
+          />
+          <StatsCard
+            title={`Pagado — ${monthLabel}`}
             value={`S/ ${formatNumber(monthlyPaid)}`}
-            icon={<CheckCircleIcon className="size-5" />}
+            icon={<CheckCircleIcon className="size-4" />}
             iconBg="bg-emerald-100"
             iconColor="text-emerald-600"
             action={
               <button
                 onClick={() => setHistoryOpen(true)}
                 title="Ver historial mensual"
-                className="rounded-lg border border-gray-200 p-1.5 text-gray-400 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600"
+                className="rounded-lg border border-gray-200 p-1 text-gray-400 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600"
               >
-                <ListBulletIcon className="size-4" />
+                <ListBulletIcon className="size-3.5" />
               </button>
             }
           />
-        </div>
       </section>
     </>
   );

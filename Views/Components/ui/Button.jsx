@@ -1,10 +1,9 @@
-import { forwardRef } from 'react';
 import clsx from 'clsx';
 
-/* ── Variantes y tamaños HyperUI ── */
+/* ── Variantes y tamaños — synced with Proyectos Button ── */
 const VARIANTS = {
-    primary:   'bg-primary text-white hover:bg-primary-700',
-    secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+    primary:   'bg-primary text-white hover:bg-primary/90',
+    secondary: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
     danger:    'bg-red-600 text-white hover:bg-red-700',
     ghost:     'bg-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900',
     success:   'bg-green-600 text-white hover:bg-green-700',
@@ -14,13 +13,10 @@ const VARIANTS = {
 const SIZES = {
     sm: 'px-3 py-1.5 text-xs',
     md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-sm',
+    lg: 'px-5 py-2.5 text-sm',
 };
 
-const Button = forwardRef((
-    { variant = 'primary', size = 'md', disabled = false, loading = false, type = 'button', onClick, children, className = '', ...props },
-    ref,
-) => {
+function Button({ variant = 'primary', size = 'md', disabled = false, loading = false, type = 'button', onClick, children, className = '', ref, ...props }) {
     const isDisabled = disabled || loading;
 
     return (
@@ -30,7 +26,7 @@ const Button = forwardRef((
             onClick={onClick}
             disabled={isDisabled}
             className={clsx(
-                'inline-flex items-center justify-center rounded font-medium transition-colors',
+                'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 disabled:pointer-events-none',
                 VARIANTS[variant] ?? VARIANTS.primary,
                 SIZES[size],
                 isDisabled && 'opacity-50 cursor-not-allowed',
@@ -47,7 +43,7 @@ const Button = forwardRef((
             {children}
         </button>
     );
-});
+}
 
 Button.displayName = 'Button';
 export default Button;

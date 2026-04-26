@@ -12,7 +12,7 @@ import Badge from './ui/Badge';
 import Button from './ui/Button';
 import LoadingSpinner from './LoadingSpinner';
 import EmptyState from './EmptyState';
-import { getProjectColor, formatProjectDisplay, getOrderTitle, getOrderQty, formatDate, formatNumber } from '../utils';
+import { getProjectColor, formatProjectDisplay, getOrderTitle, getOrderQty, getOrderQtyNum, formatDate, formatNumber } from '../utils';
 
 /**
  * @param {{
@@ -57,13 +57,13 @@ export default function QuotedTab({
         return (
           <div
             key={batch.batch_id}
-            className="overflow-hidden rounded-lg border border-gray-100 bg-white transition-shadow hover:shadow-md"
+            className="overflow-hidden rounded-lg border-2 border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
           >
             {/* Batch Header */}
             <button
               onClick={() => toggleBatchExpanded(batch.batch_id)}
               className={`flex w-full flex-wrap items-center gap-2 px-4 py-3 text-left text-sm transition-colors ${
-                expandedQuotedBatches[batch.batch_id] ? 'bg-gray-50' : 'hover:bg-gray-50'
+                  expandedQuotedBatches[batch.batch_id] ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'
               }`}
             >
               <ChevronDownIcon
@@ -106,6 +106,8 @@ export default function QuotedTab({
                   {batch.orders.map((order) => {
                     const amount = order.amount_with_igv || order.amount || 0;
                     const qty = getOrderQty(order);
+                    const qtyNum = getOrderQtyNum(order);
+                    const unitPrice = qtyNum > 0 ? amount / qtyNum : 0;
                     return (
                       <div key={order.id} className="flex items-center gap-3 py-2 text-sm">
                         <span
@@ -117,6 +119,9 @@ export default function QuotedTab({
                         <span className="flex-1 truncate text-gray-700">{getOrderTitle(order)}</span>
                         {qty !== '-' && qty > 0 && (
                           <span className="text-gray-500 shrink-0">Cant: {qty}</span>
+                        )}
+                        {amount > 0 && qtyNum > 0 && (
+                          <span className="text-gray-600 shrink-0">P.Unit: {batch.currency} {formatNumber(unitPrice)}</span>
                         )}
                         {amount > 0 && (
                           <span className="font-medium text-gray-900 shrink-0">

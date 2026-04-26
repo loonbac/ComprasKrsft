@@ -37,9 +37,10 @@ const sym = (c) => (c === 'USD' ? '$' : 'S/');
 /**
  * Build a material-level summary from the order + its stock assignment.
  */
-function buildMaterialSummary(order, stock, price, currency) {
+function buildMaterialSummary(order, stock, unitPrice) {
   const totalQty = getOrderQtyNum(order);
   const unit = order.unit || 'UND';
+  const normalizedUnitPrice = roundMoney(unitPrice || 0);
 
   if (!stock) {
     // No stock assignment – 100 % purchase
@@ -47,8 +48,8 @@ function buildMaterialSummary(order, stock, price, currency) {
       purchaseQty: totalQty,
       stockQty: 0,
       stockLot: null,
-      unitPrice: totalQty > 0 && price > 0 ? roundMoney(price / totalQty) : 0,
-      purchaseTotal: roundMoney(price),
+      unitPrice: normalizedUnitPrice,
+      purchaseTotal: roundMoney(totalQty * normalizedUnitPrice),
       stockTotal: 0,
     };
   }
@@ -57,13 +58,13 @@ function buildMaterialSummary(order, stock, price, currency) {
   const purchaseQty = Math.max(0, totalQty - stockQty);
   const stockUnitPrice = roundMoney(stock.unitPrice || 0);
   const stockTotal = roundMoney(stockQty * stockUnitPrice);
-  const purchaseTotal = roundMoney(price);
+  const purchaseTotal = roundMoney(purchaseQty * normalizedUnitPrice);
 
   return {
     purchaseQty,
     stockQty,
     stockLot: stock,
-    unitPrice: purchaseQty > 0 && purchaseTotal > 0 ? roundMoney(purchaseTotal / purchaseQty) : 0,
+    unitPrice: normalizedUnitPrice,
     purchaseTotal,
     stockTotal,
   };
@@ -169,7 +170,6 @@ export default function ApprovalOrderModal({
           order,
           stockAssignments[order.id] || null,
           parseFloat(prices[order.id]) || 0,
-          approvalForm.currency,
         ),
       })),
     [orders, stockAssignments, prices, approvalForm.currency],
@@ -301,7 +301,7 @@ export default function ApprovalOrderModal({
                                 )}
                                 <div>
                                   <span className="text-xs text-gray-500">
-                                    Precio Total{hasStock ? ` (${purchaseQty} ${unit})` : ` (${totalQty} ${unit})`} — {sym(approvalForm.currency)}
+                                    Precio Unitario — {sym(approvalForm.currency)} / {unit}
                                   </span>
                                   <div className="mt-0.5">
                                     <input
@@ -313,7 +313,7 @@ export default function ApprovalOrderModal({
                                     />
                                   </div>
                                   <p className="mt-0.5 text-xs text-gray-400 min-h-[1rem]">
-                                    {purchaseQty > 0 && purchaseTotal > 0 ? `Unitario: ${sym(approvalForm.currency)} ${formatNumber(unitPrice)}` : ''}
+                                    {purchaseQty > 0 && unitPrice > 0 ? `Total: ${sym(approvalForm.currency)} ${formatNumber(purchaseTotal)} (${purchaseQty} ${unit} x ${formatNumber(unitPrice)})` : ''}
                                   </p>
                                 </div>
                               </div>
@@ -370,6 +370,11 @@ export default function ApprovalOrderModal({
                             className="w-32 rounded border border-primary/40 px-2 py-1.5 text-right text-sm shadow-sm focus:border-primary focus:ring-primary"
                             placeholder="0.00"
                           />
+                        </div>
+                        <div className="hidden md:block min-w-[150px] text-right">
+                          <p className="text-[11px] uppercase tracking-wide text-gray-400">Precio unitario</p>
+                          <p className="text-xs text-gray-600">{sym(approvalForm.currency)} {formatNumber(unitPrice)}</p>
+                          <p className="text-xs font-medium text-gray-800">Total: {sym(approvalForm.currency)} {formatNumber(purchaseTotal)}</p>
                         </div>
                         <label className="flex shrink-0 items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
                           <span className="hidden sm:inline">Almacén</span>

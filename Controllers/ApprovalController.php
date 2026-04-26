@@ -44,9 +44,27 @@ class ApprovalController extends Controller
 
             // NO crear items de inventario aquí — se crean al confirmar pago
 
+            app(\App\Services\LogKrsftService::class)->log(
+                module: 'compraskrsft',
+                action: 'orden_aprobada',
+                message: "Orden #{$id} aprobada internamente",
+                level: 'info',
+                userId: auth()->id(),
+                userName: auth()->user()?->name,
+                extra: ['order_id' => $id]
+            );
+
             return response()->json(['success' => true, 'message' => 'Orden enviada a Por Pagar']);
         } catch (\Exception $e) {
             Log::error('Error en markToPay', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            app(\App\Services\LogKrsftService::class)->logError(
+                module: 'compraskrsft',
+                action: 'mark_to_pay_error',
+                message: "Error al enviar Orden #{$id} a Por Pagar: " . $e->getMessage(),
+                extra: ['order_id' => $id]
+            );
+
             return response()->json(['success' => false, 'message' => 'Error interno al procesar la orden'], 500);
         }
     }
@@ -143,12 +161,32 @@ class ApprovalController extends Controller
                     }
                 }
 
-                return $this->buildBulkResponse($orderIds, $inventoryOrderIds, $batchId);
+                $response = $this->buildBulkResponse($orderIds, $inventoryOrderIds, $batchId);
+                
+                app(\App\Services\LogKrsftService::class)->log(
+                    module: 'compraskrsft',
+                    action: 'mark_to_pay_bulk',
+                    message: $response['message'],
+                    level: 'info',
+                    userId: auth()->id(),
+                    userName: auth()->user()?->name,
+                    extra: ['batch_id' => $batchId, 'order_ids' => $orderIds]
+                );
+
+                return $response;
             });
 
             return response()->json($result);
         } catch (\Exception $e) {
             Log::error('Error en markToPayBulk', ['error' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
+            
+            app(\App\Services\LogKrsftService::class)->logError(
+                module: 'compraskrsft',
+                action: 'mark_to_pay_bulk_error',
+                message: "Error en aprobación masiva (Por Pagar): " . $e->getMessage(),
+                extra: ['order_ids' => $request->input('order_ids')]
+            );
+
             return response()->json(['success' => false, 'message' => 'Error interno al procesar las órdenes'], 500);
         }
     }
@@ -249,6 +287,16 @@ class ApprovalController extends Controller
                 Log::warning('Error al registrar proveedor en approve', ['error' => $e->getMessage()]);
             }
 
+            app(\App\Services\LogKrsftService::class)->log(
+                module: 'compraskrsft',
+                action: 'orden_aprobada',
+                message: "Orden #{$id} aprobada por {$amount} {$currency}",
+                level: 'info',
+                userId: auth()->id(),
+                userName: auth()->user()?->name,
+                extra: ['order_id' => $id, 'amount' => $amount, 'currency' => $currency]
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Orden aprobada exitosamente',
@@ -257,6 +305,14 @@ class ApprovalController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Error en approve', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            app(\App\Services\LogKrsftService::class)->logError(
+                module: 'compraskrsft',
+                action: 'approve_order_error',
+                message: "Error al aprobar Orden #{$id}: " . $e->getMessage(),
+                extra: ['order_id' => $id]
+            );
+
             return response()->json(['success' => false, 'message' => 'Error interno al aprobar la orden'], 500);
         }
     }
@@ -369,9 +425,27 @@ class ApprovalController extends Controller
                 'updated_at' => now(),
             ]);
 
+            app(\App\Services\LogKrsftService::class)->log(
+                module: 'compraskrsft',
+                action: 'orden_rechazada',
+                message: "Orden #{$id} rechazada",
+                level: 'warning',
+                userId: auth()->id(),
+                userName: auth()->user()?->name,
+                extra: ['order_id' => $id, 'notes' => $request->input('notes')]
+            );
+
             return response()->json(['success' => true, 'message' => 'Orden rechazada']);
         } catch (\Exception $e) {
             Log::error('Error en reject', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            app(\App\Services\LogKrsftService::class)->logError(
+                module: 'compraskrsft',
+                action: 'reject_order_error',
+                message: "Error al rechazar Orden #{$id}: " . $e->getMessage(),
+                extra: ['order_id' => $id]
+            );
+
             return response()->json(['success' => false, 'message' => 'Error interno al rechazar la orden'], 500);
         }
     }
@@ -761,6 +835,62 @@ class ApprovalController extends Controller
         } catch (\Exception $e) {
             Log::error('Error en rejectQuotedBulk', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'Error interno al rechazar las cotizaciones'], 500);
+        }
+    }
+
+    /**
+     * Devolver un item (orden) desde Por Pagar a Por Cotizar (pending)
+     */
+    public function returnToPending(Request $request, $id)
+    {
+        $order = DB::table($this->ordersTable)->find($id);
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
+        }
+
+        if (!in_array($order->status, ['to_pay', 'quoted'])) {
+            return response()->json(['success' => false, 'message' => 'La orden no puede devolverse en su estado actual'], 400);
+        }
+
+        $request->validate([
+            'observation' => 'required|string|min:3',
+        ]);
+
+        try {
+            $currentNotes = $order->notes ? $order->notes . "\n" : '';
+            $user = auth()->user()?->name ?? 'Sistema';
+            $date = now()->format('d/m/Y H:i');
+            $observation = $request->input('observation');
+            
+            $newNotes = $currentNotes . "Devuelto a Por Cotizar: {$observation} - {$user} [{$date}]";
+
+            DB::table($this->ordersTable)->where('id', $id)->update([
+                'status'      => 'pending',
+                'amount'      => null,
+                'amount_pen'  => null,
+                'igv_amount'  => null,
+                'total_with_igv' => null,
+                'currency'    => 'PEN',
+                'batch_id'    => null,
+                'notes'       => $newNotes,
+                'updated_at'  => now(),
+            ]);
+
+            app(\App\Services\LogKrsftService::class)->log(
+                module: 'compraskrsft',
+                action: 'orden_devuelta_a_cotizar',
+                message: "Orden #{$id} devuelta a Por Cotizar: {$observation}",
+                level: 'warning',
+                userId: auth()->id(),
+                userName: $user,
+                extra: ['order_id' => $id, 'observation' => $observation]
+            );
+
+            return response()->json(['success' => true, 'message' => 'Item devuelto a Por Cotizar correctamente']);
+        } catch (\Exception $e) {
+            Log::error('Error en returnToPending', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error interno al devolver la orden'], 500);
         }
     }
 

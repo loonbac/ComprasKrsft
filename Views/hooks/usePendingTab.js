@@ -3,7 +3,7 @@
  * @module compraskrsft/hooks/usePendingTab
  */
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { getCsrfToken, getLocalDateString, getOrderQtyNum } from '../utils';
+import { getCsrfToken, getLocalDateString, getOrderQtyNum, roundMoney } from '../utils';
 
 /**
  * @typedef {Object} UsePendingTabParams
@@ -109,8 +109,15 @@ export function usePendingTab(ctx) {
   );
 
   const approvalCashflowTotal = useMemo(
-    () => selectedPendingIds.reduce((sum, id) => sum + (parseFloat(approvalPrices[id]) || 0), 0),
-    [approvalPrices, selectedPendingIds],
+    () =>
+      selectedApprovalOrdersData.reduce((sum, order) => {
+        const totalQty = getOrderQtyNum(order);
+        const stockQty = parseFloat(stockAssignments[order.id]?.qty) || 0;
+        const purchaseQty = Math.max(0, totalQty - stockQty);
+        const unitPrice = parseFloat(approvalPrices[order.id]) || 0;
+        return sum + roundMoney(purchaseQty * unitPrice);
+      }, 0),
+    [approvalPrices, selectedApprovalOrdersData, stockAssignments],
   );
 
   const approvalIgv = approvalForm.igv_enabled
@@ -140,6 +147,19 @@ export function usePendingTab(ctx) {
   }, [allFromInventory, selectedApprovalOrdersData.length, approvalForm.seller_name, approvalForm.currency, approvalCashflowTotal, currentExchangeRate]);
 
   // ── Helpers ───────────────────────────────────────────────────────────
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [infoOrder, setInfoOrder] = useState(null);
+
+  const openInfoModal = useCallback((order) => {
+    setInfoOrder(order);
+    setShowInfoModal(true);
+  }, []);
+
+  const closeInfoModal = useCallback(() => {
+    setShowInfoModal(false);
+    setInfoOrder(null);
+  }, []);
+
   const getListKey = useCallback(
     (projectId, filename) => `${projectId}-${filename || 'manual'}`,
     [],
@@ -177,13 +197,54 @@ export function usePendingTab(ctx) {
           // Use filename if imported, otherwise separate by type
           const filename = order.source_filename
             || (order.type === 'service' ? 'Servicios Manuales' : 'Órdenes Manuales');
-          if (!lists[filename]) lists[filename] = { filename, count: 0 };
-          lists[filename].count += 1;
+          if (!lists[filename]) {
+            lists[filename] = {
+              filename,
+              count: 0,
+              isImported: !!order.source_filename,
+              metadata: {
+                area_solicitante: null,
+                proyecto_obra: null,
+                numero_solicitud: null,
+                fecha_solicitud: null,
+                fecha_requerida: null,
+                prioridad: null,
+                solicitado_por: null,
+                cargo: null,
+              },
+            };
+          }
+
+          const list = lists[filename];
+          list.count += 1;
+
+          const fields = [
+            'area_solicitante',
+            'proyecto_obra',
+            'numero_solicitud',
+            'fecha_solicitud',
+            'fecha_requerida',
+            'prioridad',
+            'solicitado_por',
+            'cargo',
+          ];
+
+          fields.forEach((field) => {
+            if (!list.metadata[field] && order[field]) {
+              list.metadata[field] = order[field];
+            }
+          });
         });
       return Object.values(lists).sort((a, b) => a.filename.localeCompare(b.filename));
     },
     [pendingOrders],
   );
+
+  const downloadMaterialListTemplate = useCallback((projectId, filename) => {
+    if (!projectId || !filename) return;
+    const url = `${apiBase}/export-material-list?project_id=${encodeURIComponent(projectId)}&source_filename=${encodeURIComponent(filename)}`;
+    window.open(url, '_blank');
+  }, [apiBase]);
 
   const getListOrders = useCallback(
     (projectId, filename) =>
@@ -340,9 +401,19 @@ export function usePendingTab(ctx) {
         }
       }
 
+      const prices = {};
+      currentIds.forEach((orderId) => {
+        const order = pendingOrders.find((o) => o.id === Number(orderId) || o.id === orderId);
+        const totalQty = order ? getOrderQtyNum(order) : 0;
+        const stockQty = parseFloat(currentAssignments[orderId]?.qty) || 0;
+        const purchaseQty = Math.max(0, totalQty - stockQty);
+        const unitPrice = parseFloat(approvalPrices[orderId]) || 0;
+        prices[orderId] = roundMoney(purchaseQty * unitPrice);
+      });
+
       const payload = {
         order_ids: currentIds,
-        prices: approvalPrices,
+        prices,
         currency: approvalForm.currency,
         seller_name: approvalForm.seller_name,
         seller_document: approvalForm.seller_document,
@@ -388,6 +459,7 @@ export function usePendingTab(ctx) {
     closeApprovalModal,
     loadPendingOrders,
     loadToPayOrders,
+    pendingOrders,
     showToast,
   ]);
 
@@ -480,6 +552,7 @@ export function usePendingTab(ctx) {
     toggleListExpanded,
     getProjectLists,
     getListOrders,
+    downloadMaterialListTemplate,
     openApprovalModal,
     closeApprovalModal,
     onApprovalCurrencyChange,
@@ -490,5 +563,9 @@ export function usePendingTab(ctx) {
     closeRejectModal,
     confirmReject,
     searchInventory,
+    showInfoModal,
+    infoOrder,
+    openInfoModal,
+    closeInfoModal,
   };
 }

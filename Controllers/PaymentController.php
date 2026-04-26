@@ -3,6 +3,7 @@
 namespace Modulos_ERP\ComprasKrsft\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\LogKrsftService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -86,16 +87,36 @@ class PaymentController extends Controller
                     Log::warning('Supplier upsert failed in payBulk', ['error' => $th->getMessage()]);
                 }
 
-                return [
+                $response = [
                     'success' => true,
                     'message' => count($orderIds) . ' órdenes pagadas exitosamente',
                     'batch_id' => $batchId,
                 ];
+
+                app(\App\Services\LogKrsftService::class)->log(
+                    module: 'compraskrsft',
+                    action: 'pago_registrado',
+                    message: $response['message'],
+                    level: 'info',
+                    userId: auth()->id(),
+                    userName: auth()->user()?->name,
+                    extra: ['batch_id' => $batchId, 'order_ids' => $orderIds]
+                );
+
+                return $response;
             });
 
             return response()->json($result);
         } catch (\Exception $e) {
             Log::error('Error en payBulk', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            app(\App\Services\LogKrsftService::class)->logError(
+                module: 'compraskrsft',
+                action: 'pay_bulk_error',
+                message: "Error en pago masivo: " . $e->getMessage(),
+                extra: ['order_ids' => $request->input('order_ids')]
+            );
+
             return response()->json(['success' => false, 'message' => 'Error interno al procesar el pago'], 500);
         }
     }
@@ -171,9 +192,27 @@ class PaymentController extends Controller
                 );
             }
 
+            app(\App\Services\LogKrsftService::class)->log(
+                module: 'compraskrsft',
+                action: 'pago_registrado',
+                message: "Pago confirmado para lote {$batchId}",
+                level: 'info',
+                userId: auth()->id(),
+                userName: auth()->user()?->name,
+                extra: ['batch_id' => $batchId, 'bank' => $request->input('payment_bank')]
+            );
+
             return response()->json(['success' => true, 'message' => 'Pago confirmado']);
         } catch (\Exception $e) {
             Log::error('Error en payBatch', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            app(\App\Services\LogKrsftService::class)->logError(
+                module: 'compraskrsft',
+                action: 'pay_batch_error',
+                message: "Error al confirmar pago de lote {$batchId}: " . $e->getMessage(),
+                extra: ['batch_id' => $batchId]
+            );
+
             return response()->json(['success' => false, 'message' => 'Error interno al confirmar el pago'], 500);
         }
     }
@@ -240,9 +279,27 @@ class PaymentController extends Controller
                 return response()->json(['success' => false, 'message' => 'No se encontraron órdenes para actualizar'], 404);
             }
 
+            app(\App\Services\LogKrsftService::class)->log(
+                module: 'compraskrsft',
+                action: 'update_comprobante',
+                message: "Comprobante actualizado para lote {$batchId}",
+                level: 'info',
+                userId: auth()->id(),
+                userName: auth()->user()?->name,
+                extra: ['batch_id' => $batchId, 'cdp' => $request->input('cdp_number')]
+            );
+
             return response()->json(['success' => true, 'message' => 'Comprobante actualizado correctamente']);
         } catch (\Exception $e) {
             Log::error('Error en updateComprobante', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            app(\App\Services\LogKrsftService::class)->logError(
+                module: 'compraskrsft',
+                action: 'update_comprobante_error',
+                message: "Error al actualizar comprobante lote {$batchId}: " . $e->getMessage(),
+                extra: ['batch_id' => $batchId]
+            );
+
             return response()->json(['success' => false, 'message' => 'Error interno al actualizar comprobante'], 500);
         }
     }
@@ -362,10 +419,28 @@ class PaymentController extends Controller
                 // Enviar items al inventario como apartados
                 $this->inventoryService->sendItems($projectId, $items, $batchId, $projectName);
 
+                app(\App\Services\LogKrsftService::class)->log(
+                    module: 'compraskrsft',
+                    action: 'quick_pay',
+                    message: "Pago rápido completado para {$projectName}",
+                    level: 'info',
+                    userId: auth()->id(),
+                    userName: auth()->user()?->name,
+                    extra: ['batch_id' => $batchId, 'project_id' => $projectId]
+                );
+
                 return response()->json(['success' => true, 'message' => 'Pago rápido completado']);
             });
         } catch (\Exception $e) {
             Log::error('Error en quickPay', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            app(\App\Services\LogKrsftService::class)->logError(
+                module: 'compraskrsft',
+                action: 'quick_pay_error',
+                message: "Error en pago rápido: " . $e->getMessage(),
+                extra: ['project_id' => $request->input('project_id')]
+            );
+
             return response()->json(['success' => false, 'message' => 'Error interno al procesar pago rápido'], 500);
         }
     }
@@ -426,6 +501,16 @@ class PaymentController extends Controller
                     );
                 }
             }
+
+            LogKrsftService::log(
+                module: 'compraskrsft',
+                action: 'pago_registrado',
+                message: "Pago confirmado para orden #{$id}",
+                level: 'info',
+                userId: auth()->id(),
+                userName: auth()->user()?->name,
+                extra: ['order_id' => $id, 'amount' => floatval($paidOrder->amount ?? 0), 'method' => $request->input('cdp_type')]
+            );
 
             return response()->json(['success' => true, 'message' => 'Pago confirmado exitosamente']);
         } catch (\Exception $e) {

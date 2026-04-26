@@ -9,10 +9,12 @@ import { DocumentTextIcon } from '@heroicons/react/24/outline';
  */
 export default function EmptyState({ title, subtitle, icon }) {
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-12 text-center">
-      {icon || <DocumentTextIcon className="mx-auto size-16 text-gray-300" />}
-      <h3 className="mt-4 text-lg font-semibold text-gray-900">{title}</h3>
-      {subtitle && <p className="mt-2 text-sm text-gray-500">{subtitle}</p>}
+    <div className="flex flex-col items-center justify-center rounded-lg border border-gray-100 bg-white py-10 text-center shadow-sm">
+      <span className="rounded-full bg-gray-100 p-3 text-gray-400">
+        {icon || <DocumentTextIcon className="size-6" />}
+      </span>
+      <h3 className="mt-3 text-sm font-semibold text-gray-900">{title}</h3>
+      {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
     </div>
   );
 }

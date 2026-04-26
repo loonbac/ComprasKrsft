@@ -8,6 +8,8 @@ import {
   ChevronDownIcon,
   ClockIcon,
   PencilSquareIcon,
+  ArrowUturnLeftIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useEffect, useRef } from 'react';
 import Button from './ui/Button';
@@ -16,9 +18,10 @@ import LoadingSpinner from './LoadingSpinner';
 import EmptyState from './EmptyState';
 import {
   getProjectColor,
-    formatProjectDisplay,
+  formatProjectDisplay,
   getOrderTitle,
   getOrderQty,
+  getOrderQtyNum,
   getPaymentAlertStatus,
   getAlertLabel,
   formatNumber,
@@ -56,6 +59,7 @@ function IndeterminateCheckbox({ checked, indeterminate, className, ...props }) 
  *   toPayFilterCurrency: string, setToPayFilterCurrency: Function,
  *   toPayFilterPaymentType: string, setToPayFilterPaymentType: Function,
  *   toPayFilterIgv: string, setToPayFilterIgv: Function,
+ *   toPayFilterAlert: string, setToPayFilterAlert: Function,
  *   toPayProjects: Array,
  *   filteredToPayBatches: Array,
  *   expandedToPayBatches: Object,
@@ -66,6 +70,7 @@ function IndeterminateCheckbox({ checked, indeterminate, className, ...props }) 
  *   selectedOrders: Array,
  *   toggleOrderSelect: Function,
  *   openBulkModal: Function,
+ *   openReturnModal: Function,
  * }} props
  */
 export default function ToPayTab({
@@ -75,6 +80,7 @@ export default function ToPayTab({
   toPayFilterCurrency, setToPayFilterCurrency,
   toPayFilterPaymentType, setToPayFilterPaymentType,
   toPayFilterIgv, setToPayFilterIgv,
+  toPayFilterAlert, setToPayFilterAlert,
   toPayProjects,
   filteredToPayBatches,
   expandedToPayBatches,
@@ -85,6 +91,8 @@ export default function ToPayTab({
   selectedOrders,
   toggleOrderSelect,
   openBulkModal,
+  openReturnModal,
+  openInfoModal,
 }) {
   if (loading) return <LoadingSpinner />;
 
@@ -143,6 +151,19 @@ export default function ToPayTab({
           <option value="true">Con IGV</option>
           <option value="false">Sin IGV</option>
         </select>
+        
+        <button
+          onClick={() => setToPayFilterAlert(prev => prev === 'overdue' ? '' : 'overdue')}
+          className={`px-3 py-2 rounded text-sm font-medium flex items-center gap-1.5 transition-colors border ${
+            toPayFilterAlert === 'overdue'
+              ? 'bg-red-50 text-red-600 border-red-200 shadow-sm'
+              : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          <ClockIcon className="size-4" />
+          Vencidos
+        </button>
+        
         <Button variant="primary" size="md" onClick={onOpenQuickPay} className="ml-auto gap-2">
           <CurrencyDollarIcon className="size-4" />
           Pago Rápido
@@ -156,16 +177,16 @@ export default function ToPayTab({
           return (
             <div
               key={batch.batch_id}
-              className={`overflow-hidden rounded-lg border bg-white transition-shadow hover:shadow-md ${alertStatus === 'overdue' ? 'border-red-300' :
+              className={`overflow-hidden rounded-lg border-2 bg-white shadow-sm transition-shadow hover:shadow-md ${alertStatus === 'overdue' ? 'border-red-300' :
                 alertStatus === 'today' ? 'border-amber-300' :
                   alertStatus === 'urgent' ? 'border-orange-300' :
-                    'border-gray-100'
+                    'border-gray-200'
                 }`}
             >
               {/* Batch Header */}
               <button
                 onClick={() => toggleToPayBatchExpanded(batch.batch_id)}
-                className={`flex w-full flex-wrap items-center gap-2 px-4 py-3 text-left text-sm transition-colors ${expandedToPayBatches[batch.batch_id] ? 'bg-gray-50' : 'hover:bg-gray-50'
+                className={`flex w-full flex-wrap items-center gap-2 px-4 py-3 text-left text-sm transition-colors ${expandedToPayBatches[batch.batch_id] ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'
                   }`}
               >
                 <ChevronDownIcon className={`size-4 shrink-0 text-gray-400 transition-transform ${expandedToPayBatches[batch.batch_id] ? 'rotate-180' : ''}`} />
@@ -206,6 +227,8 @@ export default function ToPayTab({
                     {batch.orders.map((order) => {
                       const amount = (order.amount_with_igv ?? order.amount) || 0;
                       const qty = getOrderQty(order);
+                      const qtyNum = getOrderQtyNum(order);
+                      const unitPrice = qtyNum > 0 ? amount / qtyNum : 0;
                       return (
                         <div key={order.id} className="flex items-center gap-3 py-2 text-sm">
                           <input
@@ -217,9 +240,26 @@ export default function ToPayTab({
                           <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ background: getProjectColor(order.project_id) }}>{formatProjectDisplay(order)}</span>
                           <span className="flex-1 truncate text-gray-700">{getOrderTitle(order)}</span>
                           {qty !== '-' && qty > 0 && <span className="text-gray-500">Cant: {qty}</span>}
+                          {amount > 0 && qtyNum > 0 && (
+                            <span className="text-gray-600">P.Unit: {batch.currency} {formatNumber(unitPrice)}</span>
+                          )}
                           {amount > 0 ? (
                             <span className="font-medium text-gray-900">{batch.currency} {formatNumber(amount)}</span>
                           ) : null}
+                          <button
+                            onClick={() => openInfoModal(order)}
+                            className="flex items-center justify-center rounded-full p-1 text-gray-400 hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                            title="Info"
+                          >
+                            <InformationCircleIcon className="size-4" />
+                          </button>
+                          <button
+                            onClick={() => openReturnModal(order)}
+                            className="ml-auto flex items-center justify-center rounded-full p-1 text-gray-400 hover:bg-amber-100 hover:text-amber-600 transition-colors"
+                            title="Devolver a Por Cotizar"
+                          >
+                            <ArrowUturnLeftIcon className="size-4" />
+                          </button>
                         </div>
                       );
                     })}

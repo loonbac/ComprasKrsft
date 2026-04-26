@@ -35,6 +35,7 @@ Route::post('/approve-bulk', "{$approval}@approveBulk");
 Route::post('/approve-quoted-bulk', "{$approval}@approveQuotedBulk");
 Route::post('/reject-quoted-bulk', "{$approval}@rejectQuotedBulk");
 Route::put('/{id}/reject-quoted', "{$approval}@rejectQuoted")->where('id', '[0-9]+');
+Route::put('/{id}/return-to-pending', "{$approval}@returnToPending")->where('id', '[0-9]+');
 
 // ── Pagos (PaymentController) ───────────────────────────────────────
 Route::post('/pay-bulk', "{$payment}@payBulk");
@@ -58,6 +59,7 @@ Route::post('/cancel/reject', "{$cancel}@rejectCancellation");
 
 // ── Exportaciones (ExportController) ────────────────────────────────
 Route::get('/export', "{$export}@exportExcel");
+Route::get('/export-material-list', "{$export}@exportMaterialList");
 
 // ── Proveedores (SupplierController) ────────────────────────────────
 Route::get('/suppliers', "{$supplier}@index");
