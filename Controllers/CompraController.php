@@ -57,6 +57,7 @@ class CompraController extends Controller
         $query = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
             ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
+            ->whereNull('purchase_orders.deleted_at')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
@@ -91,6 +92,7 @@ class CompraController extends Controller
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
             ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
             ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
+            ->whereNull('purchase_orders.deleted_at')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
@@ -119,6 +121,7 @@ class CompraController extends Controller
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
             ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
             ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
+            ->whereNull('purchase_orders.deleted_at')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
@@ -151,6 +154,7 @@ class CompraController extends Controller
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
             ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
             ->leftJoin('users as approver', 'purchase_orders.approved_by', '=', 'approver.id')
+            ->whereNull('purchase_orders.deleted_at')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
@@ -182,6 +186,7 @@ class CompraController extends Controller
         $order = DB::table($this->ordersTable)
             ->join($this->projectsTable, 'purchase_orders.project_id', '=', 'projects.id')
             ->leftJoin('cecos', 'projects.ceco_id', '=', 'cecos.id')
+            ->whereNull('purchase_orders.deleted_at')
             ->select([
                 'purchase_orders.*',
                 'projects.name as project_name',
@@ -209,6 +214,7 @@ class CompraController extends Controller
     public function getSellers()
     {
         $sellers = DB::table($this->ordersTable)
+            ->whereNull('deleted_at')
             ->whereNotNull('seller_name')
             ->where('seller_name', '!=', '')
             ->where('status', 'approved')
@@ -256,10 +262,10 @@ class CompraController extends Controller
      */
     public function stats()
     {
-        $pending = DB::table($this->ordersTable)->where('status', 'pending')->count();
-        $approved = DB::table($this->ordersTable)->where('status', 'approved')->count();
-        $rejected = DB::table($this->ordersTable)->where('status', 'rejected')->count();
-        $totalApproved = DB::table($this->ordersTable)->where('status', 'approved')->sum('amount');
+        $pending = DB::table($this->ordersTable)->whereNull('deleted_at')->where('status', 'pending')->count();
+        $approved = DB::table($this->ordersTable)->whereNull('deleted_at')->where('status', 'approved')->count();
+        $rejected = DB::table($this->ordersTable)->whereNull('deleted_at')->where('status', 'rejected')->count();
+        $totalApproved = DB::table($this->ordersTable)->whereNull('deleted_at')->where('status', 'approved')->sum('amount');
 
         return response()->json([
             'success' => true,
