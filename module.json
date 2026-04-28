@@ -54,6 +54,7 @@
         "cancel":               "paid_limited",
         "confirm_receipt":      "paid_limited",
         "finalize_project":     "finalize",
-        "suppliers":            "access"
+        "suppliers":            "access",
+        "return-to-pending":    "pay"
     }
 }
